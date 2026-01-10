@@ -137,11 +137,16 @@ class RenderKit {
         $editor_js_path = $build_dir . '/' . $editor_config['js'];
         
         if (file_exists($editor_js_path)) {
+            $editor_js_version = filemtime($editor_js_path);
+            if (!is_int($editor_js_version) || $editor_js_version <= 0) {
+                $editor_js_version = $version;
+            }
+
             wp_register_script(
                 $editor_config['handle'],
                 $build_url . '/' . $editor_config['js'],
                 $editor_config['deps_js'],
-                $version,
+                $editor_js_version,
                 true
             );
         }
@@ -151,11 +156,16 @@ class RenderKit {
         $view_js_path = $build_dir . '/' . $view_config['js'];
         
         if (file_exists($view_js_path)) {
+            $view_js_version = filemtime($view_js_path);
+            if (!is_int($view_js_version) || $view_js_version <= 0) {
+                $view_js_version = $version;
+            }
+
             wp_register_script(
                 $view_config['handle'],
                 $build_url . '/' . $view_config['js'],
                 $view_config['deps_js'],
-                $version,
+                $view_js_version,
                 true
             );
         }
@@ -164,11 +174,16 @@ class RenderKit {
         $css_path = $build_dir . '/' . $editor_config['css'];
         
         if (file_exists($css_path)) {
+            $css_version = filemtime($css_path);
+            if (!is_int($css_version) || $css_version <= 0) {
+                $css_version = $version;
+            }
+
             wp_register_style(
                 $this->config['namespace'] . '-style',
                 $build_url . '/' . $editor_config['css'],
                 [],
-                $version
+                $css_version
             );
         }
     }

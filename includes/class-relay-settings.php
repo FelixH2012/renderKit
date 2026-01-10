@@ -43,6 +43,17 @@ class RelaySettings {
             'sanitize_callback' => [$this, 'sanitize_settings'],
             'default'           => self::get_stored_settings(),
         ]);
+
+        // Relay Settings Section
+        add_settings_section('renderkit_relay_section', 'Relay Configuration', '__return_empty_string', 'renderkit-relay');
+        add_settings_field('renderkit_relay_url', 'Relay URL', [self::class, 'render_url_field'], 'renderkit-relay', 'renderkit_relay_section');
+        add_settings_field('renderkit_relay_secret', 'Relay Secret', [self::class, 'render_secret_field'], 'renderkit-relay', 'renderkit_relay_section');
+        add_settings_field('renderkit_relay_timeout', 'Relay Timeout (s)', [self::class, 'render_timeout_field'], 'renderkit-relay', 'renderkit_relay_section');
+        add_settings_field('renderkit_relay_sync_env', 'Sync to .env', [self::class, 'render_sync_env_field'], 'renderkit-relay', 'renderkit_relay_section');
+
+        // Gemini AI Settings
+        add_settings_section('renderkit_ai_section', 'AI Configuration (Gemini)', '__return_empty_string', 'renderkit-relay');
+        add_settings_field('renderkit_gemini_api_key', 'Gemini API Key', [self::class, 'render_gemini_key_field'], 'renderkit-relay', 'renderkit_ai_section');
     }
 
     /**
@@ -80,6 +91,10 @@ class RelaySettings {
             $sanitized['syncEnv'] = (int) $input['syncEnv'];
         }
 
+        if (isset($input['gemini_api_key'])) {
+            $sanitized['gemini_api_key'] = sanitize_text_field($input['gemini_api_key']);
+        }
+
         return $sanitized;
     }
 
@@ -88,10 +103,11 @@ class RelaySettings {
      */
     public static function get_stored_settings(): array {
         $defaults = [
-            'url'     => 'http://127.0.0.1:8787',
-            'secret'  => '',
-            'timeout' => 1.5,
-            'syncEnv' => 0,
+            'url'            => 'http://127.0.0.1:8787',
+            'secret'         => '',
+            'timeout'        => 1.5,
+            'syncEnv'        => 0,
+            'gemini_api_key' => '',
         ];
 
         $stored = get_option(self::OPTION_KEY);
@@ -215,6 +231,20 @@ class RelaySettings {
         );
 
         return (bool) file_put_contents($path, $content);
+    }
+
+    /**
+     * Render Gemini API Key field
+     */
+    public static function render_gemini_key_field(): void {
+        $options = get_option(self::OPTION_KEY);
+        $key = $options['gemini_api_key'] ?? '';
+        ?>
+        <input type="password" name="<?php echo esc_attr(self::OPTION_KEY); ?>[gemini_api_key]" value="<?php echo esc_attr($key); ?>" class="regular-text" placeholder="AIza...">
+        <p class="description">
+            <?php esc_html_e('Required for AI-powered product generation (Google Gemini API).', 'renderkit'); ?>
+        </p>
+        <?php
     }
 
     public function render_settings_page(): void {
@@ -787,7 +817,15 @@ class RelaySettings {
                             </div>
                         </div>
 
-                        <div class="rk-row" style="margin-top: 4px;">
+                        <div class="rk-field" style="margin-top: 20px;">
+                            <div class="rk-field__label">
+                                <label for="rk-gemini-key"><?php echo esc_html__('Gemini AI Key', 'renderkit'); ?></label>
+                                <span class="rk-field__meta"><?php echo esc_html__('Optional', 'renderkit'); ?></span>
+                            </div>
+                            <?php self::render_gemini_key_field(); ?>
+                        </div>
+
+                        <div class="rk-row" style="margin-top: 8px;">
                             <button type="submit" class="rk-btn">
                                 <?php echo esc_html__('Save Settings', 'renderkit'); ?>
                             </button>

@@ -20,6 +20,11 @@ const wpExternals = [
     '@wordpress/i18n',
     '@wordpress/icons',
     '@wordpress/primitives',
+    '@wordpress/editor',
+    '@wordpress/edit-post',
+    '@wordpress/plugins',
+    '@wordpress/notices',
+    '@wordpress/api-fetch',
     'react',
     'react-dom',
 ];
@@ -37,6 +42,11 @@ const wpGlobals = {
     '@wordpress/i18n': 'wp.i18n',
     '@wordpress/icons': 'wp.icons',
     '@wordpress/primitives': 'wp.primitives',
+    '@wordpress/editor': 'wp.editor',
+    '@wordpress/edit-post': 'wp.editPost',
+    '@wordpress/plugins': 'wp.plugins',
+    '@wordpress/notices': 'wp.notices',
+    '@wordpress/api-fetch': 'wp.apiFetch',
     react: 'React',
     'react-dom': 'ReactDOM',
 };

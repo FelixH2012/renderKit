@@ -15,6 +15,7 @@ const envConfig = fs.readFileSync(envPath, 'utf8')
 
 const SECRET = envConfig.RENDERKIT_RELAY_SECRET;
 const PORT = envConfig.RENDERKIT_RELAY_PORT || 8787;
+const BYPASS_CACHE = envConfig.RENDERKIT_RELAY_LOADTEST_BYPASS_CACHE === '1';
 
 if (!SECRET) {
     console.error('Error: RENDERKIT_RELAY_SECRET not found in .env');
@@ -32,7 +33,12 @@ const BLOCKS = [
                 buttonText: 'Learn More',
                 buttonUrl: '#',
                 theme: 'dark',
-                enableAnimations: true
+                enableAnimations: true,
+                variant: 'full',
+                stat1Label: 'Stat 1',
+                stat1Value: '100%',
+                stat2Label: 'Stat 2',
+                stat2Value: 'OK',
             }
         }
     },
@@ -47,7 +53,10 @@ const BLOCKS = [
                     { id: 4, title: 'Test Product 4', excerpt: 'Featured', url: '#', price: 49.99, sale_price: 0, image: null, stock_status: 'instock' },
                 ],
                 columns: 4,
-                showPrice: true
+                showPrice: true,
+                count: 4,
+                category: 0,
+                showButton: true,
             }
         }
     },
@@ -61,7 +70,12 @@ const BLOCKS = [
                     { id: 3, title: 'Contact', url: '/contact' }
                 ],
                 siteName: 'RenderKit Demo',
-                showLogo: false
+                showLogo: false,
+                logoUrl: '',
+                sticky: true,
+                theme: 'light',
+                showCart: false,
+                menuSlug: 'renderkit-primary',
             }
         }
     },
@@ -69,10 +83,10 @@ const BLOCKS = [
         name: 'renderkit/text-block',
         props: {
             attributes: {
-                content: '<h2>Hello World</h2><p>This is a test.</p>',
-                align: 'center',
-                theme: 'light'
-            }
+                theme: 'light',
+                width: 'narrow',
+            },
+            content: '<h2>Hello World</h2><p>This is a test.</p>',
         }
     },
     {
@@ -86,6 +100,7 @@ const BLOCKS = [
                     { id: 2, title: 'Imprint', url: '/imprint' }
                 ],
                 showLogo: false,
+                logoUrl: '',
                 theme: 'dark'
             }
         }
@@ -97,11 +112,25 @@ let errors = 0;
 
 function sendRequest() {
     const block = BLOCKS[Math.floor(Math.random() * BLOCKS.length)];
-    // Add random prop to bypass memoization cache sometimes
-    const payload = {
-        block: block.name,
-        props: { ...block.props, _rand: Math.random() }
-    };
+    const props = JSON.parse(JSON.stringify(block.props));
+
+    if (BYPASS_CACHE) {
+        // Mutate a schema-allowed attribute that does not affect the HTML output (for most blocks),
+        // so we can measure cold renders without changing markup.
+        if (block.name === 'renderkit/hero') {
+            props.attributes.stat1Value = String(Math.random());
+        } else if (block.name === 'renderkit/product-grid') {
+            props.attributes.count = Math.floor(Math.random() * 1000);
+        } else if (block.name === 'renderkit/navigation') {
+            props.attributes.menuSlug = `renderkit-primary-${Math.floor(Math.random() * 1000)}`;
+        } else if (block.name === 'renderkit/footer') {
+            props.attributes.menuSlug = `renderkit-footer-${Math.floor(Math.random() * 1000)}`;
+        } else if (block.name === 'renderkit/text-block') {
+            props.content = `${props.content || ''}<!-- ${Math.random()} -->`;
+        }
+    }
+
+    const payload = { block: block.name, props };
 
     const body = JSON.stringify(payload);
     const timestamp = Math.floor(Date.now() / 1000);
@@ -148,6 +177,7 @@ function sendRequest() {
 }
 
 console.log(`Starting load test on port ${PORT}...`);
+console.log(`Bypass cache: ${BYPASS_CACHE ? 'ON' : 'OFF'} (set RENDERKIT_RELAY_LOADTEST_BYPASS_CACHE=1 in relay/.env)`);
 console.log('Press Ctrl+C to stop');
 
 // Burst mode: Send batches of requests

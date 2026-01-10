@@ -57,6 +57,11 @@ function init(): void {
     // Initialize Image Optimizer
     $optimizer = new ImageOptimizer();
     $optimizer->init();
+
+    // Initialize AI Service
+    require_once RENDERKIT_PLUGIN_DIR . 'includes/class-ai-service.php';
+    $ai_service = new AIService();
+    $ai_service->init();
 }
 
 add_action('plugins_loaded', __NAMESPACE__ . '\\init');

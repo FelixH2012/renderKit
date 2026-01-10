@@ -223,12 +223,6 @@ function enhanceProductGridBento() {
         typeof window.matchMedia === 'function' &&
         window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    // Close on Escape (JS-only enhancement; <details> still works without it)
-    window.addEventListener('keydown', (event) => {
-        if (event.key !== 'Escape') return;
-        items.forEach((details) => (details.open = false));
-    });
-
     const fromRects = new WeakMap<HTMLDetailsElement, DOMRect>();
     const modalParallaxCleanup = new WeakMap<HTMLDetailsElement, () => void>();
     const runningAnimations = new WeakMap<
@@ -314,6 +308,94 @@ function enhanceProductGridBento() {
         window.scrollTo(0, y);
     };
 
+    const closeAnimated = (details: HTMLDetailsElement) => {
+        if (!details.open) return;
+        if (prefersReduced) {
+            details.open = false;
+            return;
+        }
+
+        const surface = details.querySelector<HTMLElement>('[data-rk-bento-surface]');
+        const backdrop = details.querySelector<HTMLElement>('[data-rk-bento-backdrop]');
+        const modalImg = details.querySelector<HTMLElement>('[data-rk-bento-modal-img]');
+
+        if (!surface || !backdrop) {
+            details.open = false;
+            return;
+        }
+
+        const seq = nextSeq(details);
+
+        // Capture the current visual state so we can close smoothly even if the user closes mid-open.
+        const computedSurface = window.getComputedStyle(surface);
+        const computedBackdrop = window.getComputedStyle(backdrop);
+        const fromClip =
+            computedSurface.clipPath && computedSurface.clipPath !== 'none'
+                ? computedSurface.clipPath
+                : 'inset(0px 0px 0px 0px round 0px)';
+        const parsedOpacity = Number.parseFloat(computedBackdrop.opacity || '1');
+        const fromOpacity = Number.isFinite(parsedOpacity) ? parsedOpacity : 1;
+
+        stopRunningAnimations(details);
+        details.dataset.rkBentoState = 'closing';
+
+        const cardRect = fromRects.get(details) || details.getBoundingClientRect();
+        const insetTo = rectToInset(cardRect);
+
+        if (typeof surface.animate !== 'function' || typeof backdrop.animate !== 'function') {
+            details.open = false;
+            return;
+        }
+
+        // Re-apply the current state as inline styles so cancelling previous animations doesn't jump.
+        surface.style.clipPath = fromClip;
+        backdrop.style.opacity = String(fromOpacity);
+        void surface.getBoundingClientRect();
+
+        const durationClose = 680;
+        const clipAnimation = surface.animate([{ clipPath: fromClip }, { clipPath: insetTo }], {
+            duration: durationClose,
+            easing: easingClose,
+            fill: 'both',
+        });
+
+        const fadeAnimation = backdrop.animate(
+            [
+                { opacity: fromOpacity, offset: 0 },
+                { opacity: fromOpacity, offset: 0.55 },
+                { opacity: 0, offset: 1 },
+            ],
+            { duration: durationClose, easing: 'linear', fill: 'both' }
+        );
+
+        runningAnimations.set(details, {
+            clip: clipAnimation,
+            fade: fadeAnimation,
+            finished: Promise.allSettled([clipAnimation.finished, fadeAnimation.finished]),
+        });
+
+        if (modalImg) {
+            modalImg.style.setProperty('--rk-bento-img-x', '0px');
+            modalImg.style.setProperty('--rk-bento-img-y', '0px');
+        }
+
+        Promise.allSettled([clipAnimation.finished, fadeAnimation.finished]).finally(() => {
+            if (!isSeq(details, seq)) return;
+            details.open = false;
+            // Ensure filled WAAPI effects don't leak into the next open.
+            window.requestAnimationFrame(() => {
+                if (!isSeq(details, seq)) return;
+                stopRunningAnimations(details);
+            });
+        });
+    };
+
+    // Close on Escape (JS-only enhancement; <details> still works without it)
+    window.addEventListener('keydown', (event) => {
+        if (event.key !== 'Escape') return;
+        items.filter((details) => details.open).forEach((details) => closeAnimated(details));
+    });
+
     items.forEach((details) => {
         const summary = details.querySelector<HTMLElement>('summary');
         if (summary) {
@@ -321,6 +403,11 @@ function enhanceProductGridBento() {
                 if (details.open) return;
                 const card = details.querySelector<HTMLElement>('[data-rk-bento-card]') || details;
                 fromRects.set(details, card.getBoundingClientRect());
+
+                // Prevent a dark "flash" on open by forcing the backdrop to start transparent
+                // before the <details> open state becomes visible.
+                const backdrop = details.querySelector<HTMLElement>('[data-rk-bento-backdrop]');
+                if (backdrop) backdrop.style.opacity = '0';
             };
 
             summary.addEventListener('pointerdown', captureRect);
@@ -336,76 +423,7 @@ function enhanceProductGridBento() {
                 // Smooth close animation (JS enhancement). Without JS, native <details> behavior still works.
                 if (prefersReduced) return;
                 event.preventDefault();
-
-                const surface = details.querySelector<HTMLElement>('[data-rk-bento-surface]');
-                const modal = details.querySelector<HTMLElement>('[data-rk-bento-modal]');
-                const modalImg = details.querySelector<HTMLElement>('[data-rk-bento-modal-img]');
-
-                if (!surface || !modal) {
-                    details.open = false;
-                    return;
-                }
-
-                const seq = nextSeq(details);
-
-                // Capture the current visual state so we can close smoothly even if the user closes mid-open.
-                const computedSurface = window.getComputedStyle(surface);
-                const computedModal = window.getComputedStyle(modal);
-                const fromClip =
-                    computedSurface.clipPath && computedSurface.clipPath !== 'none'
-                        ? computedSurface.clipPath
-                        : 'inset(0px 0px 0px 0px round 0px)';
-                const parsedOpacity = Number.parseFloat(computedModal.opacity || '1');
-                const fromOpacity = Number.isFinite(parsedOpacity) ? parsedOpacity : 1;
-
-                stopRunningAnimations(details);
-                modal.style.opacity = '';
-                surface.style.clipPath = '';
-                details.dataset.rkBentoState = 'closing';
-
-                const cardRect = fromRects.get(details) || details.getBoundingClientRect();
-                const insetTo = rectToInset(cardRect);
-
-                if (typeof surface.animate !== 'function' || typeof modal.animate !== 'function') {
-                    details.open = false;
-                    return;
-                }
-
-                const durationClose = 620;
-                const clipAnimation = surface.animate(
-                    [{ clipPath: fromClip }, { clipPath: insetTo }],
-                    { duration: durationClose, easing: easingClose, fill: 'both' }
-                );
-
-                const fadeAnimation = modal.animate(
-                    [
-                        { opacity: fromOpacity, offset: 0 },
-                        { opacity: fromOpacity, offset: 0.55 },
-                        { opacity: 0, offset: 1 },
-                    ],
-                    { duration: durationClose, easing: 'linear', fill: 'both' }
-                );
-
-                runningAnimations.set(details, {
-                    clip: clipAnimation,
-                    fade: fadeAnimation,
-                    finished: Promise.allSettled([clipAnimation.finished, fadeAnimation.finished]),
-                });
-
-                if (modalImg) {
-                    modalImg.style.setProperty('--rk-bento-img-x', '0px');
-                    modalImg.style.setProperty('--rk-bento-img-y', '0px');
-                }
-
-                Promise.allSettled([clipAnimation.finished, fadeAnimation.finished]).finally(() => {
-                    if (!isSeq(details, seq)) return;
-                    details.open = false;
-                    // Ensure filled WAAPI effects don't leak into the next open.
-                    window.requestAnimationFrame(() => {
-                        if (!isSeq(details, seq)) return;
-                        stopRunningAnimations(details);
-                    });
-                });
+                closeAnimated(details);
             });
         }
 
@@ -421,9 +439,9 @@ function enhanceProductGridBento() {
 
             if (!details.open) {
                 const surface = details.querySelector<HTMLElement>('[data-rk-bento-surface]');
-                const modal = details.querySelector<HTMLElement>('[data-rk-bento-modal]');
+                const backdrop = details.querySelector<HTMLElement>('[data-rk-bento-backdrop]');
                 if (surface) surface.style.clipPath = '';
-                if (modal) modal.style.opacity = '';
+                if (backdrop) backdrop.style.opacity = '';
                 details.dataset.rkBentoState = '';
                 if (!items.some((d) => d.open)) unlockScroll();
                 return;
@@ -437,41 +455,44 @@ function enhanceProductGridBento() {
             });
 
             const surface = details.querySelector<HTMLElement>('[data-rk-bento-surface]');
-            const modal = details.querySelector<HTMLElement>('[data-rk-bento-modal]');
+            const backdrop = details.querySelector<HTMLElement>('[data-rk-bento-backdrop]');
             const modalImg = details.querySelector<HTMLElement>('[data-rk-bento-modal-img]');
             const media = details.querySelector<HTMLElement>('[data-rk-bento-media]');
 
-            if (!prefersReduced && surface && modal) {
+            if (!prefersReduced && surface && backdrop) {
                 const seq = nextSeq(details);
                 details.dataset.rkBentoState = 'opening';
 
                 const cardRect = fromRects.get(details) || details.getBoundingClientRect();
                 const insetFrom = rectToInset(cardRect);
 
-                if (typeof surface.animate !== 'function' || typeof modal.animate !== 'function') {
+                if (typeof surface.animate !== 'function' || typeof backdrop.animate !== 'function') {
                     details.dataset.rkBentoState = 'open';
                     return;
                 }
 
-                // Start hidden and clipped to the originating card rect.
-                modal.style.opacity = '0';
+                // Start with a transparent backdrop and a clipped surface.
+                backdrop.style.opacity = '0';
                 surface.style.clipPath = insetFrom;
 
                 // Force styles to apply before starting animations.
                 void surface.getBoundingClientRect();
 
-                const durationOpen = 760;
-                const fadeInDuration = 360;
+                const durationOpen = 820;
+                const fadeInDuration = 420;
                 const clipAnimation = surface.animate(
                     [{ clipPath: insetFrom }, { clipPath: 'inset(0px 0px 0px 0px round 0px)' }],
                     { duration: durationOpen, easing: easingOpen, fill: 'both' }
                 );
 
-                const fadeAnimation = modal.animate([{ opacity: 0 }, { opacity: 1 }], {
-                    duration: fadeInDuration,
-                    easing: easingOpen,
-                    fill: 'both',
-                });
+                const fadeAnimation = backdrop.animate(
+                    [
+                        { opacity: 0, offset: 0 },
+                        { opacity: 0, offset: 0.25 },
+                        { opacity: 1, offset: 1 },
+                    ],
+                    { duration: fadeInDuration, easing: easingOpen, fill: 'both' }
+                );
 
                 runningAnimations.set(details, {
                     clip: clipAnimation,
@@ -492,12 +513,21 @@ function enhanceProductGridBento() {
                 Promise.allSettled([clipAnimation.finished, fadeAnimation.finished]).finally(() => {
                     if (!isSeq(details, seq)) return;
                     surface.style.clipPath = '';
-                    modal.style.opacity = '';
+                    backdrop.style.opacity = '';
                     stopRunningAnimations(details);
                     if (details.open && details.dataset.rkBentoState !== 'closing') details.dataset.rkBentoState = 'open';
                 });
             } else {
                 details.dataset.rkBentoState = 'open';
+            }
+
+            const cleanupFns: Array<() => void> = [];
+
+            // Click on the image area closes (JS-only quality-of-life enhancement)
+            if (!prefersReduced && media) {
+                const onMediaClick = () => closeAnimated(details);
+                media.addEventListener('click', onMediaClick);
+                cleanupFns.push(() => media.removeEventListener('click', onMediaClick));
             }
 
             if (!prefersReduced && media && modalImg) {
@@ -535,11 +565,15 @@ function enhanceProductGridBento() {
                 media.addEventListener('pointermove', onMove);
                 media.addEventListener('pointerleave', onLeave);
 
-                modalParallaxCleanup.set(details, () => {
+                cleanupFns.push(() => {
                     media.removeEventListener('pointermove', onMove);
                     media.removeEventListener('pointerleave', onLeave);
                     onLeave();
                 });
+            }
+
+            if (cleanupFns.length > 0) {
+                modalParallaxCleanup.set(details, () => cleanupFns.forEach((fn) => fn()));
             }
         });
     });

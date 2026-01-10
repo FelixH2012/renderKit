@@ -13,6 +13,7 @@ import { View as ProductGridView } from '../blocks/product-grid/view';
 import { View as SwiperView } from '../blocks/swiper/view';
 import { View as TextBlockView } from '../blocks/text-block/view';
 import { View as FooterView } from '../blocks/footer/view';
+import { relayPropsSchemas } from './schemas';
 
 export const relayVersion = '1';
 
@@ -25,12 +26,60 @@ const registry: Record<string, React.ComponentType<any>> = {
     'renderkit/footer': FooterView,
 };
 
-export function renderRelay(block: string, props: Record<string, unknown>): string {
-    const Component = registry[block];
-    if (!Component) {
-        throw new Error(`renderKit-Relay: unsupported block "${block}"`);
+const validatedPropsSymbol = Symbol.for('renderkit.relay.validatedProps');
+
+export class RelayPayloadError extends Error {
+    code: 'unsupported_block' | 'invalid_props';
+
+    constructor(code: RelayPayloadError['code'], details?: unknown) {
+        super(code);
+        this.name = 'RelayPayloadError';
+        this.code = code;
+        if (details) {
+            (this as { details?: unknown }).details = details;
+        }
+    }
+}
+
+function markValidated<T>(value: T): T {
+    if (value && typeof value === 'object') {
+        try {
+            Object.defineProperty(value, validatedPropsSymbol, {
+                value: true,
+                enumerable: false,
+            });
+        } catch {
+            // ignore
+        }
+    }
+    return value;
+}
+
+export function validateRelayProps(block: string, props: unknown): unknown {
+    const schema = (relayPropsSchemas as Record<string, { safeParse: (value: unknown) => any }>)[block];
+    if (!schema) {
+        throw new RelayPayloadError('unsupported_block');
     }
 
-    const element = createElement(Component, props);
+    const result = schema.safeParse(props);
+    if (!result.success) {
+        throw new RelayPayloadError('invalid_props', result.error.issues);
+    }
+
+    return markValidated(result.data);
+}
+
+export function renderRelay(block: string, props: unknown): string {
+    const Component = registry[block];
+    if (!Component) {
+        throw new RelayPayloadError('unsupported_block');
+    }
+
+    const isValidated = Boolean(
+        props && typeof props === 'object' && (props as Record<symbol, unknown>)[validatedPropsSymbol] === true
+    );
+
+    const safeProps = isValidated ? props : validateRelayProps(block, props);
+    const element = createElement(Component, safeProps as any);
     return renderToStaticMarkup(element);
 }

@@ -9,6 +9,7 @@ const rendererPath = path.resolve(__dirname, '../build/relay-renderer.cjs');
 let cachedRenderer = null;
 let cachedRendererMtimeMs = 0;
 let lastRendererCheckMs = 0;
+let renderCache = null;
 
 const rendererCheckMs = Number.parseInt(process.env.RENDERKIT_RELAY_RENDERER_CHECK_MS || '250', 10);
 
@@ -48,6 +49,12 @@ function getRenderer() {
         cachedRenderer = mod;
         if (isReload && typeof metrics !== 'undefined') {
             metrics.rendererReloads++;
+            if (renderCache && typeof renderCache.clear === 'function') {
+                renderCache.clear();
+                if (typeof metrics.cacheClearsTotal === 'number') {
+                    metrics.cacheClearsTotal++;
+                }
+            }
         }
     }
 
@@ -65,6 +72,67 @@ const maxBodyBytes = Number.parseInt(process.env.RENDERKIT_RELAY_MAX_BODY_BYTES 
 const maxSkewSeconds = Number.parseInt(process.env.RENDERKIT_RELAY_MAX_SKEW_SECONDS || '60', 10);
 
 // ─────────────────────────────────────────────────────────────────────────────
+// SSR Response Cache (in-memory LRU)
+// ─────────────────────────────────────────────────────────────────────────────
+
+function parseNonNegativeInt(value, fallback) {
+    const parsed = Number.parseInt(value || '', 10);
+    return Number.isFinite(parsed) && parsed >= 0 ? parsed : fallback;
+}
+
+const cacheEnabled = (process.env.RENDERKIT_RELAY_CACHE_ENABLED || '1') !== '0';
+const cacheMaxEntries = parseNonNegativeInt(process.env.RENDERKIT_RELAY_CACHE_MAX_ENTRIES, 500);
+const cacheTtlMs = parseNonNegativeInt(process.env.RENDERKIT_RELAY_CACHE_TTL_MS, 300000);
+
+class LruCache {
+    constructor(maxEntries, ttlMs) {
+        this.maxEntries = maxEntries;
+        this.ttlMs = ttlMs;
+        this.map = new Map();
+        this.evictions = 0;
+    }
+
+    get(key) {
+        const entry = this.map.get(key);
+        if (!entry) return null;
+
+        if (entry.expiresAt && entry.expiresAt <= Date.now()) {
+            this.map.delete(key);
+            return null;
+        }
+
+        this.map.delete(key);
+        this.map.set(key, entry);
+        return entry.value;
+    }
+
+    set(key, value) {
+        if (this.map.has(key)) {
+            this.map.delete(key);
+        }
+
+        const expiresAt = this.ttlMs > 0 ? Date.now() + this.ttlMs : 0;
+        this.map.set(key, { value, expiresAt });
+
+        while (this.map.size > this.maxEntries) {
+            const oldestKey = this.map.keys().next().value;
+            this.map.delete(oldestKey);
+            this.evictions++;
+        }
+    }
+
+    clear() {
+        this.map.clear();
+    }
+
+    size() {
+        return this.map.size;
+    }
+}
+
+renderCache = cacheEnabled && cacheMaxEntries > 0 ? new LruCache(cacheMaxEntries, cacheTtlMs) : null;
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Prometheus Metrics
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -80,6 +148,10 @@ const metrics = {
     renderDurationLast: {},   // { block: last_duration_seconds }
     renderErrorsTotal: {},    // { "block:error": count }
     systemErrorsTotal: {},    // { "type": count } -> NEW: For auth, bad_request, etc.
+    cacheHitsTotal: {},       // { block: count }
+    cacheMissesTotal: {},     // { block: count }
+    cacheStoresTotal: {},     // { block: count }
+    cacheClearsTotal: 0,
     rendererReloads: 0,
 };
 
@@ -123,6 +195,49 @@ function formatPrometheusMetrics() {
     lines.push('# HELP renderkit_relay_renderer_reloads_total Number of renderer hot-reloads');
     lines.push('# TYPE renderkit_relay_renderer_reloads_total counter');
     lines.push(`renderkit_relay_renderer_reloads_total ${metrics.rendererReloads}`);
+
+    // SSR cache gauges/counters
+    lines.push('# HELP renderkit_relay_cache_enabled Whether the SSR response cache is enabled');
+    lines.push('# TYPE renderkit_relay_cache_enabled gauge');
+    lines.push(`renderkit_relay_cache_enabled ${renderCache ? 1 : 0}`);
+
+    lines.push('# HELP renderkit_relay_cache_max_entries Configured max cache entries');
+    lines.push('# TYPE renderkit_relay_cache_max_entries gauge');
+    lines.push(`renderkit_relay_cache_max_entries ${cacheMaxEntries}`);
+
+    lines.push('# HELP renderkit_relay_cache_ttl_ms Configured cache TTL in ms (0 disables TTL)');
+    lines.push('# TYPE renderkit_relay_cache_ttl_ms gauge');
+    lines.push(`renderkit_relay_cache_ttl_ms ${cacheTtlMs}`);
+
+    lines.push('# HELP renderkit_relay_cache_entries Current SSR cache entries');
+    lines.push('# TYPE renderkit_relay_cache_entries gauge');
+    lines.push(`renderkit_relay_cache_entries ${renderCache ? renderCache.size() : 0}`);
+
+    lines.push('# HELP renderkit_relay_cache_evictions_total Total SSR cache evictions');
+    lines.push('# TYPE renderkit_relay_cache_evictions_total counter');
+    lines.push(`renderkit_relay_cache_evictions_total ${renderCache ? renderCache.evictions : 0}`);
+
+    lines.push('# HELP renderkit_relay_cache_clears_total Total SSR cache clears (e.g. on renderer reload)');
+    lines.push('# TYPE renderkit_relay_cache_clears_total counter');
+    lines.push(`renderkit_relay_cache_clears_total ${metrics.cacheClearsTotal}`);
+
+    lines.push('# HELP renderkit_relay_cache_hits_total Total SSR cache hits');
+    lines.push('# TYPE renderkit_relay_cache_hits_total counter');
+    for (const [block, count] of Object.entries(metrics.cacheHitsTotal)) {
+        lines.push(`renderkit_relay_cache_hits_total{block="${block}"} ${count}`);
+    }
+
+    lines.push('# HELP renderkit_relay_cache_misses_total Total SSR cache misses');
+    lines.push('# TYPE renderkit_relay_cache_misses_total counter');
+    for (const [block, count] of Object.entries(metrics.cacheMissesTotal)) {
+        lines.push(`renderkit_relay_cache_misses_total{block="${block}"} ${count}`);
+    }
+
+    lines.push('# HELP renderkit_relay_cache_stores_total Total SSR cache stores');
+    lines.push('# TYPE renderkit_relay_cache_stores_total counter');
+    for (const [block, count] of Object.entries(metrics.cacheStoresTotal)) {
+        lines.push(`renderkit_relay_cache_stores_total{block="${block}"} ${count}`);
+    }
 
     // Requests total counter
     lines.push('# HELP renderkit_relay_requests_total Total HTTP requests');
@@ -217,6 +332,16 @@ function verifySignature(req, rawBody) {
     return { ok: true };
 }
 
+function makeCacheKey(block, props) {
+    try {
+        const json = JSON.stringify(props);
+        const digest = crypto.createHash('sha256').update(json).digest('hex');
+        return `${block}:${digest}`;
+    } catch {
+        return null;
+    }
+}
+
 const server = http.createServer((req, res) => {
     const url = new URL(req.url || '/', 'http://localhost');
 
@@ -293,13 +418,47 @@ const server = http.createServer((req, res) => {
         const renderStart = process.hrtime.bigint();
         try {
             const renderer = getRenderer();
-            const html = renderer.renderRelay(block, props);
+
+            let safeProps = props;
+            if (typeof renderer.validateRelayProps === 'function') {
+                safeProps = renderer.validateRelayProps(block, props);
+            }
+
+            const cacheKey = renderCache ? makeCacheKey(block, safeProps) : null;
+            if (renderCache && cacheKey) {
+                const cached = renderCache.get(cacheKey);
+                if (cached !== null) {
+                    incCounter(metrics.cacheHitsTotal, block);
+                    const durationNs = Number(process.hrtime.bigint() - renderStart);
+                    const durationSeconds = durationNs / 1e9;
+                    observeHistogram(block, durationSeconds);
+                    incCounter(metrics.requestsTotal, 'render:200');
+                    return sendJson(res, 200, { ok: true, html: cached });
+                }
+                incCounter(metrics.cacheMissesTotal, block);
+            }
+
+            const html = renderer.renderRelay(block, safeProps);
+            if (renderCache && cacheKey) {
+                renderCache.set(cacheKey, html);
+                incCounter(metrics.cacheStoresTotal, block);
+            }
+
             const durationNs = Number(process.hrtime.bigint() - renderStart);
             const durationSeconds = durationNs / 1e9;
             observeHistogram(block, durationSeconds);
             incCounter(metrics.requestsTotal, 'render:200');
             return sendJson(res, 200, { ok: true, html });
         } catch (error) {
+            const relayErrorCode =
+                error && typeof error === 'object' && typeof error.code === 'string' ? error.code : null;
+
+            if (relayErrorCode === 'unsupported_block' || relayErrorCode === 'invalid_props') {
+                incCounter(metrics.requestsTotal, 'render:400');
+                incSystemError(relayErrorCode);
+                return sendJson(res, 400, { ok: false, error: relayErrorCode });
+            }
+
             const errorType = error instanceof Error ? error.message : 'unknown';
             incCounter(metrics.renderErrorsTotal, `${block}:${errorType}`);
             incCounter(metrics.requestsTotal, 'render:500');

@@ -10,6 +10,9 @@ services:
     environment:
       RENDERKIT_RELAY_PORT: "${RENDERKIT_RELAY_PORT:-8787}"
       RENDERKIT_RELAY_SECRET: "${RENDERKIT_RELAY_SECRET}"
+      RENDERKIT_RELAY_CACHE_ENABLED: "${RENDERKIT_RELAY_CACHE_ENABLED:-1}"
+      RENDERKIT_RELAY_CACHE_MAX_ENTRIES: "${RENDERKIT_RELAY_CACHE_MAX_ENTRIES:-500}"
+      RENDERKIT_RELAY_CACHE_TTL_MS: "${RENDERKIT_RELAY_CACHE_TTL_MS:-300000}"
     healthcheck:
       test: [ "CMD", "node", "-e", "require('http').get('http://127.0.0.1:'+(process.env.RENDERKIT_RELAY_PORT||'8787')+'/health',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1));" ]
       interval: 10s

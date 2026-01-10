@@ -59,6 +59,9 @@ const blocks: BlockRegistration[] = [
     { meta: footerMeta, edit: FooterEdit, save: FooterSave, icon: 'admin-site' },
 ];
 
+// Plugins
+import './plugins/product-ai';
+
 blocks.forEach(({ meta, edit, save, icon }) => {
     const { name, ...settings } = meta;
     registerBlockType(name, {
