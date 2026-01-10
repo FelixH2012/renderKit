@@ -3,7 +3,7 @@
  * Plugin Name: renderKit
  * Plugin URI: https://renderkit.dev
  * Description: Premium Gutenberg block system with React frontend rendering and Tailwind CSS styling. Build beautiful, interactive blocks with ease.
- * Version: 1.2.1
+ * Version: 1.3.0
  * Author: renderKit Team
  * Author URI: https://renderkit.dev
  * License: GPL-2.0-or-later
@@ -24,7 +24,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Plugin constants
-define('RENDERKIT_VERSION', '1.2.1');
+define('RENDERKIT_VERSION', '1.3.0');
 define('RENDERKIT_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('RENDERKIT_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('RENDERKIT_PLUGIN_BASENAME', plugin_basename(__FILE__));
@@ -302,16 +302,38 @@ function plugin_information(object|false $result, string $action, object $args):
         return $result;
     }
 
-    // Create a fake plugin info object
-    $changelog_file = RENDERKIT_PLUGIN_DIR . 'CHANGELOG.md';
-    $changelog = file_exists($changelog_file) ? file_get_contents($changelog_file) : '';
+    // Parse readme.txt for Changelog
+    $readme_file = RENDERKIT_PLUGIN_DIR . 'readme.txt';
+    $readme = file_exists($readme_file) ? file_get_contents($readme_file) : '';
     
-    // Convert markdown to HTML (basic conversion)
-    $changelog_html = preg_replace('/^## \[(.+?)\]/m', '<h4>$1</h4>', $changelog);
-    $changelog_html = preg_replace('/^### (.+)/m', '<h5>$1</h5>', $changelog_html);
-    $changelog_html = preg_replace('/^- (.+)/m', '<li>$1</li>', $changelog_html);
+    $changelog_content = '';
+    if (preg_match('/== Changelog ==(.*?)(?:$|==)/s', $readme, $matches)) {
+        $changelog_content = trim($matches[1]);
+    }
+
+    // Convert readme format to HTML
+    // 1. Version headers: = 1.0.0 =
+    $changelog_html = preg_replace('/^= (.+?) =/m', '<h4>$1</h4>', $changelog_content);
+    
+    // 2. List items: * Item
+    // We need to wrap adjacent li items in ul. A simple way for this context:
+    $changelog_html = preg_replace('/^\* (.+)/m', '<li>$1</li>', $changelog_html);
+    
+    // 3. Bold text: **Text**
     $changelog_html = preg_replace('/\*\*(.+?)\*\*/', '<strong>$1</strong>', $changelog_html);
-    $changelog_html = nl2br($changelog_html);
+    
+    // 4. Line breaks aren't needed for <li> structure mostly, but helps with spacing
+    // We want to wrap log items in <ul> per version block. 
+    // Quick hack: just output list items. But better to make it nicer.
+    
+    // Improve formatting: Wrap lists in UL
+    // Find blocks of <li>...</li> and wrap them
+    $changelog_html = preg_replace_callback('/(<li>.*?<\/li>\s*)+/s', function($m) {
+        return '<ul style="list-style-type: disc; margin-left: 20px;">' . $m[0] . '</ul>';
+    }, $changelog_html);
+
+    // Filter empty lines
+    $changelog_html = preg_replace('/\n\s*\n/', "\n", $changelog_html);
 
     return (object) [
         'name' => 'renderKit',

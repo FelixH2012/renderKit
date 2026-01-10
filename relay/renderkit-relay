@@ -180,6 +180,20 @@ ENV
         die "missing curl/wget for health check"
         ;;
 
+    metrics)
+        require_env
+        port="${RENDERKIT_RELAY_PORT:-$DEFAULT_PORT}"
+        if command -v curl >/dev/null 2>&1; then
+            curl -fsS "http://127.0.0.1:${port}/metrics"
+            exit 0
+        fi
+        if command -v wget >/dev/null 2>&1; then
+            wget -qO- "http://127.0.0.1:${port}/metrics"
+            exit 0
+        fi
+        die "missing curl/wget for metrics"
+        ;;
+
     help|--help|-h)
         cat <<TXT
 renderKit-Relay helper
@@ -192,6 +206,7 @@ Usage:
   $0 logs
   $0 status
   $0 health
+  $0 metrics
   $0 wp-config
 
 Notes:

@@ -1,4 +1,5 @@
 export type HeroTheme = 'dark' | 'light';
+export type HeroVariant = 'full' | 'minimal';
 
 export interface HeroAttributes {
     heading: string;
@@ -10,6 +11,6 @@ export interface HeroAttributes {
     stat2Label: string;
     stat2Value: string;
     theme: HeroTheme;
+    variant: HeroVariant;
     enableAnimations: boolean;
 }
-

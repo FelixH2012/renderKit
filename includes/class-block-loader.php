@@ -172,6 +172,7 @@ class BlockLoader {
         $prepared_attributes = $this->prepare_relay_attributes($block_name, $attributes);
         $props = [
             'attributes' => $prepared_attributes,
+            'content'    => $content,
         ];
 
         $html = $this->relay->render($block_name, $props);
@@ -205,9 +206,49 @@ class BlockLoader {
                 return $this->prepare_navigation_attributes($attributes);
             case 'renderkit/product-grid':
                 return $this->prepare_product_grid_attributes($attributes);
+            case 'renderkit/swiper':
+                return $this->prepare_swiper_attributes($attributes);
+            case 'renderkit/footer':
+                return $this->prepare_footer_attributes($attributes);
             default:
                 return $attributes;
         }
+    }
+
+    /**
+     * @param array<string, mixed> $attributes
+     * @return array<string, mixed>
+     */
+    private function prepare_footer_attributes(array $attributes): array {
+        $menu_slug = (string) ($attributes['menuSlug'] ?? 'renderkit-footer');
+        $site_name = !empty($attributes['siteName']) ? (string) $attributes['siteName'] : get_bloginfo('name');
+
+        $menu_items = [];
+        $locations = get_nav_menu_locations();
+
+        if (!empty($locations[$menu_slug])) {
+            $menu = wp_get_nav_menu_object($locations[$menu_slug]);
+            if ($menu) {
+                $items = wp_get_nav_menu_items($menu->term_id);
+                if ($items) {
+                    foreach ($items as $item) {
+                        if ((int) $item->menu_item_parent !== 0) {
+                            continue;
+                        }
+                        $menu_items[] = [
+                            'id'    => (int) $item->ID,
+                            'title' => (string) $item->title,
+                            'url'   => (string) $item->url,
+                        ];
+                    }
+                }
+            }
+        }
+
+        $attributes['menuItems'] = $menu_items;
+        $attributes['siteName'] = $site_name;
+
+        return $attributes;
     }
 
     /**
@@ -264,6 +305,65 @@ class BlockLoader {
         }
 
         $attributes['products'] = Products::get_products($args);
+        return $attributes;
+    }
+
+    /**
+     * Enrich Swiper slide images with WP attachment data (src, srcset, sizes, dimensions, alt).
+     *
+     * @param array<string, mixed> $attributes
+     * @return array<string, mixed>
+     */
+    private function prepare_swiper_attributes(array $attributes): array {
+        $slides = $attributes['slides'] ?? [];
+        if (!is_array($slides)) {
+            return $attributes;
+        }
+
+        $prepared = [];
+        foreach ($slides as $raw_slide) {
+            if (!is_array($raw_slide)) {
+                continue;
+            }
+
+            $slide = $raw_slide;
+            $image_id = isset($slide['imageId']) ? (int) $slide['imageId'] : 0;
+
+            if ($image_id > 0) {
+                $src = wp_get_attachment_image_url($image_id, 'full');
+                if (is_string($src) && $src !== '') {
+                    $slide['imageUrl'] = $src;
+                }
+
+                $alt = get_post_meta($image_id, '_wp_attachment_image_alt', true);
+                if (is_string($alt)) {
+                    $slide['imageAlt'] = $alt;
+                }
+
+                $image_src = wp_get_attachment_image_src($image_id, 'full');
+                if (is_array($image_src) && isset($image_src[1], $image_src[2])) {
+                    $slide['imageWidth'] = (int) $image_src[1];
+                    $slide['imageHeight'] = (int) $image_src[2];
+                }
+
+                $srcset = wp_get_attachment_image_srcset($image_id, 'large');
+                if (is_string($srcset) && $srcset !== '') {
+                    $slide['imageSrcSet'] = $srcset;
+                }
+
+                $sizes = wp_get_attachment_image_sizes($image_id, 'large');
+                if (is_string($sizes) && $sizes !== '') {
+                    $slide['imageSizes'] = $sizes;
+                } else {
+                    // Fallback: match the "peek" layout used by the CSS slider.
+                    $slide['imageSizes'] = '(max-width: 640px) 90vw, (max-width: 1024px) 70vw, 50vw';
+                }
+            }
+
+            $prepared[] = $slide;
+        }
+
+        $attributes['slides'] = $prepared;
         return $attributes;
     }
 

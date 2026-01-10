@@ -30,6 +30,7 @@ function getRenderer() {
 
     const mtimeMs = stat.mtimeMs;
     if (!cachedRenderer || cachedRendererMtimeMs !== mtimeMs) {
+        const isReload = cachedRenderer !== null;
         cachedRendererMtimeMs = mtimeMs;
         try {
             const resolved = require.resolve(rendererPath);
@@ -45,6 +46,9 @@ function getRenderer() {
         }
 
         cachedRenderer = mod;
+        if (isReload && typeof metrics !== 'undefined') {
+            metrics.rendererReloads++;
+        }
     }
 
     return cachedRenderer;
@@ -59,6 +63,115 @@ if (!secret) {
 const port = Number.parseInt(process.env.RENDERKIT_RELAY_PORT || '8787', 10);
 const maxBodyBytes = Number.parseInt(process.env.RENDERKIT_RELAY_MAX_BODY_BYTES || '1048576', 10);
 const maxSkewSeconds = Number.parseInt(process.env.RENDERKIT_RELAY_MAX_SKEW_SECONDS || '60', 10);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Prometheus Metrics
+// ─────────────────────────────────────────────────────────────────────────────
+
+const startTime = Date.now();
+// Ultra-fine buckets for SSR (0.1ms to 500ms)
+const histogramBuckets = [
+    0.0001, 0.00025, 0.0005, 0.001, 0.0025, 0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5
+];
+
+const metrics = {
+    requestsTotal: {},        // { "endpoint:status": count }
+    renderDuration: {},       // { block: { buckets: [...], sum: 0, count: 0 } }
+    renderDurationLast: {},   // { block: last_duration_seconds }
+    renderErrorsTotal: {},    // { "block:error": count }
+    systemErrorsTotal: {},    // { "type": count } -> NEW: For auth, bad_request, etc.
+    rendererReloads: 0,
+};
+
+function incCounter(map, key) {
+    map[key] = (map[key] || 0) + 1;
+}
+
+function incSystemError(type) {
+    incCounter(metrics.systemErrorsTotal, type);
+}
+
+function observeHistogram(block, duration) {
+    if (!metrics.renderDuration[block]) {
+        metrics.renderDuration[block] = {
+            buckets: histogramBuckets.map(() => 0),
+            sum: 0,
+            count: 0,
+        };
+    }
+    const h = metrics.renderDuration[block];
+    h.sum += duration;
+    h.count += 1;
+    for (let i = 0; i < histogramBuckets.length; i++) {
+        if (duration <= histogramBuckets[i]) {
+            h.buckets[i]++;
+        }
+    }
+    metrics.renderDurationLast[block] = duration;
+}
+
+function formatPrometheusMetrics() {
+    const lines = [];
+    const uptimeSeconds = (Date.now() - startTime) / 1000;
+
+    // Uptime gauge
+    lines.push('# HELP renderkit_relay_uptime_seconds Time since service start');
+    lines.push('# TYPE renderkit_relay_uptime_seconds gauge');
+    lines.push(`renderkit_relay_uptime_seconds ${uptimeSeconds.toFixed(3)}`);
+
+    // Renderer reloads counter
+    lines.push('# HELP renderkit_relay_renderer_reloads_total Number of renderer hot-reloads');
+    lines.push('# TYPE renderkit_relay_renderer_reloads_total counter');
+    lines.push(`renderkit_relay_renderer_reloads_total ${metrics.rendererReloads}`);
+
+    // Requests total counter
+    lines.push('# HELP renderkit_relay_requests_total Total HTTP requests');
+    lines.push('# TYPE renderkit_relay_requests_total counter');
+    for (const [key, count] of Object.entries(metrics.requestsTotal)) {
+        const [endpoint, status] = key.split(':');
+        lines.push(`renderkit_relay_requests_total{endpoint="${endpoint}",status="${status}"} ${count}`);
+    }
+
+    // Render errors counter
+    lines.push('# HELP renderkit_relay_render_errors_total Total render errors');
+    lines.push('# TYPE renderkit_relay_render_errors_total counter');
+    for (const [key, count] of Object.entries(metrics.renderErrorsTotal)) {
+        const [block, error] = key.split(':');
+        lines.push(`renderkit_relay_render_errors_total{block="${block}",error="${error}"} ${count}`);
+    }
+
+    // Render duration histogram
+    lines.push('# HELP renderkit_relay_render_duration_seconds Render latency in seconds');
+    lines.push('# TYPE renderkit_relay_render_duration_seconds histogram');
+    for (const [block, h] of Object.entries(metrics.renderDuration)) {
+        let cumulative = 0;
+        for (let i = 0; i < histogramBuckets.length; i++) {
+            cumulative += h.buckets[i];
+            lines.push(`renderkit_relay_render_duration_seconds_bucket{block="${block}",le="${histogramBuckets[i]}"} ${cumulative}`);
+        }
+        lines.push(`renderkit_relay_render_duration_seconds_bucket{block="${block}",le="+Inf"} ${h.count}`);
+        lines.push(`renderkit_relay_render_duration_seconds_sum{block="${block}"} ${h.sum.toFixed(6)}`);
+        lines.push(`renderkit_relay_render_duration_seconds_count{block="${block}"} ${h.count}`);
+    }
+
+    // Render duration last (gauge)
+    lines.push('# HELP renderkit_relay_render_duration_last_seconds Last render latency in seconds');
+    lines.push('# TYPE renderkit_relay_render_duration_last_seconds gauge');
+    for (const [block, duration] of Object.entries(metrics.renderDurationLast)) {
+        lines.push(`renderkit_relay_render_duration_last_seconds{block="${block}"} ${duration.toFixed(6)}`);
+    }
+
+    // System Errors
+    lines.push('# HELP renderkit_relay_system_errors_total Total system errors by type');
+    lines.push('# TYPE renderkit_relay_system_errors_total counter');
+    for (const [type, count] of Object.entries(metrics.systemErrorsTotal)) {
+        lines.push(`renderkit_relay_system_errors_total{type="${type}"} ${count}`);
+    }
+
+    return lines.join('\n') + '\n';
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 function sendJson(res, statusCode, payload) {
     const body = JSON.stringify(payload);
@@ -107,17 +220,30 @@ function verifySignature(req, rawBody) {
 const server = http.createServer((req, res) => {
     const url = new URL(req.url || '/', 'http://localhost');
 
+    // Prometheus metrics endpoint (secured via Docker port binding to 127.0.0.1)
+    if (req.method === 'GET' && url.pathname === '/metrics') {
+        const body = formatPrometheusMetrics();
+        res.writeHead(200, {
+            'Content-Type': 'text/plain; version=0.0.4; charset=utf-8',
+            'Content-Length': Buffer.byteLength(body),
+        });
+        return res.end(body);
+    }
+
     if (req.method === 'GET' && url.pathname === '/health') {
         try {
             const renderer = getRenderer();
+            incCounter(metrics.requestsTotal, 'health:200');
             return sendJson(res, 200, { ok: true, name: 'renderKit-Relay', version: renderer.relayVersion || 'unknown' });
         } catch (error) {
+            incCounter(metrics.requestsTotal, 'health:503');
             const message = error instanceof Error ? error.message : 'renderer_error';
             return sendJson(res, 503, { ok: false, name: 'renderKit-Relay', error: message });
         }
     }
 
     if (req.method !== 'POST' || url.pathname !== '/render') {
+        incCounter(metrics.requestsTotal, 'unknown:404');
         return sendJson(res, 404, { ok: false, error: 'not_found' });
     }
 
@@ -137,6 +263,8 @@ const server = http.createServer((req, res) => {
         const rawBody = Buffer.concat(chunks).toString('utf8');
         const auth = verifySignature(req, rawBody);
         if (!auth.ok) {
+            incCounter(metrics.requestsTotal, 'render:401');
+            incSystemError('auth_failure');
             return sendJson(res, 401, { ok: false, error: auth.error });
         }
 
@@ -144,19 +272,38 @@ const server = http.createServer((req, res) => {
         try {
             payload = JSON.parse(rawBody);
         } catch {
+            incCounter(metrics.requestsTotal, 'render:400');
+            incSystemError('invalid_json');
             return sendJson(res, 400, { ok: false, error: 'invalid_json' });
         }
 
         const block = payload?.block;
         const props = payload?.props;
-        if (typeof block !== 'string') return sendJson(res, 400, { ok: false, error: 'missing_block' });
-        if (props === null || typeof props !== 'object') return sendJson(res, 400, { ok: false, error: 'missing_props' });
+        if (typeof block !== 'string') {
+            incCounter(metrics.requestsTotal, 'render:400');
+            incSystemError('missing_block');
+            return sendJson(res, 400, { ok: false, error: 'missing_block' });
+        }
+        if (props === null || typeof props !== 'object') {
+            incCounter(metrics.requestsTotal, 'render:400');
+            incSystemError('missing_props');
+            return sendJson(res, 400, { ok: false, error: 'missing_props' });
+        }
 
+        const renderStart = process.hrtime.bigint();
         try {
             const renderer = getRenderer();
             const html = renderer.renderRelay(block, props);
+            const durationNs = Number(process.hrtime.bigint() - renderStart);
+            const durationSeconds = durationNs / 1e9;
+            observeHistogram(block, durationSeconds);
+            incCounter(metrics.requestsTotal, 'render:200');
             return sendJson(res, 200, { ok: true, html });
         } catch (error) {
+            const errorType = error instanceof Error ? error.message : 'unknown';
+            incCounter(metrics.renderErrorsTotal, `${block}:${errorType}`);
+            incCounter(metrics.requestsTotal, 'render:500');
+            incSystemError('render_exception');
             console.error('renderKit-Relay render error:', error);
             return sendJson(res, 500, { ok: false, error: 'render_error' });
         }

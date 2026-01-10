@@ -1,0 +1,79 @@
+{
+    "$schema": "https://schemas.wp.org/trunk/block.json",
+    "apiVersion": 3,
+    "name": "renderkit/swiper",
+    "version": "1.2.1",
+    "title": "Swiper",
+    "category": "renderkit",
+    "description": "SEO-friendly carousel with no-JS fallback and optional JS enhancements",
+    "icon": "images-alt2",
+    "textdomain": "renderkit",
+    "supports": {
+        "html": false,
+        "align": [
+            "wide",
+            "full"
+        ]
+    },
+    "attributes": {
+        "ariaLabel": {
+            "type": "string",
+            "default": "Carousel"
+        },
+        "theme": {
+            "type": "string",
+            "default": "light",
+            "enum": [
+                "light",
+                "dark"
+            ]
+        },
+        "showArrows": {
+            "type": "boolean",
+            "default": true
+        },
+        "showDots": {
+            "type": "boolean",
+            "default": true
+        },
+        "slides": {
+            "type": "array",
+            "default": [
+                {
+                    "id": "slide-1",
+                    "eyebrow": "Neu",
+                    "heading": "Premium Slide",
+                    "text": "No-JS friendly: Inhalte sind immer im HTML enthalten.",
+                    "linkText": "Mehr erfahren",
+                    "linkUrl": "#",
+                    "imageId": 0,
+                    "imageUrl": "",
+                    "imageAlt": ""
+                },
+                {
+                    "id": "slide-2",
+                    "eyebrow": "Kollektion",
+                    "heading": "Handgemacht",
+                    "text": "Mit JS: Buttons & Dots. Ohne JS: scroll-snap und swipe.",
+                    "linkText": "Entdecken",
+                    "linkUrl": "#",
+                    "imageId": 0,
+                    "imageUrl": "",
+                    "imageAlt": ""
+                },
+                {
+                    "id": "slide-3",
+                    "eyebrow": "Details",
+                    "heading": "SSR via TSX",
+                    "text": "renderKit-Relay rendert das Markup server-side aus TSX.",
+                    "linkText": "Zur Seite",
+                    "linkUrl": "#",
+                    "imageId": 0,
+                    "imageUrl": "",
+                    "imageAlt": ""
+                }
+            ]
+        }
+    }
+}
+

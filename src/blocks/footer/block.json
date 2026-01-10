@@ -1,0 +1,54 @@
+{
+    "$schema": "https://schemas.wp.org/trunk/block.json",
+    "apiVersion": 3,
+    "name": "renderkit/footer",
+    "version": "1.0.0",
+    "title": "Footer",
+    "category": "renderkit",
+    "description": "Premium footer with menu + optional InnerBlocks content (SSR-first).",
+    "keywords": [
+        "footer",
+        "links",
+        "legal"
+    ],
+    "icon": "admin-site",
+    "textdomain": "renderkit",
+    "supports": {
+        "html": false,
+        "align": [
+            "full"
+        ],
+        "anchor": true
+    },
+    "attributes": {
+        "menuSlug": {
+            "type": "string",
+            "default": "renderkit-footer"
+        },
+        "showLogo": {
+            "type": "boolean",
+            "default": true
+        },
+        "logoUrl": {
+            "type": "string",
+            "default": ""
+        },
+        "siteName": {
+            "type": "string",
+            "default": ""
+        },
+        "tagline": {
+            "type": "string",
+            "default": "Handgemacht. Minimal. Zeitlos."
+        },
+        "theme": {
+            "type": "string",
+            "default": "dark",
+            "enum": [
+                "light",
+                "dark"
+            ]
+        }
+    }
+}
+

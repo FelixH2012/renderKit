@@ -8,7 +8,7 @@ import { __ } from '@wordpress/i18n';
 import { useBlockProps, InspectorControls, RichText } from '@wordpress/block-editor';
 import { PanelBody, TextControl, ToggleControl, SelectControl } from '@wordpress/components';
 import { ArrowRight } from 'lucide-react';
-import type { HeroAttributes, HeroTheme } from './types';
+import type { HeroAttributes, HeroTheme, HeroVariant } from './types';
 
 interface EditProps {
     attributes: HeroAttributes;
@@ -17,15 +17,16 @@ interface EditProps {
 }
 
 export function Edit({ attributes, setAttributes, className }: EditProps): JSX.Element {
-    const { heading, description, buttonText, buttonUrl, stat1Label, stat1Value, stat2Label, stat2Value, theme: colorTheme, enableAnimations } = attributes;
+    const { heading, description, buttonText, buttonUrl, stat1Label, stat1Value, stat2Label, stat2Value, theme: colorTheme, variant = 'full', enableAnimations } = attributes as any;
 
     const blockProps = useBlockProps({
-        className: `renderkit-block renderkit-hero renderkit-hero--${colorTheme} ${className || ''} flex items-center`,
+        className: `renderkit-block renderkit-hero renderkit-hero--${colorTheme} renderkit-hero--${variant} ${className || ''}`.trim(),
     });
 
     const isDark = colorTheme === 'dark';
     const textColor = isDark ? 'var(--rk-cream)' : 'var(--rk-anthracite)';
     const mutedColor = isDark ? 'rgba(255,254,249,0.6)' : 'rgba(26,24,22,0.6)';
+    const showCta = variant !== 'minimal' || (buttonText.trim() !== '' && buttonUrl.trim() !== '' && buttonUrl.trim() !== '#');
 
     return (
         <>
@@ -39,6 +40,15 @@ export function Edit({ attributes, setAttributes, className }: EditProps): JSX.E
                             { label: 'Light', value: 'light' },
                         ]}
                         onChange={(v) => setAttributes({ theme: v as HeroTheme })}
+                    />
+                    <SelectControl
+                        label={__('Variant', 'renderkit')}
+                        value={variant}
+                        options={[
+                            { label: __('Full (Landing)', 'renderkit'), value: 'full' },
+                            { label: __('Minimal (Subpages)', 'renderkit'), value: 'minimal' },
+                        ]}
+                        onChange={(v) => setAttributes({ variant: v as HeroVariant })}
                     />
                     <ToggleControl
                         label={__('Enable Animations', 'renderkit')}
@@ -71,7 +81,7 @@ export function Edit({ attributes, setAttributes, className }: EditProps): JSX.E
                     <div className="max-w-4xl" style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
                         <RichText
                             tagName="h1"
-                            className="rk-heading-display"
+                            className={variant === 'minimal' ? 'rk-heading-page' : 'rk-heading-display'}
                             value={heading}
                             onChange={(v: string) => setAttributes({ heading: v })}
                             placeholder={__('Enter heading...', 'renderkit')}
@@ -80,16 +90,28 @@ export function Edit({ attributes, setAttributes, className }: EditProps): JSX.E
                         <div className="space-y-8">
                             <RichText
                                 tagName="p"
-                                className="max-w-lg"
+                                className={variant === 'minimal' ? 'max-w-2xl' : 'max-w-lg'}
                                 value={description}
                                 onChange={(v: string) => setAttributes({ description: v })}
                                 placeholder={__('Enter description...', 'renderkit')}
                             />
 
-                            <button className="inline-flex items-center gap-4 transition-colors" style={{ color: textColor }}>
-                                <span className="text-sm tracking-[0.2em] uppercase font-medium">{buttonText}</span>
-                                <ArrowRight className="w-5 h-5" strokeWidth={1.5} />
-                            </button>
+                            {showCta ? (
+                                <button
+                                    type="button"
+                                    className={[
+                                        'inline-flex items-center gap-4 transition-colors',
+                                        enableAnimations &&
+                                            'transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:translate-x-2 focus-visible:translate-x-2 motion-reduce:transition-none motion-reduce:transform-none',
+                                    ]
+                                        .filter(Boolean)
+                                        .join(' ')}
+                                    style={{ color: textColor }}
+                                >
+                                    <span className="text-sm tracking-[0.2em] uppercase font-medium">{buttonText}</span>
+                                    <ArrowRight className="w-5 h-5" strokeWidth={1.5} />
+                                </button>
+                            ) : null}
                         </div>
                     </div>
 

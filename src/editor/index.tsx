@@ -18,8 +18,27 @@ import navMeta from '../blocks/navigation/block.json';
 import { Edit as ProductGridEdit } from '../blocks/product-grid/editor';
 import productGridMeta from '../blocks/product-grid/block.json';
 
+// Swiper Block
+import { Edit as SwiperEdit } from '../blocks/swiper/editor';
+import swiperMeta from '../blocks/swiper/block.json';
+
+// Text Block
+import { Edit as TextBlockEdit, save as TextBlockSave } from '../blocks/text-block/editor';
+import textBlockMeta from '../blocks/text-block/block.json';
+
+// Footer Block
+import { Edit as FooterEdit, save as FooterSave } from '../blocks/footer/editor';
+import footerMeta from '../blocks/footer/block.json';
+
 // Dynamic blocks return null for save
 const nullSave = () => null;
+
+type BlockRegistration = {
+    meta: any;
+    edit: any;
+    save?: any;
+    icon?: any;
+};
 
 // Custom RenderKit icon component
 const RenderKitIcon = () => (
@@ -31,18 +50,21 @@ const RenderKitIcon = () => (
 );
 
 // Register blocks
-const blocks = [
+const blocks: BlockRegistration[] = [
     { meta: heroMeta, edit: HeroEdit, icon: RenderKitIcon },
     { meta: navMeta, edit: NavEdit, icon: 'menu' },
     { meta: productGridMeta, edit: ProductGridEdit, icon: 'grid-view' },
+    { meta: swiperMeta, edit: SwiperEdit, icon: 'images-alt2' },
+    { meta: textBlockMeta, edit: TextBlockEdit, save: TextBlockSave, icon: 'editor-paragraph' },
+    { meta: footerMeta, edit: FooterEdit, save: FooterSave, icon: 'admin-site' },
 ];
 
-blocks.forEach(({ meta, edit, icon }) => {
+blocks.forEach(({ meta, edit, save, icon }) => {
     const { name, ...settings } = meta;
     registerBlockType(name, {
         ...settings,
         edit,
-        save: nullSave,
+        save: save || nullSave,
         icon: icon || settings.icon,
     });
 });

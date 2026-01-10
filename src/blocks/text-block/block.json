@@ -1,0 +1,43 @@
+{
+    "$schema": "https://schemas.wp.org/trunk/block.json",
+    "apiVersion": 3,
+    "name": "renderkit/text-block",
+    "version": "1.0.0",
+    "title": "Text Block",
+    "category": "renderkit",
+    "description": "Typography wrapper with InnerBlocks (SSR-first, no-JS friendly).",
+    "keywords": [
+        "text",
+        "typography",
+        "content"
+    ],
+    "icon": "editor-paragraph",
+    "textdomain": "renderkit",
+    "supports": {
+        "html": false,
+        "align": [
+            "wide",
+            "full"
+        ],
+        "anchor": true
+    },
+    "attributes": {
+        "theme": {
+            "type": "string",
+            "default": "light",
+            "enum": [
+                "light",
+                "dark"
+            ]
+        },
+        "width": {
+            "type": "string",
+            "default": "narrow",
+            "enum": [
+                "narrow",
+                "wide"
+            ]
+        }
+    }
+}
+

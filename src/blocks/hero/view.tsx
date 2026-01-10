@@ -23,20 +23,39 @@ function splitLines(value: string): string[] {
 }
 
 export function View({ attributes, className }: ViewProps): JSX.Element {
-    const { heading, description, buttonText, buttonUrl, theme: colorTheme, enableAnimations } = attributes;
+    const {
+        heading,
+        description,
+        buttonText,
+        buttonUrl,
+        theme: colorTheme,
+        variant = 'full',
+        enableAnimations,
+    } = attributes as any;
 
     const headingLines = useMemo(() => splitLines(heading), [heading]);
+    const isMinimal = variant === 'minimal';
     const sectionClasses = [
         'renderkit-block',
         'renderkit-hero',
-        'relative',
-        'overflow-hidden',
         `renderkit-hero--${colorTheme}`,
+        `renderkit-hero--${variant}`,
         className,
     ].filter(Boolean).join(' ');
 
+    const contentClasses = isMinimal
+        ? 'w-full max-w-[1600px] mx-auto px-6 pt-32 pb-20 relative z-10'
+        : 'w-full max-w-[1600px] mx-auto px-6 py-40 min-h-screen flex items-center relative z-10';
+
+    const showCta = !isMinimal || (buttonText.trim() !== '' && buttonUrl.trim() !== '' && buttonUrl.trim() !== '#');
+
     return (
-        <section className={sectionClasses} data-rk-hero-animations={enableAnimations ? '1' : '0'}>
+        <section
+            className={sectionClasses}
+            data-rk-hero-render="view"
+            data-rk-hero-variant={variant}
+            data-rk-hero-animations={enableAnimations ? '1' : '0'}
+        >
             <div className="absolute inset-0" data-rk-hero-bg>
                 <div
                     className="absolute inset-0 opacity-[0.02]"
@@ -48,30 +67,53 @@ export function View({ attributes, className }: ViewProps): JSX.Element {
                 />
             </div>
 
-            <div className="w-full max-w-[1600px] mx-auto px-6 py-12 relative z-10" data-rk-hero-content>
-                <div className="mb-16">
-                    <div className="w-12 h-px" style={{ backgroundColor: 'var(--rk-gold)' }} />
-                </div>
-                <div className="max-w-4xl flex flex-col gap-8">
-                    <h1 className="rk-heading-display mb-8">
-                        {headingLines.map((line, i) => (
-                            <Fragment key={i}>
-                                {line}
-                                {i < headingLines.length - 1 && <br />}
-                            </Fragment>
-                        ))}
-                    </h1>
-                    <div className="space-y-8">
-                        <p className="max-w-lg text-[1.125rem] leading-[1.8]" style={{ color: 'var(--rk-hero-muted)' }}>
-                            {description}
-                        </p>
-                        <a href={buttonUrl} className="inline-flex items-center gap-4 transition-colors" data-rk-hero-cta>
-                            <span className="text-sm tracking-[0.2em] uppercase font-medium">{buttonText}</span>
-                            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
-                                <path d="M5 12h14" />
-                                <path d="m12 5 7 7-7 7" />
-                            </svg>
-                        </a>
+            <div className={contentClasses} data-rk-hero-content>
+                <div className="w-full">
+                    <div className={isMinimal ? 'mb-10' : 'mb-16'} data-rk-hero-anim="bar">
+                        <div className="w-12 h-px" style={{ backgroundColor: 'var(--rk-gold)' }} />
+                    </div>
+                    <div className={`max-w-4xl flex flex-col ${isMinimal ? 'gap-6' : 'gap-8'}`}>
+                        <h1 className={`${isMinimal ? 'rk-heading-page' : 'rk-heading-display'} mb-8`} data-rk-hero-anim="heading">
+                            {headingLines.map((line, i) => (
+                                <Fragment key={i}>
+                                    {line}
+                                    {i < headingLines.length - 1 && <br />}
+                                </Fragment>
+                            ))}
+                        </h1>
+                        <div className={isMinimal ? 'space-y-6' : 'space-y-8'} data-rk-hero-anim="copy">
+                            <p
+                                className={isMinimal ? 'max-w-2xl text-[1.0625rem] leading-[1.85]' : 'max-w-lg text-[1.125rem] leading-[1.8]'}
+                                style={{ color: 'var(--rk-hero-muted)' }}
+                            >
+                                {description}
+                            </p>
+                            {showCta ? (
+                                <a
+                                    href={buttonUrl}
+                                    className={[
+                                        'inline-flex items-center gap-4 transition-colors',
+                                        enableAnimations &&
+                                        'transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:translate-x-2 focus-visible:translate-x-2 motion-reduce:transition-none motion-reduce:transform-none',
+                                    ]
+                                        .filter(Boolean)
+                                        .join(' ')}
+                                    data-rk-hero-cta
+                                >
+                                    <span className="text-sm tracking-[0.2em] uppercase font-medium">{buttonText}</span>
+                                    <svg
+                                        className="w-5 h-5"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth={1.5}
+                                    >
+                                        <path d="M5 12h14" />
+                                        <path d="m12 5 7 7-7 7" />
+                                    </svg>
+                                </a>
+                            ) : null}
+                        </div>
                     </div>
                 </div>
             </div>

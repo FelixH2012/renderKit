@@ -110,7 +110,7 @@ export function Edit({ attributes, setAttributes, className }: EditProps): JSX.E
                                 gridRow: `span ${product.span.row}`,
                                 position: 'relative',
                                 overflow: 'hidden',
-                                borderRadius: '1rem',
+                                borderRadius: 0,
                                 minHeight: product.span.featured ? '400px' : '200px',
                                 background: 'linear-gradient(135deg, #E8E3DB 0%, #D4CEC4 100%)',
                             }}
