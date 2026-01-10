@@ -1,0 +1,206 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR"
+
+PROJECT_NAME="renderkit-relay"
+COMPOSE_FILE="$SCRIPT_DIR/docker-compose.yml"
+ENV_FILE="$SCRIPT_DIR/.env"
+DEFAULT_PORT="8787"
+
+die() {
+    echo "renderKit-Relay: $*" >&2
+    exit 1
+}
+
+compose() {
+    if command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1; then
+        COMPOSE_PROJECT_NAME="$PROJECT_NAME" docker compose -f "$COMPOSE_FILE" "$@"
+        return
+    fi
+
+    if command -v docker-compose >/dev/null 2>&1; then
+        COMPOSE_PROJECT_NAME="$PROJECT_NAME" docker-compose -f "$COMPOSE_FILE" "$@"
+        return
+    fi
+
+    die "Docker Compose not found (install Docker / docker compose)"
+}
+
+generate_secret() {
+    if command -v openssl >/dev/null 2>&1; then
+        openssl rand -hex 32
+        return
+    fi
+
+    if command -v python3 >/dev/null 2>&1; then
+        python3 - <<'PY'
+import secrets
+print(secrets.token_hex(32))
+PY
+        return
+    fi
+
+    if command -v node >/dev/null 2>&1; then
+        node - <<'NODE'
+const crypto = require('crypto');
+process.stdout.write(crypto.randomBytes(32).toString('hex'));
+NODE
+        echo
+        return
+    fi
+
+    if command -v od >/dev/null 2>&1; then
+        head -c 32 /dev/urandom | od -An -tx1 | tr -d ' \n'
+        echo
+        return
+    fi
+
+    die "unable to generate secret (missing openssl/python3/node/od)"
+}
+
+load_env() {
+    if [[ -f "$ENV_FILE" ]]; then
+        set -a
+        # shellcheck disable=SC1090
+        source "$ENV_FILE"
+        set +a
+    fi
+}
+
+require_env() {
+    if [[ ! -f "$ENV_FILE" ]]; then
+        die "missing $ENV_FILE (run: $0 init)"
+    fi
+    load_env
+}
+
+print_wp_config() {
+    require_env
+    local port="${RENDERKIT_RELAY_PORT:-$DEFAULT_PORT}"
+    local secret="${RENDERKIT_RELAY_SECRET:-}"
+    [[ "$secret" != "" ]] || die "missing RENDERKIT_RELAY_SECRET in $ENV_FILE"
+
+    cat <<PHP
+define('RENDERKIT_RELAY_URL', 'http://127.0.0.1:${port}');
+define('RENDERKIT_RELAY_SECRET', '${secret}');
+PHP
+}
+
+cmd="${1:-help}"
+shift || true
+
+case "$cmd" in
+    init)
+        if [[ -f "$ENV_FILE" ]]; then
+            echo "renderKit-Relay: $ENV_FILE already exists"
+            echo
+            echo "wp-config.php:"
+            print_wp_config
+            exit 0
+        fi
+
+        port="$DEFAULT_PORT"
+        while [[ $# -gt 0 ]]; do
+            case "$1" in
+                --port)
+                    [[ $# -ge 2 ]] || die "init --port requires a value"
+                    port="$2"
+                    shift 2
+                    ;;
+                *)
+                    die "unknown arg for init: $1"
+                    ;;
+            esac
+        done
+
+        [[ "$port" =~ ^[0-9]+$ ]] || die "invalid port: $port"
+        (( port >= 1 && port <= 65535 )) || die "invalid port: $port"
+
+        secret="$(generate_secret)"
+
+        umask 077
+        cat >"$ENV_FILE" <<ENV
+RENDERKIT_RELAY_PORT=${port}
+RENDERKIT_RELAY_SECRET=${secret}
+ENV
+
+        chmod 600 "$ENV_FILE" 2>/dev/null || true
+
+        echo "renderKit-Relay: wrote $ENV_FILE"
+        echo
+        echo "wp-config.php:"
+        print_wp_config
+        echo
+        echo "Note: No firewall/IONOS port needs opening (Relay is bound to 127.0.0.1)."
+        ;;
+
+    wp-config)
+        print_wp_config
+        ;;
+
+    up|start)
+        require_env
+        compose up -d
+        ;;
+
+    down|stop)
+        compose down
+        ;;
+
+    restart)
+        require_env
+        if ! compose restart; then
+            compose up -d
+        fi
+        ;;
+
+    status|ps)
+        compose ps
+        ;;
+
+    logs)
+        compose logs -f --tail=200
+        ;;
+
+    health)
+        require_env
+        port="${RENDERKIT_RELAY_PORT:-$DEFAULT_PORT}"
+        if command -v curl >/dev/null 2>&1; then
+            curl -fsS "http://127.0.0.1:${port}/health"
+            echo
+            exit 0
+        fi
+        if command -v wget >/dev/null 2>&1; then
+            wget -qO- "http://127.0.0.1:${port}/health"
+            echo
+            exit 0
+        fi
+        die "missing curl/wget for health check"
+        ;;
+
+    help|--help|-h)
+        cat <<TXT
+renderKit-Relay helper
+
+Usage:
+  $0 init [--port 8787]
+  $0 up|start
+  $0 down|stop
+  $0 restart
+  $0 logs
+  $0 status
+  $0 health
+  $0 wp-config
+
+Notes:
+  - Relay binds to 127.0.0.1 (no public port needed).
+  - After init, add the printed constants to wp-config.php.
+TXT
+        ;;
+
+    *)
+        die "unknown command: $cmd (try: $0 help)"
+        ;;
+esac

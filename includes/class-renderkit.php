@@ -42,6 +42,15 @@ class RenderKit {
      * @return array<string, mixed>
      */
     private function get_default_config(): array {
+        $relay = class_exists(__NAMESPACE__ . '\\RelaySettings')
+            ? RelaySettings::get_effective_settings()
+            : [
+                'url'     => defined('RENDERKIT_RELAY_URL') ? (string) RENDERKIT_RELAY_URL : 'http://127.0.0.1:8787',
+                'secret'  => defined('RENDERKIT_RELAY_SECRET') ? (string) RENDERKIT_RELAY_SECRET : '',
+                'timeout' => defined('RENDERKIT_RELAY_TIMEOUT') ? (float) RENDERKIT_RELAY_TIMEOUT : 1.5,
+                'syncEnv' => 0,
+            ];
+
         return [
             'namespace'      => 'renderkit',
             'text_domain'    => 'renderkit',
@@ -52,6 +61,11 @@ class RenderKit {
             'build_dir'      => RENDERKIT_PLUGIN_DIR . 'build',
             'build_url'      => RENDERKIT_PLUGIN_URL . 'build',
             'version'        => RENDERKIT_VERSION,
+            'relay'          => [
+                'url'     => (string) ($relay['url'] ?? 'http://127.0.0.1:8787'),
+                'secret'  => (string) ($relay['secret'] ?? ''),
+                'timeout' => (float) ($relay['timeout'] ?? 1.5),
+            ],
             'assets'         => [
                 'editor' => [
                     'js'       => 'editor.js',
@@ -64,7 +78,7 @@ class RenderKit {
                     'js'       => 'view.js',
                     'css'      => 'style.css',
                     'handle'   => 'renderkit-view',
-                    'deps_js'  => ['react', 'react-dom'],
+                    'deps_js'  => [],
                     'deps_css' => [],
                 ],
             ],
@@ -187,12 +201,6 @@ class RenderKit {
      * Enqueue frontend assets when blocks are present
      */
     public function enqueue_frontend_assets(): void {
-        // For now, always enqueue on singular pages
-        // The JS will gracefully handle if no blocks are found
-        if (!is_singular()) {
-            return;
-        }
-
         $view_handle = $this->config['assets']['view']['handle'];
         
         if (wp_script_is($view_handle, 'registered')) {

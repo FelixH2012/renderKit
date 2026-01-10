@@ -14,9 +14,9 @@ import heroMeta from '../blocks/hero/block.json';
 import { Edit as NavEdit } from '../blocks/navigation/editor';
 import navMeta from '../blocks/navigation/block.json';
 
-// Example Block
-import { Edit as ExampleEdit } from '../blocks/example/Edit';
-import exampleMeta from '../blocks/example/block.json';
+// Product Grid Block
+import { Edit as ProductGridEdit } from '../blocks/product-grid/editor';
+import productGridMeta from '../blocks/product-grid/block.json';
 
 // Dynamic blocks return null for save
 const nullSave = () => null;
@@ -34,7 +34,7 @@ const RenderKitIcon = () => (
 const blocks = [
     { meta: heroMeta, edit: HeroEdit, icon: RenderKitIcon },
     { meta: navMeta, edit: NavEdit, icon: 'menu' },
-    { meta: exampleMeta, edit: ExampleEdit, icon: 'star-filled' },
+    { meta: productGridMeta, edit: ProductGridEdit, icon: 'grid-view' },
 ];
 
 blocks.forEach(({ meta, edit, icon }) => {

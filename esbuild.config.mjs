@@ -37,7 +37,7 @@ const wpGlobals = {
     '@wordpress/i18n': 'wp.i18n',
     '@wordpress/icons': 'wp.icons',
     '@wordpress/primitives': 'wp.primitives',
-    'react': 'React',
+    react: 'React',
     'react-dom': 'ReactDOM',
 };
 
@@ -45,7 +45,6 @@ const wpGlobals = {
 const wpExternalsPlugin = {
     name: 'wp-externals',
     setup(build) {
-        // Handle WordPress externals
         build.onResolve({ filter: new RegExp(`^(${wpExternals.join('|')})$`) }, (args) => {
             return {
                 path: args.path,
@@ -69,10 +68,7 @@ const postCSSPlugin = {
     setup(build) {
         build.onLoad({ filter: /\.css$/ }, async (args) => {
             const css = await fs.promises.readFile(args.path, 'utf8');
-            const result = await postcss([
-                tailwindcss,
-                autoprefixer,
-            ]).process(css, { from: args.path });
+            const result = await postcss([tailwindcss, autoprefixer]).process(css, { from: args.path });
 
             return {
                 contents: result.css,
@@ -82,8 +78,7 @@ const postCSSPlugin = {
     },
 };
 
-// Common build options
-const commonOptions = {
+const browserOptions = {
     bundle: true,
     minify: !isWatch,
     sourcemap: isWatch,
@@ -92,23 +87,39 @@ const commonOptions = {
     logLevel: 'info',
 };
 
+const relayOptions = {
+    bundle: true,
+    minify: !isWatch,
+    sourcemap: isWatch,
+    target: ['node20'],
+    platform: 'node',
+    format: 'cjs',
+    logLevel: 'info',
+};
+
 // Build configurations
 const builds = [
     // Editor bundle
     {
-        ...commonOptions,
+        ...browserOptions,
         entryPoints: ['src/editor/index.tsx'],
         outfile: 'build/editor.js',
         platform: 'browser',
         format: 'iife',
     },
-    // Frontend view bundle
+    // Frontend view bundle (enhancements only)
     {
-        ...commonOptions,
-        entryPoints: ['src/view/index.tsx'],
+        ...browserOptions,
+        entryPoints: ['src/view/index.ts'],
         outfile: 'build/view.js',
         platform: 'browser',
         format: 'iife',
+    },
+    // Relay renderer bundle (Node, executed inside renderKit-Relay)
+    {
+        ...relayOptions,
+        entryPoints: ['src/relay/renderer.tsx'],
+        outfile: 'build/relay-renderer.cjs',
     },
 ];
 
@@ -121,10 +132,7 @@ async function buildCSS() {
     }
 
     const css = await fs.promises.readFile(cssPath, 'utf8');
-    const result = await postcss([
-        tailwindcss,
-        autoprefixer,
-    ]).process(css, { from: cssPath });
+    const result = await postcss([tailwindcss, autoprefixer]).process(css, { from: cssPath });
 
     const outputDir = path.resolve('build');
     if (!fs.existsSync(outputDir)) {
@@ -135,10 +143,8 @@ async function buildCSS() {
     console.log('✓ Built build/style.css');
 }
 
-// Run builds
 async function runBuilds() {
     try {
-        // Ensure build directory exists
         if (!fs.existsSync('build')) {
             fs.mkdirSync('build', { recursive: true });
         }
@@ -146,31 +152,35 @@ async function runBuilds() {
         if (isWatch) {
             console.log('👀 Watching for changes...\n');
 
-            // Create contexts for watch mode
-            const contexts = await Promise.all(
-                builds.map((config) => esbuild.context(config))
-            );
-
-            // Start watching
+            const contexts = await Promise.all(builds.map((config) => esbuild.context(config)));
             await Promise.all(contexts.map((ctx) => ctx.watch()));
 
-            // Watch CSS changes
-            const chokidar = await import('chokidar').catch(() => null);
-            if (chokidar) {
-                chokidar.watch('src/**/*.css').on('change', buildCSS);
+            const chokidarModule = await import('chokidar').catch(() => null);
+            const chokidar = chokidarModule && (chokidarModule.watch ? chokidarModule : chokidarModule.default);
+            if (chokidar && typeof chokidar.watch === 'function') {
+                chokidar.watch('src/**/*.css', { ignoreInitial: true }).on('change', buildCSS);
+            } else {
+                const cssFile = path.resolve('src/styles/main.css');
+                if (fs.existsSync(cssFile)) {
+                    let pending = null;
+                    fs.watch(cssFile, () => {
+                        if (pending) {
+                            clearTimeout(pending);
+                        }
+                        pending = setTimeout(() => {
+                            buildCSS().catch((error) => console.error('CSS build failed:', error));
+                            pending = null;
+                        }, 50);
+                    });
+                }
             }
 
-            // Initial CSS build
             await buildCSS();
-
-            // Keep process alive
             process.stdin.resume();
         } else {
             console.log('🔨 Building for production...\n');
-
             await Promise.all(builds.map((config) => esbuild.build(config)));
             await buildCSS();
-
             console.log('\n✅ Build complete!');
         }
     } catch (error) {

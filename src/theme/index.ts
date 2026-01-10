@@ -18,18 +18,18 @@ export const theme = {
         // Brand colors
         cream: '#FFFEF9',
         greige: '#E8E3DB',
-        taupe: '#8B7F6F',
-        gold: '#B8975A',
-        anthracite: '#1A1816',
-        black: '#000000',
+        taupe: '#9C9083', // Softer taupe
+        gold: '#C6A87C',  // Softer, warmer gold
+        anthracite: '#2C2A28', // Softer black
+        black: '#121212', // Not pure black
 
         // Semantic aliases
         background: '#FFFEF9',
-        foreground: '#1A1816',
+        foreground: '#2C2A28',
         muted: '#E8E3DB',
-        mutedForeground: '#8B7F6F',
-        accent: '#B8975A',
-        border: 'rgba(139, 127, 111, 0.15)',
+        mutedForeground: '#9C9083',
+        accent: '#C6A87C',
+        border: 'rgba(156, 144, 131, 0.2)',
     },
 
     /**

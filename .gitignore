@@ -1,6 +1,9 @@
 # Build output
 /build
 
+# renderKit-Relay
+/relay/.env
+
 # Dependencies
 /node_modules
 

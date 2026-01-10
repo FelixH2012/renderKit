@@ -2,177 +2,178 @@
  * Navigation Block - Editor Component
  */
 
-import { __ } from '@wordpress/i18n';
-import { useBlockProps, InspectorControls, MediaUpload, MediaUploadCheck } from '@wordpress/block-editor';
-import { PanelBody, SelectControl, ToggleControl, TextControl, Button } from '@wordpress/components';
+import React from 'react';
+import * as blockEditor from '@wordpress/block-editor';
+import { PanelBody, TextControl, ToggleControl, SelectControl, Button } from '@wordpress/components';
 import { useSelect } from '@wordpress/data';
-import { store as coreStore } from '@wordpress/core-data';
+import type { NavigationAttributes, NavigationTheme } from './types';
 
-// Types
-export interface NavAttributes {
-    menuId: number;
-    menuLocation: string;
-    theme: 'dark' | 'light' | 'transparent';
-    showLogo: boolean;
-    logoUrl: string;
-    siteName: string;
-    sticky: boolean;
-    transparent: boolean;
+const { InspectorControls, MediaUpload } = blockEditor;
+const MediaUploadCheck =
+    ((blockEditor as any).MediaUploadCheck as React.ComponentType<any>) ||
+    (({ children }: { children: React.ReactNode }) => <>{children}</>);
+const WPButton = Button as unknown as React.ComponentType<any>;
+
+interface EditorProps {
+    attributes: NavigationAttributes;
+    setAttributes: (attrs: Partial<NavigationAttributes>) => void;
 }
 
-interface EditProps {
-    attributes: NavAttributes;
-    setAttributes: (attrs: Partial<NavAttributes>) => void;
-    className?: string;
-}
+const THEME_OPTIONS = [
+    { label: 'Light (Cream)', value: 'light' },
+    { label: 'Dark (Anthracite)', value: 'dark' },
+];
 
-export function Edit({ attributes, setAttributes, className }: EditProps): JSX.Element {
-    const { menuId, theme, showLogo, logoUrl, siteName, sticky, transparent } = attributes;
+export function Edit({ attributes, setAttributes }: EditorProps) {
+    const {
+        menuSlug,
+        showLogo,
+        logoUrl,
+        siteName,
+        sticky,
+        theme = 'light',
+        showCart
+    } = attributes;
 
-    const blockProps = useBlockProps({
-        className: `renderkit-block renderkit-nav renderkit-nav--${theme} ${className || ''}`,
-    });
-
-    // Fetch available menus from WordPress
+    // Fetch available menus
     const menus = useSelect((select) => {
-        const { getEntityRecords } = select(coreStore) as any;
-        return getEntityRecords('root', 'menu', { per_page: 100 }) || [];
-    }, []);
-
-    // Fetch menu items for selected menu
-    const menuItems = useSelect((select) => {
-        if (!menuId) return [];
-        const { getEntityRecords } = select(coreStore) as any;
-        return getEntityRecords('root', 'menuItem', { menus: menuId, per_page: 100 }) || [];
-    }, [menuId]);
+        // @ts-ignore
+        return select('core').getEntityRecords('root', 'menu', { per_page: -1 });
+    }, []) || [];
 
     const menuOptions = [
-        { label: __('Select a menu...', 'renderkit'), value: 0 },
-        ...(menus?.map((menu: any) => ({ label: menu.name, value: menu.id })) || []),
+        { label: 'Select a Menu', value: '' },
+        ...menus.map((menu: any) => ({ label: menu.name, value: menu.slug }))
     ];
 
-    const isDark = theme === 'dark';
-    const textColor = isDark ? '#FFFEF9' : '#1A1816';
-    const bgColor = transparent ? 'transparent' : (isDark ? '#000000' : '#FFFEF9');
+    // Mock items for editor preview
+    const mockMenuItems = [
+        { id: 1, title: 'Shop', url: '#' },
+        { id: 2, title: 'Über uns', url: '#' },
+        { id: 3, title: 'Kontakt', url: '#' },
+    ];
+
+    const navClasses = [
+        'renderkit-block',
+        'renderkit-nav',
+        `renderkit-nav--${theme}`,
+        sticky && 'is-sticky',
+        // In editor, we show it "scrolled" style to make it visible
+        'is-scrolled',
+    ].filter(Boolean).join(' ');
 
     return (
-        <>
+        <div className={navClasses}>
             <InspectorControls>
-                <PanelBody title={__('Menu Settings', 'renderkit')} initialOpen>
+                <PanelBody title="Navigation Settings">
                     <SelectControl
-                        label={__('Select Menu', 'renderkit')}
-                        value={menuId}
+                        label="Menu"
+                        value={menuSlug}
                         options={menuOptions}
-                        onChange={(v) => setAttributes({ menuId: Number(v) })}
+                        onChange={(value) => setAttributes({ menuSlug: value })}
                     />
-                </PanelBody>
-
-                <PanelBody title={__('Appearance', 'renderkit')} initialOpen={false}>
                     <SelectControl
-                        label={__('Theme', 'renderkit')}
+                        label="Theme"
                         value={theme}
-                        options={[
-                            { label: 'Dark', value: 'dark' },
-                            { label: 'Light', value: 'light' },
-                        ]}
-                        onChange={(v) => setAttributes({ theme: v as 'dark' | 'light' })}
+                        options={THEME_OPTIONS}
+                        onChange={(value) => setAttributes({ theme: value as NavigationTheme })}
                     />
                     <ToggleControl
-                        label={__('Transparent Background', 'renderkit')}
-                        checked={transparent}
-                        onChange={(v) => setAttributes({ transparent: v })}
-                    />
-                    <ToggleControl
-                        label={__('Sticky Navigation', 'renderkit')}
+                        label="Sticky Header"
+                        help="Fixiert die Navigation am oberen Bildschirmrand"
                         checked={sticky}
-                        onChange={(v) => setAttributes({ sticky: v })}
+                        onChange={(value) => setAttributes({ sticky: value })}
+                    />
+                    <ToggleControl
+                        label="Show Shopping Cart"
+                        checked={showCart}
+                        onChange={(value) => setAttributes({ showCart: value })}
                     />
                 </PanelBody>
 
-                <PanelBody title={__('Logo & Branding', 'renderkit')} initialOpen={false}>
+                <PanelBody title="Logo Settings">
                     <ToggleControl
-                        label={__('Show Logo', 'renderkit')}
+                        label="Show Logo"
                         checked={showLogo}
-                        onChange={(v) => setAttributes({ showLogo: v })}
+                        onChange={(value) => setAttributes({ showLogo: value })}
                     />
                     {showLogo && (
                         <>
                             <TextControl
-                                label={__('Site Name', 'renderkit')}
+                                label="Site Name"
                                 value={siteName}
-                                onChange={(v) => setAttributes({ siteName: v })}
+                                onChange={(value) => setAttributes({ siteName: value })}
                             />
                             <MediaUploadCheck>
                                 <MediaUpload
                                     onSelect={(media: any) => setAttributes({ logoUrl: media.url })}
                                     allowedTypes={['image']}
-                                    render={({ open }) => (
-                                        <div style={{ marginTop: 8 }}>
-                                            {logoUrl ? (
-                                                <div>
-                                                    <img src={logoUrl} alt="Logo" style={{ maxWidth: 150, marginBottom: 8 }} />
-                                                    <br />
-                                                    <Button variant="secondary" onClick={open}>{__('Change Logo', 'renderkit')}</Button>
-                                                    <Button variant="link" onClick={() => setAttributes({ logoUrl: '' })}>{__('Remove', 'renderkit')}</Button>
-                                                </div>
-                                            ) : (
-                                                <Button variant="secondary" onClick={open}>{__('Upload Logo', 'renderkit')}</Button>
-                                            )}
-                                        </div>
+                                    value={logoUrl}
+                                    render={({ open }: { open: () => void }) => (
+                                        <WPButton variant="secondary" onClick={open} className="is-full-width">
+                                            {logoUrl ? 'Change Logo' : 'Upload Logo'}
+                                        </WPButton>
                                     )}
                                 />
                             </MediaUploadCheck>
+                            {logoUrl && (
+                                <WPButton
+                                    isDestructive
+                                    variant="link"
+                                    onClick={() => setAttributes({ logoUrl: '' })}
+                                >
+                                    Remove Logo
+                                </WPButton>
+                            )}
                         </>
                     )}
                 </PanelBody>
             </InspectorControls>
 
-            <nav {...blockProps} style={{ backgroundColor: bgColor, color: textColor }}>
-                <div className="w-full max-w-[1600px] mx-auto px-8 lg:px-16 py-6">
-                    <div className="flex items-center justify-between">
-                        {/* Logo */}
-                        {showLogo && (
-                            <div className="flex items-center gap-4">
-                                {logoUrl ? (
-                                    <img src={logoUrl} alt={siteName} className="h-10 w-auto" />
-                                ) : (
-                                    <div className="w-10 h-10 bg-current opacity-20 rounded" />
-                                )}
-                                {siteName && (
-                                    <span className="text-lg font-medium tracking-wide">{siteName}</span>
-                                )}
-                            </div>
-                        )}
-
-                        {/* Menu Items */}
-                        <div className="flex items-center gap-8">
-                            {menuItems?.length > 0 ? (
-                                menuItems.map((item: any) => (
-                                    <a
-                                        key={item.id}
-                                        href="#"
-                                        className="text-sm tracking-[0.1em] uppercase font-medium opacity-80 hover:opacity-100 transition-opacity"
-                                        style={{ color: textColor }}
-                                    >
-                                        {item.title?.rendered || item.title}
-                                    </a>
-                                ))
+            <div className="renderkit-nav__shell">
+                <div className="renderkit-nav__inner">
+                    {/* Logo Preview */}
+                    {showLogo && (
+                        <div className="renderkit-nav__logo">
+                            {logoUrl ? (
+                                <img src={logoUrl} alt="Logo" className="renderkit-nav__logo-img" />
                             ) : (
-                                <>
-                                    <span className="text-sm tracking-[0.1em] uppercase font-medium opacity-60">Menu Item 1</span>
-                                    <span className="text-sm tracking-[0.1em] uppercase font-medium opacity-60">Menu Item 2</span>
-                                    <span className="text-sm tracking-[0.1em] uppercase font-medium opacity-60">Menu Item 3</span>
-                                </>
+                                <span className="renderkit-nav__logo-text">{siteName || 'Site Name'}</span>
                             )}
                         </div>
+                    )}
 
-                        {/* CTA */}
-                        <div className="w-8 h-px" style={{ backgroundColor: '#B8975A' }} />
+                    {/* Menu Preview */}
+                    <div className="renderkit-nav__menu">
+                        {mockMenuItems.map((item) => (
+                            <span key={item.id} className="renderkit-nav__link">
+                                {item.title}
+                            </span>
+                        ))}
+                    </div>
+
+                    {/* Actions Preview */}
+                    <div className="renderkit-nav__actions">
+                        {showCart && (
+                            <button className="renderkit-nav__icon-button">
+                                <svg className="renderkit-nav__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                                    <path d="M6 2 L3 6 v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+                                    <line x1="3" y1="6" x2="21" y2="6" />
+                                    <path d="M16 10a4 4 0 0 1-8 0" />
+                                </svg>
+                                <span className="renderkit-nav__dot" />
+                            </button>
+                        )}
+                        <button className="renderkit-nav__icon-button renderkit-nav__mobile-toggle">
+                            <svg className="renderkit-nav__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                                <line x1="3" y1="12" x2="21" y2="12"></line>
+                                <line x1="3" y1="6" x2="21" y2="6"></line>
+                                <line x1="3" y1="18" x2="21" y2="18"></line>
+                            </svg>
+                        </button>
                     </div>
                 </div>
-            </nav>
-        </>
+            </div>
+        </div>
     );
 }
-
-export default Edit;

@@ -1,27 +1,14 @@
 /**
  * Hero Block - Editor Component
  * 
- * Combined editor component with inline types for simpler structure.
+ * Editor component.
  */
 
 import { __ } from '@wordpress/i18n';
 import { useBlockProps, InspectorControls, RichText } from '@wordpress/block-editor';
 import { PanelBody, TextControl, ToggleControl, SelectControl } from '@wordpress/components';
 import { ArrowRight } from 'lucide-react';
-
-// Types (inline instead of separate file)
-export interface HeroAttributes {
-    heading: string;
-    description: string;
-    buttonText: string;
-    buttonUrl: string;
-    stat1Label: string;
-    stat1Value: string;
-    stat2Label: string;
-    stat2Value: string;
-    theme: 'dark' | 'light';
-    enableAnimations: boolean;
-}
+import type { HeroAttributes, HeroTheme } from './types';
 
 interface EditProps {
     attributes: HeroAttributes;
@@ -33,7 +20,7 @@ export function Edit({ attributes, setAttributes, className }: EditProps): JSX.E
     const { heading, description, buttonText, buttonUrl, stat1Label, stat1Value, stat2Label, stat2Value, theme: colorTheme, enableAnimations } = attributes;
 
     const blockProps = useBlockProps({
-        className: `renderkit-block renderkit-hero renderkit-hero--${colorTheme} ${className || ''}`,
+        className: `renderkit-block renderkit-hero renderkit-hero--${colorTheme} ${className || ''} flex items-center`,
     });
 
     const isDark = colorTheme === 'dark';
@@ -51,7 +38,7 @@ export function Edit({ attributes, setAttributes, className }: EditProps): JSX.E
                             { label: 'Dark', value: 'dark' },
                             { label: 'Light', value: 'light' },
                         ]}
-                        onChange={(v) => setAttributes({ theme: v as 'dark' | 'light' })}
+                        onChange={(v) => setAttributes({ theme: v as HeroTheme })}
                     />
                     <ToggleControl
                         label={__('Enable Animations', 'renderkit')}
@@ -74,28 +61,26 @@ export function Edit({ attributes, setAttributes, className }: EditProps): JSX.E
             </InspectorControls>
 
             <div {...blockProps}>
-                <div className="relative z-10 w-full max-w-[1600px] mx-auto px-8 lg:px-16 py-32" style={{ color: textColor }}>
+                <div className="relative z-10 w-full max-w-[1600px] mx-auto px-8 lg:px-16 py-12" style={{ color: textColor }}>
                     {/* Gold bar */}
                     <div className="mb-16">
                         <div className="w-12 h-px" style={{ backgroundColor: 'var(--rk-gold)' }} />
                     </div>
 
-                    {/* Grid layout */}
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
-                        <div className="lg:col-span-8">
-                            <RichText
-                                tagName="h1"
-                                className="rk-heading-display"
-                                value={heading}
-                                onChange={(v: string) => setAttributes({ heading: v })}
-                                placeholder={__('Enter heading...', 'renderkit')}
-                            />
-                        </div>
+                    {/* Vertical layout */}
+                    <div className="max-w-4xl" style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+                        <RichText
+                            tagName="h1"
+                            className="rk-heading-display"
+                            value={heading}
+                            onChange={(v: string) => setAttributes({ heading: v })}
+                            placeholder={__('Enter heading...', 'renderkit')}
+                        />
 
-                        <div className="lg:col-span-4 space-y-8">
+                        <div className="space-y-8">
                             <RichText
                                 tagName="p"
-                                className="max-w-sm"
+                                className="max-w-lg"
                                 value={description}
                                 onChange={(v: string) => setAttributes({ description: v })}
                                 placeholder={__('Enter description...', 'renderkit')}

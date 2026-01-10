@@ -24,6 +24,11 @@ class BlockLoader {
     private array $config;
 
     /**
+     * renderKit-Relay client
+     */
+    private RelayClient $relay;
+
+    /**
      * Registered block names
      *
      * @var array<string>
@@ -37,6 +42,7 @@ class BlockLoader {
      */
     public function __construct(array $config) {
         $this->config = $config;
+        $this->relay = new RelayClient($config['relay'] ?? []);
     }
 
     /**
@@ -132,31 +138,23 @@ class BlockLoader {
      */
     private function build_registration_args(string $block_dir, array $block_data): array {
         $args = [];
-
-        // Check for render.php for server-side rendering
-        $render_file = $block_dir . '/render.php';
-
-        if (file_exists($render_file)) {
-            $args['render_callback'] = function (array $attributes, string $content, \WP_Block $block) use ($render_file, $block_data): string {
-                return $this->render_block($render_file, $attributes, $content, $block, $block_data);
-            };
-        }
+        $args['render_callback'] = function (array $attributes, string $content, \WP_Block $block) use ($block_data): string {
+            return $this->render_block_via_relay($attributes, $content, $block, $block_data);
+        };
 
         return $args;
     }
 
     /**
-     * Render a block using its render.php file
+     * Render a block via renderKit-Relay (TSX SSR).
      *
-     * @param string                $render_file Path to render.php.
      * @param array<string, mixed>  $attributes  Block attributes.
      * @param string                $content     Block content.
      * @param \WP_Block             $block       Block instance.
      * @param array<string, mixed>  $block_data  Block JSON data.
      * @return string
      */
-    private function render_block(
-        string $render_file,
+    private function render_block_via_relay(
         array $attributes,
         string $content,
         \WP_Block $block,
@@ -166,25 +164,209 @@ class BlockLoader {
         $defaults = $this->get_attribute_defaults($block_data);
         $attributes = array_merge($defaults, $attributes);
 
-        // Start output buffering
-        ob_start();
+        $block_name = (string) ($block_data['name'] ?? '');
+        if ($block_name === '') {
+            return '';
+        }
 
-        // Make variables available to the template
-        // Using extract is intentional here for template variable scope
-        $template_vars = [
-            'attributes' => $attributes,
-            'content'    => $content,
-            'block'      => $block,
-            'block_data' => $block_data,
-            'config'     => $this->config,
+        $prepared_attributes = $this->prepare_relay_attributes($block_name, $attributes);
+        $props = [
+            'attributes' => $prepared_attributes,
         ];
 
-        // phpcs:ignore WordPress.PHP.DontExtract.extract_extract
-        extract($template_vars);
+        $html = $this->relay->render($block_name, $props);
 
-        include $render_file;
+        if ($html === '') {
+            if (current_user_can('manage_options')) {
+                return '<!-- renderKit-Relay: render failed for ' . esc_html($block_name) . ' -->';
+            }
+            return '';
+        }
 
-        return ob_get_clean() ?: '';
+        $block_key = $this->block_key_from_name($block_name);
+        $wrapper_attributes = get_block_wrapper_attributes([
+            'data-renderkit-block' => $block_key,
+            'data-renderkit-relay' => '1',
+        ]);
+
+        return $this->apply_wrapper_attributes_to_root($html, $wrapper_attributes);
+    }
+
+    /**
+     * Prepare attributes for relay rendering (adds dynamic props where needed).
+     *
+     * @param string               $block_name Full block name, e.g. renderkit/navigation
+     * @param array<string, mixed> $attributes Merged block attributes
+     * @return array<string, mixed>
+     */
+    private function prepare_relay_attributes(string $block_name, array $attributes): array {
+        switch ($block_name) {
+            case 'renderkit/navigation':
+                return $this->prepare_navigation_attributes($attributes);
+            case 'renderkit/product-grid':
+                return $this->prepare_product_grid_attributes($attributes);
+            default:
+                return $attributes;
+        }
+    }
+
+    /**
+     * @param array<string, mixed> $attributes
+     * @return array<string, mixed>
+     */
+    private function prepare_navigation_attributes(array $attributes): array {
+        $menu_slug = (string) ($attributes['menuSlug'] ?? 'renderkit-primary');
+        $site_name = !empty($attributes['siteName']) ? (string) $attributes['siteName'] : get_bloginfo('name');
+
+        $menu_items = [];
+        $locations = get_nav_menu_locations();
+
+        if (!empty($locations[$menu_slug])) {
+            $menu = wp_get_nav_menu_object($locations[$menu_slug]);
+            if ($menu) {
+                $items = wp_get_nav_menu_items($menu->term_id);
+                if ($items) {
+                    foreach ($items as $item) {
+                        if ((int) $item->menu_item_parent !== 0) {
+                            continue;
+                        }
+                        $menu_items[] = [
+                            'id'    => (int) $item->ID,
+                            'title' => (string) $item->title,
+                            'url'   => (string) $item->url,
+                        ];
+                    }
+                }
+            }
+        }
+
+        $attributes['menuItems'] = $menu_items;
+        $attributes['siteName'] = $site_name;
+
+        return $attributes;
+    }
+
+    /**
+     * @param array<string, mixed> $attributes
+     * @return array<string, mixed>
+     */
+    private function prepare_product_grid_attributes(array $attributes): array {
+        $count = isset($attributes['count']) ? (int) $attributes['count'] : 6;
+        $category = isset($attributes['category']) ? (int) $attributes['category'] : 0;
+
+        $args = ['posts_per_page' => min($count, 6)];
+        if ($category > 0) {
+            $args['tax_query'] = [[
+                'taxonomy' => Products::TAXONOMY,
+                'field'    => 'term_id',
+                'terms'    => $category,
+            ]];
+        }
+
+        $attributes['products'] = Products::get_products($args);
+        return $attributes;
+    }
+
+    /**
+     * @param string $block_name Full block name e.g. renderkit/hero
+     */
+    private function block_key_from_name(string $block_name): string {
+        $parts = explode('/', $block_name, 2);
+        return $parts[1] ?? $block_name;
+    }
+
+    /**
+     * Apply WordPress wrapper attributes to the root element of a Relay-rendered HTML string.
+     *
+     * @param string $html Rendered HTML (must start with the root element)
+     * @param string $wrapper_attributes Output of get_block_wrapper_attributes()
+     */
+    private function apply_wrapper_attributes_to_root(string $html, string $wrapper_attributes): string {
+        $wrapper_attributes = trim($wrapper_attributes);
+        if ($wrapper_attributes === '') {
+            return $html;
+        }
+
+        $parsed = $this->parse_attribute_string($wrapper_attributes);
+        if (empty($parsed)) {
+            return $html;
+        }
+
+        if (class_exists('\\WP_HTML_Tag_Processor')) {
+            $processor = new \WP_HTML_Tag_Processor($html);
+            if (!$processor->next_tag()) {
+                return $html;
+            }
+
+            $existing_class = (string) $processor->get_attribute('class');
+            if (isset($parsed['class'])) {
+                $processor->set_attribute('class', $this->merge_class_names($existing_class, (string) $parsed['class']));
+                unset($parsed['class']);
+            }
+
+            $existing_style = (string) $processor->get_attribute('style');
+            if (isset($parsed['style'])) {
+                $processor->set_attribute('style', $this->merge_style_strings($existing_style, (string) $parsed['style']));
+                unset($parsed['style']);
+            }
+
+            foreach ($parsed as $name => $value) {
+                $processor->set_attribute($name, (string) $value);
+            }
+
+            return $processor->get_updated_html();
+        }
+
+        // Fallback: best-effort injection (no class/style merge).
+        return preg_replace('/^<([a-z0-9:-]+)(\\s|>)/i', '<$1 ' . $wrapper_attributes . '$2', $html, 1) ?: $html;
+    }
+
+    /**
+     * Parse an HTML attribute string like `class="a b" data-x="y"` into a map.
+     *
+     * @return array<string, string>
+     */
+    private function parse_attribute_string(string $attributes): array {
+        $result = [];
+        if ($attributes === '') {
+            return $result;
+        }
+
+        if (!preg_match_all('/([a-zA-Z0-9:-]+)=(\"[^\"]*\"|\\\'[^\\\']*\\\')/', $attributes, $matches, PREG_SET_ORDER)) {
+            return $result;
+        }
+
+        foreach ($matches as $match) {
+            $name = $match[1];
+            $value = $match[2];
+
+            $value = trim($value, "\"'");
+            $value = html_entity_decode($value, ENT_QUOTES, 'UTF-8');
+            $result[$name] = $value;
+        }
+
+        return $result;
+    }
+
+    private function merge_class_names(string $existing, string $additional): string {
+        $existing_parts = preg_split('/\\s+/', trim($existing)) ?: [];
+        $additional_parts = preg_split('/\\s+/', trim($additional)) ?: [];
+        $merged = array_values(array_unique(array_filter(array_merge($existing_parts, $additional_parts))));
+        return implode(' ', $merged);
+    }
+
+    private function merge_style_strings(string $existing, string $additional): string {
+        $existing = trim($existing);
+        $additional = trim($additional);
+        if ($existing === '') {
+            return $additional;
+        }
+        if ($additional === '') {
+            return $existing;
+        }
+        $existing = rtrim($existing, ';');
+        $additional = ltrim($additional, ';');
+        return $existing . ';' . $additional;
     }
 
     /**

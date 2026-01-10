@@ -3,7 +3,7 @@
  * Plugin Name: renderKit
  * Plugin URI: https://renderkit.dev
  * Description: Premium Gutenberg block system with React frontend rendering and Tailwind CSS styling. Build beautiful, interactive blocks with ease.
- * Version: 1.1.0
+ * Version: 1.2.1
  * Author: renderKit Team
  * Author URI: https://renderkit.dev
  * License: GPL-2.0-or-later
@@ -24,14 +24,18 @@ if (!defined('ABSPATH')) {
 }
 
 // Plugin constants
-define('RENDERKIT_VERSION', '1.1.0');
+define('RENDERKIT_VERSION', '1.2.1');
 define('RENDERKIT_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('RENDERKIT_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('RENDERKIT_PLUGIN_BASENAME', plugin_basename(__FILE__));
 
 // Load dependencies
+require_once RENDERKIT_PLUGIN_DIR . 'includes/class-relay-settings.php';
 require_once RENDERKIT_PLUGIN_DIR . 'includes/class-renderkit.php';
 require_once RENDERKIT_PLUGIN_DIR . 'includes/class-block-loader.php';
+require_once RENDERKIT_PLUGIN_DIR . 'includes/class-relay-client.php';
+require_once RENDERKIT_PLUGIN_DIR . 'includes/class-products.php';
+require_once RENDERKIT_PLUGIN_DIR . 'includes/class-image-optimizer.php';
 
 /**
  * Initialize the plugin
@@ -39,9 +43,137 @@ require_once RENDERKIT_PLUGIN_DIR . 'includes/class-block-loader.php';
 function init(): void {
     $plugin = new RenderKit();
     $plugin->init();
+
+    // Relay settings UI (admin)
+    if (is_admin()) {
+        $relay_settings = new RelaySettings();
+        $relay_settings->init();
+    }
+
+    // Initialize Products CPT
+    $products = new Products();
+    $products->init();
+
+    // Initialize Image Optimizer
+    $optimizer = new ImageOptimizer();
+    $optimizer->init();
 }
 
 add_action('plugins_loaded', __NAMESPACE__ . '\\init');
+
+/**
+ * Add Clear Cache button to admin bar
+ */
+function add_clear_cache_button(\WP_Admin_Bar $admin_bar): void {
+    if (!current_user_can('manage_options')) {
+        return;
+    }
+
+    $admin_bar->add_node([
+        'id'    => 'renderkit-clear-cache',
+        'title' => '<span class="ab-icon dashicons dashicons-trash" style="margin-top:2px;"></span> Cache leeren',
+        'href'  => wp_nonce_url(admin_url('admin-post.php?action=rk_clear_cache'), 'rk_clear_cache'),
+        'meta'  => [
+            'title' => 'Alle Caches leeren (Browser, WordPress, OPcache)',
+        ],
+    ]);
+}
+
+add_action('admin_bar_menu', __NAMESPACE__ . '\\add_clear_cache_button', 100);
+
+/**
+ * Handle cache clear action
+ */
+function handle_clear_cache(): void {
+    if (!current_user_can('manage_options')) {
+        wp_die('Keine Berechtigung');
+    }
+
+    if (!wp_verify_nonce($_GET['_wpnonce'] ?? '', 'rk_clear_cache')) {
+        wp_die('Ungültige Anfrage');
+    }
+
+    $cleared = [];
+
+    // Clear WordPress transients
+    global $wpdb;
+    $wpdb->query("DELETE FROM {$wpdb->options} WHERE option_name LIKE '_transient_%'");
+    $wpdb->query("DELETE FROM {$wpdb->options} WHERE option_name LIKE '_site_transient_%'");
+    $cleared[] = 'WordPress Transients';
+
+    // Clear object cache
+    if (function_exists('wp_cache_flush')) {
+        wp_cache_flush();
+        $cleared[] = 'Object Cache';
+    }
+
+    // Clear OPcache
+    if (function_exists('opcache_reset')) {
+        @opcache_reset();
+        $cleared[] = 'OPcache';
+    }
+
+    // Clear popular cache plugins
+    // WP Super Cache
+    if (function_exists('wp_cache_clear_cache')) {
+        wp_cache_clear_cache();
+        $cleared[] = 'WP Super Cache';
+    }
+
+    // W3 Total Cache
+    if (function_exists('w3tc_flush_all')) {
+        w3tc_flush_all();
+        $cleared[] = 'W3 Total Cache';
+    }
+
+    // LiteSpeed Cache
+    if (class_exists('LiteSpeed_Cache_API') && method_exists('LiteSpeed_Cache_API', 'purge_all')) {
+        \LiteSpeed_Cache_API::purge_all();
+        $cleared[] = 'LiteSpeed Cache';
+    }
+
+    // WP Fastest Cache
+    if (function_exists('wpfc_clear_all_cache')) {
+        wpfc_clear_all_cache(true);
+        $cleared[] = 'WP Fastest Cache';
+    }
+
+    // Autoptimize
+    if (class_exists('autoptimizeCache') && method_exists('autoptimizeCache', 'clearall')) {
+        \autoptimizeCache::clearall();
+        $cleared[] = 'Autoptimize';
+    }
+
+    // Store message for admin notice
+    set_transient('rk_cache_cleared', implode(', ', $cleared), 30);
+
+    // Redirect back
+    wp_safe_redirect(wp_get_referer() ?: admin_url());
+    exit;
+}
+
+add_action('admin_post_rk_clear_cache', __NAMESPACE__ . '\\handle_clear_cache');
+
+/**
+ * Show cache cleared notice
+ */
+function show_cache_cleared_notice(): void {
+    $cleared = get_transient('rk_cache_cleared');
+    if (!$cleared) {
+        return;
+    }
+    delete_transient('rk_cache_cleared');
+    ?>
+    <div class="notice notice-success is-dismissible" style="border-left-color: #B8975A;">
+        <p>
+            <strong style="color: #B8975A;">🧹 RenderKit:</strong>
+            Cache erfolgreich geleert! (<?php echo esc_html($cleared); ?>)
+        </p>
+    </div>
+    <?php
+}
+
+add_action('admin_notices', __NAMESPACE__ . '\\show_cache_cleared_notice');
 
 /**
  * Register navigation menu locations
@@ -55,6 +187,54 @@ function register_menus(): void {
 }
 
 add_action('after_setup_theme', __NAMESPACE__ . '\\register_menus');
+
+/**
+ * Add theme-color meta tags for iOS Safari
+ * This controls the color of the rubber-band overscroll area
+ */
+function add_theme_color_meta(): void {
+    // Only on frontend
+    if (is_admin()) return;
+    
+    // Light mode (cream) and dark mode support
+    ?>
+    <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+    <meta name="theme-color" content="#FFFEF9" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#FFFEF9">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <?php
+}
+
+add_action('wp_head', __NAMESPACE__ . '\\add_theme_color_meta', 1);
+
+/**
+ * Add font preload and font-display:swap for performance
+ */
+function add_font_optimizations(): void {
+    if (is_admin()) return;
+    ?>
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <style>
+        /* Font display optimization */
+        @font-face {
+            font-family: 'Cormorant Garamond';
+            font-display: swap;
+        }
+        @font-face {
+            font-family: 'DM Sans';
+            font-display: swap;
+        }
+        @font-face {
+            font-family: 'Manrope';
+            font-display: swap;
+        }
+    </style>
+    <?php
+}
+
+add_action('wp_head', __NAMESPACE__ . '\\add_font_optimizations', 2);
 
 /**
  * Add custom styling to the plugins page
@@ -106,6 +286,7 @@ function plugin_action_links(array $links): array {
 
     $custom_links = [
         '<a href="' . admin_url('edit.php?post_type=page') . '">' . __('Add Block', 'renderkit') . '</a>',
+        '<a href="' . admin_url('options-general.php?page=renderkit-relay') . '">' . __('Relay Settings', 'renderkit') . '</a>',
         '<a href="' . esc_url($changelog_url) . '" class="thickbox open-plugin-details-modal">' . __('Changelog', 'renderkit') . '</a>',
     ];
     return array_merge($custom_links, $links);

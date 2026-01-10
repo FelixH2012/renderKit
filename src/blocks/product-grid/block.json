@@ -1,0 +1,46 @@
+{
+    "$schema": "https://schemas.wp.org/trunk/block.json",
+    "apiVersion": 3,
+    "name": "renderkit/product-grid",
+    "version": "1.1.0",
+    "title": "Product Grid",
+    "category": "renderkit",
+    "description": "Display products in a beautiful grid layout",
+    "keywords": [
+        "products",
+        "shop",
+        "grid",
+        "cards"
+    ],
+    "icon": "grid-view",
+    "textdomain": "renderkit",
+    "supports": {
+        "html": false,
+        "align": [
+            "wide",
+            "full"
+        ]
+    },
+    "attributes": {
+        "columns": {
+            "type": "number",
+            "default": 3
+        },
+        "count": {
+            "type": "number",
+            "default": 6
+        },
+        "category": {
+            "type": "number",
+            "default": 0
+        },
+        "showPrice": {
+            "type": "boolean",
+            "default": true
+        },
+        "showButton": {
+            "type": "boolean",
+            "default": true
+        }
+    }
+}
