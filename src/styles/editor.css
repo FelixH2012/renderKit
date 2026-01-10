@@ -1,0 +1,55 @@
+/**
+ * RenderKit Editor Styles
+ * 
+ * Enhances the appearance of RenderKit blocks in Gutenberg
+ */
+
+/* Block category styling in inserter */
+.block-editor-block-types-list__list-item .editor-block-list-item-renderkit-hero,
+.block-editor-block-types-list__list-item .editor-block-list-item-renderkit-example {
+    /* Premium gradient background on hover */
+    transition: all 0.2s ease;
+}
+
+.block-editor-block-types-list__list-item:has(.editor-block-list-item-renderkit-hero):hover,
+.block-editor-block-types-list__list-item:has(.editor-block-list-item-renderkit-example):hover {
+    transform: translateY(-2px);
+}
+
+/* Category header with logo styling */
+.block-editor-inserter__panel-header:has(+ .block-editor-block-types-list [class*="renderkit"]) {
+    position: relative;
+}
+
+/* Style the block icons */
+.editor-block-list-item-renderkit-hero .block-editor-block-icon,
+.editor-block-list-item-renderkit-example .block-editor-block-icon {
+    background: linear-gradient(135deg, #1a1816 0%, #3d3a38 100%);
+    border-radius: 6px;
+    padding: 4px;
+}
+
+.editor-block-list-item-renderkit-hero .block-editor-block-icon svg,
+.editor-block-list-item-renderkit-example .block-editor-block-icon svg {
+    fill: #B8975A !important;
+}
+
+/* Inserter category badge */
+.components-panel__body.is-opened .block-editor-inserter__panel-title {
+    font-weight: 600;
+}
+
+/* RenderKit block preview styling */
+.wp-block-renderkit-hero,
+.wp-block-renderkit-example {
+    font-family: var(--rk-font-body, 'DM Sans', system-ui);
+}
+
+/* Premium look for block placeholders */
+.renderkit-block.is-selected {
+    box-shadow: 0 0 0 2px #B8975A !important;
+}
+
+.renderkit-block:not(.is-selected):hover {
+    box-shadow: 0 0 0 1px rgba(184, 151, 90, 0.4);
+}

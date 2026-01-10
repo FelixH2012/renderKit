@@ -1,0 +1,64 @@
+{
+    "$schema": "https://schemas.wp.org/trunk/block.json",
+    "apiVersion": 3,
+    "name": "renderkit/hero",
+    "version": "1.0.0",
+    "title": "RenderKit Hero",
+    "category": "renderkit",
+    "description": "A stunning hero section with scroll-based animations",
+    "keywords": [
+        "hero",
+        "header",
+        "landing"
+    ],
+    "icon": "slides",
+    "textdomain": "renderkit",
+    "supports": {
+        "html": false,
+        "align": [
+            "full"
+        ]
+    },
+    "attributes": {
+        "heading": {
+            "type": "string",
+            "default": "Handgemachte\nKerzen &\nGeschenkideen"
+        },
+        "description": {
+            "type": "string",
+            "default": "Handgemachte Kerzen und ausgewählte Deko für besondere Momente."
+        },
+        "buttonText": {
+            "type": "string",
+            "default": "Entdecken"
+        },
+        "buttonUrl": {
+            "type": "string",
+            "default": "#"
+        },
+        "stat1Label": {
+            "type": "string",
+            "default": "Handarbeit"
+        },
+        "stat1Value": {
+            "type": "string",
+            "default": "100%"
+        },
+        "stat2Label": {
+            "type": "string",
+            "default": "Made in"
+        },
+        "stat2Value": {
+            "type": "string",
+            "default": "DE"
+        },
+        "theme": {
+            "type": "string",
+            "default": "dark"
+        },
+        "enableAnimations": {
+            "type": "boolean",
+            "default": true
+        }
+    }
+}

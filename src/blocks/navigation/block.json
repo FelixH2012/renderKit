@@ -1,0 +1,54 @@
+{
+    "$schema": "https://schemas.wp.org/trunk/block.json",
+    "apiVersion": 3,
+    "name": "renderkit/navigation",
+    "version": "1.1.0",
+    "title": "RenderKit Navigation",
+    "category": "renderkit",
+    "description": "Premium navigation bar with scroll-based transparency",
+    "keywords": [
+        "navigation",
+        "menu",
+        "header",
+        "nav"
+    ],
+    "icon": "menu",
+    "textdomain": "renderkit",
+    "supports": {
+        "html": false,
+        "align": [
+            "full",
+            "wide"
+        ]
+    },
+    "attributes": {
+        "menuId": {
+            "type": "number",
+            "default": 0
+        },
+        "theme": {
+            "type": "string",
+            "default": "light"
+        },
+        "showLogo": {
+            "type": "boolean",
+            "default": true
+        },
+        "logoUrl": {
+            "type": "string",
+            "default": ""
+        },
+        "siteName": {
+            "type": "string",
+            "default": ""
+        },
+        "sticky": {
+            "type": "boolean",
+            "default": true
+        },
+        "showCart": {
+            "type": "boolean",
+            "default": true
+        }
+    }
+}

@@ -1,0 +1,58 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/**
+ * RenderKit Theme Variables
+ * 
+ * Override these in your site's CSS to customize the look.
+ * Example: .renderkit-block { --rk-gold: #D4AF37; }
+ */
+:root {
+    /* Brand Colors */
+    --rk-cream: #FFFEF9;
+    --rk-greige: #E8E3DB;
+    --rk-taupe: #8B7F6F;
+    --rk-gold: #B8975A;
+    --rk-anthracite: #1A1816;
+    --rk-black: #000000;
+
+    /* Fonts */
+    --rk-font-display: 'Cormorant Garamond', Georgia, serif;
+    --rk-font-body: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* Base block wrapper */
+.renderkit-block {
+    font-family: var(--rk-font-body);
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Hero Block */
+.renderkit-hero {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.renderkit-hero--dark {
+    background-color: var(--rk-black);
+    color: var(--rk-cream);
+}
+
+.renderkit-hero--light {
+    background-color: var(--rk-cream);
+    color: var(--rk-anthracite);
+}
+
+/* Typography classes */
+.rk-heading-display {
+    font-family: var(--rk-font-display);
+    font-size: clamp(2.5rem, 8vw, 6rem);
+    font-weight: 300;
+    line-height: 0.95;
+    letter-spacing: -0.03em;
+}
