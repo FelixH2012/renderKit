@@ -1,0 +1,63 @@
+/* Custom Scrollbar - Premium Design */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--rk-cream);
+    border-left: 1px solid var(--rk-greige);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--rk-taupe);
+    border-radius: 5px;
+    border: 2px solid var(--rk-cream);
+    transition: background 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--rk-gold);
+}
+
+::-webkit-scrollbar-corner {
+    background: var(--rk-cream);
+}
+
+/* Firefox Scrollbar */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--rk-taupe) var(--rk-cream);
+}
+
+/* Base block wrapper */
+.renderkit-block {
+    font-family: var(--rk-font-body);
+    -webkit-font-smoothing: antialiased;
+}
+
+
+
+/* Override WordPress block layout margins */
+
+.entry-content.alignfull.wp-block-post-content.is-layout-flow.wp-block-post-content-is-layout-flow {
+    margin-block-start: 0;
+    margin-block-end: 0;
+    margin-block: 0;
+}
+
+.renderkit-block,
+.renderkit-block *,
+.renderkit-block :where(.is-layout-flow)>*,
+:root :where(.is-layout-flow)>.renderkit-block,
+:root :where(.is-layout-flow)>* .renderkit-block,
+.renderkit-block p,
+.renderkit-block h1,
+.renderkit-block h2,
+.renderkit-block h3,
+.renderkit-block h4,
+.renderkit-block div {
+    margin-block-start: 0;
+    margin-block-end: 0;
+    margin-block: 0;
+}

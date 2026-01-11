@@ -1,5 +1,6 @@
 import * as esbuild from 'esbuild';
 import postcss from 'postcss';
+import postcssImport from 'postcss-import';
 import tailwindcss from 'tailwindcss';
 import autoprefixer from 'autoprefixer';
 import * as fs from 'fs';
@@ -78,11 +79,20 @@ const postCSSPlugin = {
     setup(build) {
         build.onLoad({ filter: /\.css$/ }, async (args) => {
             const css = await fs.promises.readFile(args.path, 'utf8');
-            const result = await postcss([tailwindcss, autoprefixer]).process(css, { from: args.path });
+            const result = await postcss([postcssImport(), tailwindcss, autoprefixer]).process(css, { from: args.path });
+            const messages = result.messages || [];
+            const watchFiles = messages
+                .filter((message) => message.type === 'dependency' && message.file)
+                .map((message) => message.file);
+            const watchDirs = messages
+                .filter((message) => message.type === 'dir-dependency' && message.dir)
+                .map((message) => message.dir);
 
             return {
                 contents: result.css,
                 loader: 'css',
+                watchFiles,
+                watchDirs,
             };
         });
     },
@@ -142,7 +152,7 @@ async function buildCSS() {
     }
 
     const css = await fs.promises.readFile(cssPath, 'utf8');
-    const result = await postcss([tailwindcss, autoprefixer]).process(css, { from: cssPath });
+    const result = await postcss([postcssImport(), tailwindcss, autoprefixer]).process(css, { from: cssPath });
 
     const outputDir = path.resolve('build');
     if (!fs.existsSync(outputDir)) {

@@ -1,0 +1,87 @@
+/* Typography classes */
+.rk-heading-display {
+    font-family: var(--rk-font-display);
+    font-size: clamp(2.5rem, 8vw, 6rem);
+    font-weight: 300;
+    line-height: 0.95;
+    letter-spacing: -0.03em;
+}
+
+.rk-heading-page {
+    font-family: var(--rk-font-display);
+    font-size: clamp(2.125rem, 6vw, 3.75rem);
+    font-weight: 300;
+    line-height: 1.02;
+    letter-spacing: -0.03em;
+}
+
+
+.rk-prose {
+    font-size: 1.0625rem;
+    line-height: 1.9;
+    letter-spacing: -0.01em;
+}
+
+.rk-prose> :where(p, ul, ol, blockquote, pre, table, figure, hr) {
+    margin-top: 1.25em;
+}
+
+.rk-prose> :where(h1, h2, h3, h4, h5, h6) {
+    margin-top: 2.25em;
+    margin-bottom: 0.6em;
+    font-family: var(--rk-font-display);
+    font-weight: 300;
+    letter-spacing: -0.02em;
+    line-height: 1.08;
+}
+
+.rk-prose> :where(:first-child) {
+    margin-top: 0;
+}
+
+.rk-prose :where(p, li, blockquote) {
+    color: var(--rk-prose-muted, currentColor);
+}
+
+.rk-prose :where(a) {
+    color: inherit;
+    text-decoration: none;
+    box-shadow: inset 0 -1px 0 0 currentColor;
+    transition: color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.rk-prose :where(a:hover) {
+    color: var(--rk-gold);
+    box-shadow: inset 0 -1px 0 0 var(--rk-gold);
+}
+
+.rk-prose :where(strong) {
+    color: currentColor;
+    font-weight: 600;
+}
+
+.rk-prose :where(ul, ol) {
+    padding-left: 1.25rem;
+}
+
+.rk-prose :where(li + li) {
+    margin-top: 0.5em;
+}
+
+.rk-prose :where(blockquote) {
+    border-left: 2px solid var(--rk-gold);
+    padding-left: 1.25rem;
+    font-style: italic;
+}
+
+.rk-prose :where(hr) {
+    border: 0;
+    height: 1px;
+    background: var(--rk-prose-rule, rgba(0, 0, 0, 0.12));
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .rk-prose :where(a) {
+        transition: none;
+    }
+}

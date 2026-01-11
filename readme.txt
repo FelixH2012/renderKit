@@ -3,7 +3,7 @@ Contributors: felix
 Tags: react, blocks, ssr, relay, performance
 Requires at least: 6.4
 Tested up to: 6.7
-Stable tag: 1.3.0
+Stable tag: 1.4.0
 Requires PHP: 8.0
 License: GPLv2 or later
 
@@ -27,6 +27,13 @@ Key Features:
 4. Ensure the Relay service (Docker) is running via `make relay-up` or `make dev`.
 
 == Changelog ==
+
+= 1.4.0 =
+* **Feature:** New Text-Image Block - Flexible text + image layouts with left/right positioning.
+* **Feature:** Updated AGENTS.md with Zod schema step for new blocks.
+* **Improvement:** Modal animations refined (Spring-like easing, staggered elements).
+* **Improvement:** Scroll-lock no longer causes navigation jumps.
+* **Fix:** Footer divider and deco line spacing adjustments.
 
 = 1.3.0 =
 * **Feature:** Performance Monitoring Stack (Prometheus + Grafana) included locally.

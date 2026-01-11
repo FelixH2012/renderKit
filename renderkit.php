@@ -3,7 +3,7 @@
  * Plugin Name: renderKit
  * Plugin URI: https://renderkit.dev
  * Description: Premium Gutenberg block system with React frontend rendering and Tailwind CSS styling. Build beautiful, interactive blocks with ease.
- * Version: 1.3.0
+ * Version: 1.4.0
  * Author: renderKit Team
  * Author URI: https://renderkit.dev
  * License: GPL-2.0-or-later
@@ -24,7 +24,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Plugin constants
-define('RENDERKIT_VERSION', '1.3.0');
+define('RENDERKIT_VERSION', '1.4.0');
 define('RENDERKIT_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('RENDERKIT_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('RENDERKIT_PLUGIN_BASENAME', plugin_basename(__FILE__));

@@ -1,0 +1,360 @@
+/* Navigation Block */
+.renderkit-nav {
+    width: 100%;
+    background-color: transparent;
+    transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+    --rk-nav-height: 72px;
+    padding: 0;
+}
+
+.renderkit-nav.is-sticky {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 50;
+    transform: translateY(0);
+    opacity: 1;
+    transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+        opacity 0.4s ease,
+        all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Hide navbar when scrolling down */
+.renderkit-nav.is-sticky.is-hidden {
+    transform: translateY(-100%);
+}
+
+
+.renderkit-nav__shell {
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
+    border-radius: 0;
+    padding: 0 1.5rem;
+    background-color: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border: none;
+    /* Smoother, longer transitions for elegant morphing */
+    transition:
+        width 1s cubic-bezier(0.22, 1, 0.36, 1),
+        margin 1s cubic-bezier(0.22, 1, 0.36, 1),
+        border-radius 1s cubic-bezier(0.22, 1, 0.36, 1),
+        padding 1s cubic-bezier(0.22, 1, 0.36, 1),
+        background-color 0.8s cubic-bezier(0.22, 1, 0.36, 1),
+        backdrop-filter 0.8s cubic-bezier(0.22, 1, 0.36, 1),
+        box-shadow 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: width, margin, border-radius;
+}
+
+/* Semi-transparent dark background when at top (not scrolled) for black hero */
+.renderkit-nav:not(.is-scrolled) .renderkit-nav__shell {
+    background-color: rgba(0, 0, 0, 0.6) !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+
+/* Scrolled State - Transitions to Pill */
+.renderkit-nav.is-scrolled .renderkit-nav__shell {
+    width: calc(100% - 3rem);
+    max-width: 1600px;
+    margin: 1rem auto;
+    border-radius: 999px;
+    padding: 0 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.renderkit-nav.is-scrolled:not(.renderkit-nav--transparent).renderkit-nav--light .renderkit-nav__shell {
+    background-color: rgba(255, 254, 249, 0.9);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.03);
+}
+
+.renderkit-nav.is-scrolled:not(.renderkit-nav--transparent).renderkit-nav--dark .renderkit-nav__shell {
+    background-color: rgba(30, 28, 26, 0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.15);
+}
+
+.renderkit-nav.is-scrolled.renderkit-nav--transparent.renderkit-nav--light .renderkit-nav__shell {
+    background-color: rgba(255, 254, 249, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+}
+
+.renderkit-nav.is-scrolled.renderkit-nav--transparent.renderkit-nav--dark .renderkit-nav__shell {
+    background-color: rgba(0, 0, 0, 0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+}
+
+.renderkit-nav__inner {
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: var(--rk-nav-height);
+    transition: min-height 0.4s ease;
+}
+
+.renderkit-nav.is-scrolled .renderkit-nav__inner {
+    min-height: 64px;
+}
+
+.renderkit-nav__logo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    text-decoration: none;
+}
+
+.renderkit-nav__logo-img {
+    height: 2rem;
+    width: auto;
+}
+
+.renderkit-nav__logo-text {
+    line-height: 1;
+    display: block;
+    font-size: 0.875rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    font-weight: 500;
+}
+
+.renderkit-nav__link {
+    position: relative;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 0;
+    font-size: 0.875rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: color 0.3s ease, transform 0.3s ease;
+}
+
+.renderkit-nav__link:hover {
+    transform: translateY(-1px);
+}
+
+.renderkit-nav__link::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: -4px;
+    width: 0;
+    height: 2px;
+    background: var(--rk-gold);
+    transition: width 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+    transform: translateX(-50%);
+    border-radius: 2px;
+}
+
+.renderkit-nav__link:hover::after {
+    width: 24px;
+}
+
+.renderkit-nav__menu {
+    display: none;
+    align-items: center;
+    gap: 3rem;
+}
+
+.renderkit-nav__actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.renderkit-nav__icon-button {
+    position: relative;
+    background: none;
+    border: none;
+    cursor: pointer;
+    line-height: 0;
+    align-self: center;
+    display: grid;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    padding: 0;
+}
+
+.renderkit-nav__icon {
+    display: block;
+    width: 1.25rem;
+    height: 1.25rem;
+    vertical-align: middle;
+}
+
+.renderkit-nav__icon--lg {
+    width: 1.5rem;
+    height: 1.5rem;
+}
+
+.renderkit-nav__dot {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 0.5rem;
+    height: 0.5rem;
+    background: var(--rk-gold);
+    border-radius: 50%;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.renderkit-nav__icon-button:hover .renderkit-nav__dot {
+    opacity: 1;
+}
+
+.renderkit-nav__mobile-details {
+    display: inline-flex;
+}
+
+.renderkit-nav__mobile-details>summary {
+    list-style: none;
+}
+
+.renderkit-nav__mobile-details>summary::-webkit-details-marker {
+    display: none;
+}
+
+.renderkit-nav__mobile-details .renderkit-nav__icon--close {
+    display: none;
+}
+
+.renderkit-nav__mobile-details[open] .renderkit-nav__icon--menu {
+    display: none;
+}
+
+.renderkit-nav__mobile-details[open] .renderkit-nav__icon--close {
+    display: block;
+}
+
+.renderkit-nav__mobile-toggle {
+    display: inline-flex;
+}
+
+.renderkit-nav__mobile {
+    display: none;
+    position: fixed;
+    inset: 0;
+    top: 80px;
+    z-index: 40;
+    padding: 2rem;
+}
+
+.renderkit-nav__mobile-details[open] .renderkit-nav__mobile {
+    display: block;
+}
+
+.renderkit-nav__mobile-links {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.renderkit-nav__mobile-link {
+    font-size: 1.5rem;
+    font-weight: 300;
+    text-decoration: none;
+    letter-spacing: 0.05em;
+}
+
+.renderkit-nav__mobile-rule {
+    margin-top: 2rem;
+    width: 4rem;
+    height: 1px;
+    background: var(--rk-gold);
+}
+
+/* NOT Scrolled State - White Text on Dark Semi-Transparent Background */
+.renderkit-nav:not(.is-scrolled) .renderkit-nav__logo-text,
+.renderkit-nav:not(.is-scrolled) .renderkit-nav__icon-button,
+.renderkit-nav:not(.is-scrolled) .renderkit-nav__link {
+    color: #ffffff !important;
+    text-shadow: none;
+}
+
+.renderkit-nav:not(.is-scrolled) .renderkit-nav__link:hover {
+    color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.renderkit-nav:not(.is-scrolled) .renderkit-nav__logo-img {
+    filter: brightness(0) invert(1);
+}
+
+/* Scrolled State Text Colors */
+.renderkit-nav.is-scrolled.renderkit-nav--light .renderkit-nav__logo-text,
+.renderkit-nav.is-scrolled.renderkit-nav--light .renderkit-nav__icon-button,
+.renderkit-nav.is-scrolled.renderkit-nav--light .renderkit-nav__mobile {
+    color: var(--rk-anthracite) !important;
+    text-shadow: none !important;
+}
+
+.renderkit-nav.is-scrolled.renderkit-nav--light .renderkit-nav__link {
+    color: var(--rk-anthracite) !important;
+    text-shadow: none !important;
+}
+
+.renderkit-nav.is-scrolled.renderkit-nav--light .renderkit-nav__link:hover {
+    color: var(--rk-black) !important;
+    opacity: 0.7;
+}
+
+.renderkit-nav.is-scrolled.renderkit-nav--dark .renderkit-nav__logo-text,
+.renderkit-nav.is-scrolled.renderkit-nav--dark .renderkit-nav__icon-button,
+.renderkit-nav.is-scrolled.renderkit-nav--dark .renderkit-nav__mobile {
+    color: var(--rk-cream) !important;
+}
+
+.renderkit-nav.is-scrolled.renderkit-nav--dark .renderkit-nav__link {
+    color: var(--rk-cream) !important;
+}
+
+.renderkit-nav.is-scrolled.renderkit-nav--dark .renderkit-nav__link:hover {
+    color: #ffffff !important;
+}
+
+.renderkit-nav.is-scrolled.renderkit-nav--light .renderkit-nav__logo-img {
+    filter: none;
+}
+
+/* Base states for mobile menu colors (when open) */
+.renderkit-nav--light .renderkit-nav__mobile {
+    color: var(--rk-anthracite);
+    background: var(--rk-cream);
+}
+
+.renderkit-nav--dark .renderkit-nav__mobile {
+    color: var(--rk-cream);
+    background: var(--rk-black);
+}
+
+@media (min-width: 1024px) {
+    .renderkit-nav__inner {
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+        min-height: var(--rk-nav-height);
+    }
+
+    .renderkit-nav__menu {
+        display: flex;
+        gap: 3rem;
+    }
+
+    .renderkit-nav__mobile-details,
+    .renderkit-nav__mobile-toggle {
+        display: none;
+    }
+}

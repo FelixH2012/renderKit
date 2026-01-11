@@ -1,0 +1,34 @@
+/* Text Block (InnerBlocks typography wrapper) */
+.renderkit-text-block {
+    width: 100%;
+    padding: clamp(3rem, 6vw, 5rem) 0;
+}
+
+.renderkit-text-block--light {
+    background: var(--rk-cream);
+    color: var(--rk-anthracite);
+    --rk-prose-muted: rgba(26, 24, 22, 0.72);
+    --rk-prose-rule: rgba(26, 24, 22, 0.14);
+}
+
+.renderkit-text-block--dark {
+    background: var(--rk-black);
+    color: var(--rk-cream);
+    --rk-prose-muted: rgba(255, 254, 249, 0.72);
+    --rk-prose-rule: rgba(255, 254, 249, 0.16);
+}
+
+.rk-text-block__inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+}
+
+.renderkit-text-block--narrow .rk-text-block__inner {
+    max-width: 880px;
+}
+
+.renderkit-text-block--wide .rk-text-block__inner {
+    max-width: 1300px;
+}
+
