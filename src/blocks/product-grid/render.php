@@ -72,7 +72,7 @@ $wrapper = get_block_wrapper_attributes([
                     <!-- Arrow -->
                     <div style="display:flex;justify-content:flex-end;">
                         <a href="<?php echo esc_url($product['url']); ?>" class="rk-bento-arrow" style="width:clamp(3rem,4vw,3.5rem);height:clamp(3rem,4vw,3.5rem);display:flex;align-items:center;justify-content:center;background:rgba(255,254,249,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-radius:50%;color:#FFFEF9;text-decoration:none;border:1px solid rgba(255,254,249,0.1);transition:all 0.4s cubic-bezier(0.22,1,0.36,1);">
-                            <i class="rk-bento-arrow__icon fa-solid fa-arrow-up-right" aria-hidden="true"></i>
+                            <i class="rk-bento-arrow__icon fa-solid fa-arrow-right" aria-hidden="true" style="transform: rotate(-45deg)"></i>
                         </a>
                     </div>
 

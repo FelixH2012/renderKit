@@ -7,6 +7,9 @@
 @import './blocks/text-block.css';
 @import './blocks/text-image.css';
 @import './blocks/contact-form.css';
+@import './blocks/faq.css';
+@import './blocks/cookie-banner.css';
+@import './blocks/cookie-gate.css';
 @import './blocks/footer.css';
 @import './pages/product-page.css';
 @import './utilities.css';

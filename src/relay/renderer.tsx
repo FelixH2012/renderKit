@@ -15,6 +15,9 @@ import { View as TextBlockView } from '../blocks/text-block/view';
 import { View as FooterView } from '../blocks/footer/view';
 import { View as TextImageView } from '../blocks/text-image/view';
 import { View as ContactFormView } from '../blocks/contact-form/view';
+import { View as CookieBannerView } from '../blocks/cookie-banner/view';
+import { View as CookieGateView } from '../blocks/cookie-gate/view';
+import { View as FaqView } from '../blocks/faq/view';
 import { View as ProductPageView } from '../pages/product-page/view';
 import { relayPropsSchemas } from './schemas';
 
@@ -29,6 +32,9 @@ const registry: Record<string, React.ComponentType<any>> = {
     'renderkit/footer': FooterView,
     'renderkit/text-image': TextImageView,
     'renderkit/contact-form': ContactFormView,
+    'renderkit/cookie-banner': CookieBannerView,
+    'renderkit/cookie-gate': CookieGateView,
+    'renderkit/faq': FaqView,
     'renderkit/product-page': ProductPageView,
 };
 

@@ -1,0 +1,213 @@
+.renderkit-cookie-banner {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 99999;
+    padding: 1.5rem 1.75rem;
+    background: linear-gradient(135deg, rgba(255, 254, 249, 0.96) 0%, rgba(245, 244, 242, 0.96) 100%);
+    color: var(--rk-anthracite);
+    border-top: 1px solid rgba(26, 24, 22, 0.12);
+    backdrop-filter: blur(12px);
+    transform: translateY(24px);
+    opacity: 0;
+    animation: rk-cookie-banner-in 0.6s var(--rk-ease-out, cubic-bezier(0.22, 1, 0.36, 1)) 0.2s forwards;
+    transition: opacity 0.4s ease, transform 0.4s ease;
+    pointer-events: auto;
+    isolation: isolate;
+}
+
+.renderkit-cookie-banner--dark {
+    background: linear-gradient(135deg, rgba(15, 14, 12, 0.96) 0%, rgba(9, 9, 9, 0.96) 100%);
+    color: var(--rk-cream);
+    border-top-color: rgba(255, 254, 249, 0.12);
+}
+
+.rk-cookie-banner__inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    gap: 2rem;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.rk-cookie-banner__copy {
+    max-width: 56ch;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.rk-cookie-banner__message {
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+.rk-cookie-banner__policy {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: inherit;
+    text-decoration: none;
+}
+
+.rk-cookie-banner__actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    align-items: center;
+    pointer-events: auto;
+}
+
+.rk-cookie-banner__button {
+    border-radius: var(--rk-radius-pill);
+    padding: 0.7rem 1.4rem;
+    border: 1px solid currentColor;
+    background: transparent;
+    color: inherit;
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease;
+}
+
+.rk-cookie-banner__button--primary {
+    background: var(--rk-anthracite);
+    color: var(--rk-cream);
+    border-color: transparent;
+}
+
+.renderkit-cookie-banner--dark .rk-cookie-banner__button--primary {
+    background: var(--rk-cream);
+    color: var(--rk-black);
+}
+
+
+.rk-cookie-banner__settings {
+    max-width: 1100px;
+    margin: 0.75rem auto 0;
+    border-top: 1px solid rgba(26, 24, 22, 0.1);
+    padding-top: 0.75rem;
+}
+
+.renderkit-cookie-banner--dark .rk-cookie-banner__settings {
+    border-top-color: rgba(255, 254, 249, 0.12);
+}
+
+.rk-cookie-banner__settings-toggle {
+    list-style: none;
+    cursor: pointer;
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    opacity: 0.7;
+}
+
+.rk-cookie-banner__settings-toggle::-webkit-details-marker {
+    display: none;
+}
+
+.rk-cookie-banner__settings-body {
+    margin-top: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    animation: rk-cookie-settings-in 0.4s ease;
+}
+
+.rk-cookie-banner__setting {
+    display: flex;
+    justify-content: space-between;
+    gap: 1.5rem;
+    align-items: center;
+}
+
+.rk-cookie-banner__setting-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.rk-cookie-banner__setting-title {
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.rk-cookie-banner__setting-desc {
+    font-size: 0.85rem;
+    opacity: 0.7;
+}
+
+.rk-cookie-banner__setting-link {
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: inherit;
+    text-decoration: none;
+}
+
+.rk-cookie-banner__setting-toggle {
+    width: 44px;
+    height: 24px;
+}
+
+.rk-cookie-banner__settings-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.rk-cookie-banner__settings--editor {
+    margin-top: 1rem;
+    border-top: 1px dashed rgba(26, 24, 22, 0.2);
+}
+
+.renderkit-cookie-banner[data-rk-cookie-hidden="1"] {
+    opacity: 0;
+    transform: translateY(16px);
+    pointer-events: none;
+}
+
+.rk-cookie-banner__button:hover {
+    transform: translateY(-1px);
+}
+
+.rk-cookie-banner__button--ghost:hover {
+    background: rgba(26, 24, 22, 0.08);
+}
+
+.renderkit-cookie-banner--dark .rk-cookie-banner__button--ghost:hover {
+    background: rgba(255, 254, 249, 0.12);
+}
+
+@keyframes rk-cookie-banner-in {
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes rk-cookie-settings-in {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 768px) {
+    .rk-cookie-banner__inner {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .rk-cookie-banner__actions {
+        width: 100%;
+    }
+}

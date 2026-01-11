@@ -3,7 +3,7 @@
  * Plugin Name: renderKit
  * Plugin URI: https://renderkit.dev
  * Description: Premium Gutenberg block system with React frontend rendering and Tailwind CSS styling. Build beautiful, interactive blocks with ease.
- * Version: 1.4.0
+ * Version: 1.5.0
  * Author: renderKit Team
  * Author URI: https://renderkit.dev
  * License: GPL-2.0-or-later
@@ -24,7 +24,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Plugin constants
-define('RENDERKIT_VERSION', '1.4.0');
+define('RENDERKIT_VERSION', '1.5.0');
 define('RENDERKIT_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('RENDERKIT_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('RENDERKIT_PLUGIN_BASENAME', plugin_basename(__FILE__));
@@ -38,6 +38,7 @@ require_once RENDERKIT_PLUGIN_DIR . 'includes/class-products.php';
 require_once RENDERKIT_PLUGIN_DIR . 'includes/class-image-optimizer.php';
 require_once RENDERKIT_PLUGIN_DIR . 'includes/integrations/class-contact-form.php';
 require_once RENDERKIT_PLUGIN_DIR . 'includes/class-maintenance.php';
+require_once RENDERKIT_PLUGIN_DIR . 'includes/class-cookie-settings.php';
 
 /**
  * Initialize the plugin
@@ -67,6 +68,10 @@ function init(): void {
     // Initialize Maintenance Mode
     $maintenance = new MaintenanceMode();
     $maintenance->init();
+
+    // Initialize Cookie Settings CPT
+    $cookie_settings = new CookieSettings();
+    $cookie_settings->init();
 
     // Initialize AI Service
     require_once RENDERKIT_PLUGIN_DIR . 'includes/class-ai-service.php';
@@ -202,6 +207,30 @@ function register_menus(): void {
 }
 
 add_action('after_setup_theme', __NAMESPACE__ . '\\register_menus');
+
+/**
+ * Force HTTPS for uploads when site is served over SSL.
+ *
+ * @param array<string, mixed> $dirs
+ * @return array<string, mixed>
+ */
+function enforce_https_uploads(array $dirs): array {
+    if (!is_ssl()) {
+        return $dirs;
+    }
+
+    if (isset($dirs['baseurl']) && is_string($dirs['baseurl'])) {
+        $dirs['baseurl'] = set_url_scheme($dirs['baseurl'], 'https');
+    }
+
+    if (isset($dirs['url']) && is_string($dirs['url'])) {
+        $dirs['url'] = set_url_scheme($dirs['url'], 'https');
+    }
+
+    return $dirs;
+}
+
+add_filter('upload_dir', __NAMESPACE__ . '\\enforce_https_uploads');
 
 /**
  * Add theme-color meta tags for iOS Safari

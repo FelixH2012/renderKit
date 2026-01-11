@@ -94,6 +94,9 @@ export function View({ attributes, content = '', className }: ViewProps): JSX.El
                     <span className="rk-footer__fineprint">
                         © {year} {siteName}
                     </span>
+                    <button type="button" className="rk-footer__cookie" data-rk-cookie-open>
+                        Cookie-Einstellungen
+                    </button>
                 </div>
             </div>
         </footer>
@@ -101,4 +104,3 @@ export function View({ attributes, content = '', className }: ViewProps): JSX.El
 }
 
 export default View;
-

@@ -229,6 +229,59 @@ const contactFormAttributesSchema = z
     })
     .strip();
 
+const cookieBannerSettingSchema = z
+    .object({
+        id: z.string().optional().default(''),
+        label: z.string().optional().default(''),
+        description: z.string().optional().default(''),
+        required: z.boolean().optional().default(false),
+        enabledByDefault: z.boolean().optional().default(false),
+        linkLabel: z.string().optional().default(''),
+        linkUrl: z.string().optional().default(''),
+    })
+    .strip();
+
+const cookieBannerAttributesSchema = z
+    .object({
+        message: z.string().optional().default('Wir nutzen Cookies, um dir die bestmögliche Erfahrung zu bieten und unsere Website sicher zu betreiben.'),
+        policyLabel: z.string().optional().default('Datenschutzerklärung'),
+        policyUrl: z.string().optional().default('/datenschutz'),
+        acceptLabel: z.string().optional().default('Alle akzeptieren'),
+        rejectLabel: z.string().optional().default('Ablehnen'),
+        manageLabel: z.string().optional().default('Einstellungen'),
+        saveLabel: z.string().optional().default('Auswahl speichern'),
+        theme: themeSchema.optional().default('dark'),
+        consentVersion: z.string().optional().default('1'),
+        settings: z.array(cookieBannerSettingSchema).optional().default([]),
+    })
+    .strip();
+
+const cookieGateAttributesSchema = z
+    .object({
+        requiredSetting: z.string().optional().default('analytics'),
+        consentVersion: z.string().optional().default('1'),
+        fallbackText: z.string().optional().default('Bitte akzeptiere die passenden Cookies, um diesen Inhalt zu sehen.'),
+        previewAccepted: z.boolean().optional().default(false),
+    })
+    .strip();
+
+const faqItemSchema = z
+    .object({
+        question: z.string().optional().default(''),
+        answer: z.string().optional().default(''),
+    })
+    .strip();
+
+const faqAttributesSchema = z
+    .object({
+        heading: z.string().optional().default('Haeufige Fragen'),
+        intro: z.string().optional().default('Hier findest du Antworten auf die wichtigsten Fragen.'),
+        theme: themeSchema.optional().default('light'),
+        openFirst: z.boolean().optional().default(false),
+        items: z.array(faqItemSchema).optional().default([]),
+    })
+    .strip();
+
 export const relayPropsSchemas = {
     'renderkit/hero': relayPropsSchema(heroAttributesSchema),
     'renderkit/navigation': relayPropsSchema(navigationAttributesSchema),
@@ -237,6 +290,9 @@ export const relayPropsSchemas = {
     'renderkit/text-block': relayPropsSchema(textBlockAttributesSchema),
     'renderkit/text-image': relayPropsSchema(textImageAttributesSchema),
     'renderkit/contact-form': relayPropsSchema(contactFormAttributesSchema),
+    'renderkit/cookie-banner': relayPropsSchema(cookieBannerAttributesSchema),
+    'renderkit/cookie-gate': relayPropsSchema(cookieGateAttributesSchema),
+    'renderkit/faq': relayPropsSchema(faqAttributesSchema),
     'renderkit/footer': relayPropsSchema(footerAttributesSchema),
     'renderkit/product-page': relayPropsSchema(productPageAttributesSchema),
 } as const;

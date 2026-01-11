@@ -3,7 +3,7 @@ Contributors: felix
 Tags: react, blocks, ssr, relay, performance
 Requires at least: 6.4
 Tested up to: 6.7
-Stable tag: 1.4.0
+Stable tag: 1.5.0
 Requires PHP: 8.0
 License: GPLv2 or later
 
@@ -27,6 +27,17 @@ Key Features:
 4. Ensure the Relay service (Docker) is running via `make relay-up` or `make dev`.
 
 == Changelog ==
+
+= 1.5.0 =
+* **Feature:** Cookie consent system (banner + gate) with editor controls, consent storage, and footer settings link.
+* **Feature:** Cookie settings CPT for managing consent categories, descriptions, and links.
+* **Feature:** Maintenance mode with access key and branded screen.
+* **Feature:** New FAQ block with SSR-safe accordion UI.
+* **Improvement:** Contact form redesign + reCAPTCHA v3 integration + privacy checkbox + status messaging.
+* **Improvement:** Font Awesome icons replacing inline SVGs across blocks.
+* **Improvement:** Text block typography + FAQ spacing alignment to text-image block.
+* **Improvement:** Dev workflow updates (watch reliability, relay restart behavior).
+* **Fix:** Enforce HTTPS upload URLs to avoid mixed content warnings.
 
 = 1.4.0 =
 * **Feature:** New Text-Image Block - Flexible text + image layouts with left/right positioning.

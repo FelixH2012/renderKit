@@ -1,6 +1,6 @@
 {
     "name": "renderkit",
-    "version": "1.4.0",
+    "version": "1.5.0",
     "description": "Premium Gutenberg block system with React frontend rendering",
     "scripts": {
         "build": "node esbuild.config.mjs",

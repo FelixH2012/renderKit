@@ -38,6 +38,18 @@ import textImageMeta from '../blocks/text-image/block.json';
 import { Edit as ContactFormEdit } from '../blocks/contact-form/editor';
 import contactFormMeta from '../blocks/contact-form/block.json';
 
+// Cookie Banner Block
+import { Edit as CookieBannerEdit } from '../blocks/cookie-banner/editor';
+import cookieBannerMeta from '../blocks/cookie-banner/block.json';
+
+// Cookie Gate Block
+import { Edit as CookieGateEdit } from '../blocks/cookie-gate/editor';
+import cookieGateMeta from '../blocks/cookie-gate/block.json';
+
+// FAQ Block
+import { Edit as FaqEdit } from '../blocks/faq/editor';
+import faqMeta from '../blocks/faq/block.json';
+
 // Dynamic blocks return null for save
 const nullSave = () => null;
 
@@ -67,6 +79,9 @@ const blocks: BlockRegistration[] = [
     { meta: footerMeta, edit: FooterEdit, save: FooterSave, icon: 'admin-site' },
     { meta: textImageMeta, edit: TextImageEdit, icon: 'align-left' },
     { meta: contactFormMeta, edit: ContactFormEdit, icon: 'email' },
+    { meta: cookieBannerMeta, edit: CookieBannerEdit, icon: 'shield' },
+    { meta: cookieGateMeta, edit: CookieGateEdit, icon: 'lock' },
+    { meta: faqMeta, edit: FaqEdit, icon: 'editor-help' },
 ];
 
 // Plugins

@@ -212,6 +212,8 @@ class BlockLoader {
                 return $this->prepare_footer_attributes($attributes);
             case 'renderkit/contact-form':
                 return $this->prepare_contact_form_attributes($attributes);
+            case 'renderkit/cookie-banner':
+                return $this->prepare_cookie_banner_attributes($attributes);
             default:
                 return $attributes;
         }
@@ -326,6 +328,48 @@ class BlockLoader {
         $attributes['nonce'] = wp_create_nonce('rk_contact_submission');
         $attributes['status'] = $status;
 
+        return $attributes;
+    }
+
+    /**
+     * @param array<string, mixed> $attributes
+     * @return array<string, mixed>
+     */
+    private function prepare_cookie_banner_attributes(array $attributes): array {
+        $cookies = get_posts([
+            'post_type' => CookieSettings::POST_TYPE,
+            'post_status' => 'publish',
+            'numberposts' => -1,
+            'orderby' => 'menu_order',
+            'order' => 'ASC',
+        ]);
+
+        if (empty($cookies)) {
+            return $attributes;
+        }
+
+        $settings = [];
+        foreach ($cookies as $cookie) {
+            if (!$cookie instanceof \WP_Post) {
+                continue;
+            }
+            $id = (string) get_post_meta($cookie->ID, CookieSettings::META_ID, true);
+            if ($id === '') {
+                $id = sanitize_key($cookie->post_title ?: ('setting-' . $cookie->ID));
+            }
+
+            $settings[] = [
+                'id' => $id,
+                'label' => $cookie->post_title ? (string) $cookie->post_title : $id,
+                'description' => $cookie->post_content ? wp_strip_all_tags($cookie->post_content) : '',
+                'required' => (string) get_post_meta($cookie->ID, CookieSettings::META_REQUIRED, true) === '1',
+                'enabledByDefault' => (string) get_post_meta($cookie->ID, CookieSettings::META_ENABLED, true) === '1',
+                'linkLabel' => (string) get_post_meta($cookie->ID, CookieSettings::META_LINK_LABEL, true),
+                'linkUrl' => (string) get_post_meta($cookie->ID, CookieSettings::META_LINK_URL, true),
+            ];
+        }
+
+        $attributes['settings'] = $settings;
         return $attributes;
     }
 

@@ -1,0 +1,62 @@
+{
+    "$schema": "https://schemas.wp.org/trunk/block.json",
+    "apiVersion": 3,
+    "name": "renderkit/faq",
+    "version": "1.0.0",
+    "title": "FAQ",
+    "category": "renderkit",
+    "description": "FAQ section with collapsible questions.",
+    "keywords": [
+        "faq",
+        "questions",
+        "accordion"
+    ],
+    "icon": "editor-help",
+    "textdomain": "renderkit",
+    "supports": {
+        "html": false,
+        "align": [
+            "full",
+            "wide"
+        ]
+    },
+    "attributes": {
+        "heading": {
+            "type": "string",
+            "default": "Haeufige Fragen"
+        },
+        "intro": {
+            "type": "string",
+            "default": "Hier findest du Antworten auf die wichtigsten Fragen."
+        },
+        "theme": {
+            "type": "string",
+            "default": "light",
+            "enum": [
+                "light",
+                "dark"
+            ]
+        },
+        "openFirst": {
+            "type": "boolean",
+            "default": false
+        },
+        "items": {
+            "type": "array",
+            "default": [
+                {
+                    "question": "Wie lange dauert der Versand?",
+                    "answer": "In der Regel 2-4 Werktage innerhalb Deutschlands."
+                },
+                {
+                    "question": "Kann ich eine Bestellung retournieren?",
+                    "answer": "Ja, innerhalb von 14 Tagen im Originalzustand."
+                },
+                {
+                    "question": "Wie kann ich euch kontaktieren?",
+                    "answer": "Nutze das Kontaktformular oder schreibe uns eine E-Mail."
+                }
+            ]
+        }
+    }
+}

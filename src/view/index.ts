@@ -733,6 +733,186 @@ function enhanceRecaptcha() {
     wireForms();
 }
 
+function enhanceCookieBanner() {
+    const banners = Array.from(document.querySelectorAll<HTMLElement>('[data-rk-cookie-banner="1"]'));
+    if (banners.length === 0) return;
+
+    const setCookie = (name: string, value: string, days = 180) => {
+        const expires = new Date(Date.now() + days * 864e5).toUTCString();
+        document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/; SameSite=Lax`;
+    };
+
+    const getCookie = (name: string) => {
+        const match = document.cookie.match(new RegExp(`(^| )${name}=([^;]+)`));
+        return match ? decodeURIComponent(match[2]) : '';
+    };
+
+    const applyConsent = (version: string, prefs: Record<string, boolean>, timestamp: number) => {
+        document.documentElement.dataset.rkConsentVersion = version;
+        Object.entries(prefs).forEach(([key, value]) => {
+            document.documentElement.dataset[`rkConsent${key[0]?.toUpperCase()}${key.slice(1)}`] = value ? '1' : '0';
+        });
+
+        (window as unknown as {
+            renderKitConsent?: {
+                version: string;
+                timestamp: number;
+                prefs: Record<string, boolean>;
+                has: (key: string) => boolean;
+            };
+        }).renderKitConsent = {
+            version,
+            timestamp,
+            prefs,
+            has: (key: string) => Boolean(prefs[key]),
+        };
+    };
+
+    const updateCookieGates = (version: string, prefs: Record<string, boolean>) => {
+        const gates = Array.from(document.querySelectorAll<HTMLElement>('[data-rk-cookie-gate="1"]'));
+        gates.forEach((gate) => {
+            const gateVersion = gate.dataset.rkCookieVersion || '1';
+            if (gateVersion !== version) return;
+            const required = gate.dataset.rkCookieRequires || '';
+            const allowed = required === '' || Boolean(prefs[required]);
+            gate.dataset.rkCookieAllowed = allowed ? '1' : '0';
+        });
+    };
+
+    banners.forEach((banner) => {
+        const version = banner.dataset.rkCookieVersion || '1';
+        const cookieName = `rk_cookie_consent_v${version}`;
+        const cookieValue = getCookie(cookieName);
+        let hasConsent = false;
+        if (cookieValue) {
+            try {
+                const parsed = JSON.parse(cookieValue) as { version?: string; timestamp?: number; prefs?: Record<string, boolean> };
+                if (parsed && parsed.version === version && parsed.prefs) {
+                    applyConsent(version, parsed.prefs, parsed.timestamp || Date.now());
+                    updateCookieGates(version, parsed.prefs);
+                    banner.dataset.rkCookieHidden = '1';
+                    banner.setAttribute('aria-hidden', 'true');
+                    banner.style.display = 'none';
+                    hasConsent = true;
+                }
+            } catch {
+                // ignore malformed cookie
+            }
+        }
+
+        const settingsPanel = banner.querySelector<HTMLDetailsElement>('[data-rk-cookie-settings]');
+        const manageBtn = banner.querySelector<HTMLButtonElement>('[data-rk-cookie-manage]');
+        const acceptBtn = banner.querySelector<HTMLButtonElement>('[data-rk-cookie-accept]');
+        const rejectBtn = banner.querySelector<HTMLButtonElement>('[data-rk-cookie-reject]');
+        const saveBtn = banner.querySelector<HTMLButtonElement>('[data-rk-cookie-save]');
+
+        const settingInputs = Array.from(banner.querySelectorAll<HTMLInputElement>('[data-rk-cookie-setting]'));
+        const requiredIds = settingInputs
+            .filter((input) => input.disabled)
+            .map((input) => input.dataset.rkCookieSetting || '')
+            .filter(Boolean);
+
+        const setAndHide = (prefs: Record<string, boolean>) => {
+            const payload = {
+                version,
+                timestamp: Date.now(),
+                prefs,
+            };
+            setCookie(cookieName, JSON.stringify(payload));
+            applyConsent(version, prefs, payload.timestamp);
+            updateCookieGates(version, prefs);
+            banner.dataset.rkCookieHidden = '1';
+            banner.setAttribute('aria-hidden', 'true');
+            window.setTimeout(() => {
+                banner.style.display = 'none';
+            }, 350);
+        };
+
+        manageBtn?.addEventListener('click', (event) => {
+            event.preventDefault();
+            if (settingsPanel) {
+                settingsPanel.open = !settingsPanel.open;
+            }
+        });
+
+        acceptBtn?.addEventListener('click', (event) => {
+            event.preventDefault();
+            const prefs: Record<string, boolean> = {};
+            settingInputs.forEach((input) => {
+                const id = input.dataset.rkCookieSetting;
+                if (id) prefs[id] = true;
+            });
+            setAndHide(prefs);
+        });
+
+        rejectBtn?.addEventListener('click', (event) => {
+            event.preventDefault();
+            const prefs: Record<string, boolean> = {};
+            settingInputs.forEach((input) => {
+                const id = input.dataset.rkCookieSetting;
+                if (id) prefs[id] = requiredIds.includes(id);
+            });
+            setAndHide(prefs);
+        });
+
+        saveBtn?.addEventListener('click', (event) => {
+            event.preventDefault();
+            const prefs: Record<string, boolean> = {};
+            settingInputs.forEach((input) => {
+                const id = input.dataset.rkCookieSetting;
+                if (id) prefs[id] = input.checked || requiredIds.includes(id);
+            });
+            setAndHide(prefs);
+        });
+
+        if (hasConsent) {
+            const summary = banner.querySelector<HTMLSummaryElement>('.rk-cookie-banner__settings-toggle');
+            if (summary && settingsPanel) {
+                settingsPanel.open = false;
+            }
+        }
+    });
+
+    const openButtons = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-rk-cookie-open]'));
+    openButtons.forEach((button) => {
+        button.addEventListener('click', (event) => {
+            event.preventDefault();
+            banners.forEach((banner) => {
+                banner.dataset.rkCookieHidden = '0';
+                banner.removeAttribute('aria-hidden');
+                banner.style.display = '';
+                const settingsPanel = banner.querySelector<HTMLDetailsElement>('[data-rk-cookie-settings]');
+                if (settingsPanel) settingsPanel.open = true;
+            });
+        });
+    });
+}
+
+function enhanceCookieGates() {
+    const gates = Array.from(document.querySelectorAll<HTMLElement>('[data-rk-cookie-gate="1"]'));
+    if (gates.length === 0) return;
+
+    const getCookie = (name: string) => {
+        const match = document.cookie.match(new RegExp(`(^| )${name}=([^;]+)`));
+        return match ? decodeURIComponent(match[2]) : '';
+    };
+
+    gates.forEach((gate) => {
+        const version = gate.dataset.rkCookieVersion || '1';
+        const cookieValue = getCookie(`rk_cookie_consent_v${version}`);
+        if (!cookieValue) return;
+        try {
+            const parsed = JSON.parse(cookieValue) as { prefs?: Record<string, boolean> };
+            if (!parsed?.prefs) return;
+            const required = gate.dataset.rkCookieRequires || '';
+            const allowed = required === '' || Boolean(parsed.prefs[required]);
+            gate.dataset.rkCookieAllowed = allowed ? '1' : '0';
+        } catch {
+            // ignore
+        }
+    });
+}
+
 onReady(() => {
     enhanceStickyNavigation();
     enhanceNavMobileDetails();
@@ -741,4 +921,6 @@ onReady(() => {
     enhanceProductGridBento();
     enhanceProductViewTransitions();
     enhanceRecaptcha();
+    enhanceCookieBanner();
+    enhanceCookieGates();
 });

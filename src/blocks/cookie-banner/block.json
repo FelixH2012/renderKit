@@ -1,0 +1,90 @@
+{
+    "$schema": "https://schemas.wp.org/trunk/block.json",
+    "apiVersion": 3,
+    "name": "renderkit/cookie-banner",
+    "version": "1.0.0",
+    "title": "Cookie Banner",
+    "category": "renderkit",
+    "description": "Cookie consent banner with configurable settings.",
+    "keywords": [
+        "cookie",
+        "consent",
+        "privacy"
+    ],
+    "icon": "shield",
+    "textdomain": "renderkit",
+    "supports": {
+        "html": false,
+        "align": [
+            "full"
+        ]
+    },
+    "attributes": {
+        "message": {
+            "type": "string",
+            "default": "Wir nutzen Cookies, um dir die bestmögliche Erfahrung zu bieten und unsere Website sicher zu betreiben."
+        },
+        "policyLabel": {
+            "type": "string",
+            "default": "Datenschutzerklärung"
+        },
+        "policyUrl": {
+            "type": "string",
+            "default": "/datenschutz"
+        },
+        "acceptLabel": {
+            "type": "string",
+            "default": "Alle akzeptieren"
+        },
+        "rejectLabel": {
+            "type": "string",
+            "default": "Ablehnen"
+        },
+        "manageLabel": {
+            "type": "string",
+            "default": "Einstellungen"
+        },
+        "saveLabel": {
+            "type": "string",
+            "default": "Auswahl speichern"
+        },
+        "consentVersion": {
+            "type": "string",
+            "default": "1"
+        },
+        "theme": {
+            "type": "string",
+            "default": "dark",
+            "enum": [
+                "light",
+                "dark"
+            ]
+        },
+        "settings": {
+            "type": "array",
+            "default": [
+                {
+                    "id": "necessary",
+                    "label": "Notwendig",
+                    "description": "Erforderlich für den sicheren Betrieb der Website.",
+                    "required": true,
+                    "enabledByDefault": true
+                },
+                {
+                    "id": "analytics",
+                    "label": "Statistik",
+                    "description": "Hilft uns, die Website mit anonymen Nutzungsdaten zu verbessern.",
+                    "required": false,
+                    "enabledByDefault": false
+                },
+                {
+                    "id": "marketing",
+                    "label": "Marketing",
+                    "description": "Personalisierte Inhalte und Angebote.",
+                    "required": false,
+                    "enabledByDefault": false
+                }
+            ]
+        }
+    }
+}

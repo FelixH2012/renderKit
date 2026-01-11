@@ -1,0 +1,57 @@
+.renderkit-cookie-gate {
+    display: none;
+}
+
+.renderkit-cookie-gate[data-rk-cookie-allowed="1"] .rk-cookie-gate__inner {
+    display: block;
+}
+
+.renderkit-cookie-gate[data-rk-cookie-allowed="1"] .rk-cookie-gate__fallback {
+    display: none;
+}
+
+.renderkit-cookie-gate[data-rk-cookie-allowed="1"] {
+    display: block;
+}
+
+.editor-styles-wrapper .renderkit-cookie-gate {
+    display: block;
+}
+
+.editor-styles-wrapper .renderkit-cookie-gate .rk-cookie-gate__inner {
+    display: block;
+}
+
+.editor-styles-wrapper .renderkit-cookie-gate .rk-cookie-gate__fallback {
+    display: block;
+}
+
+.rk-cookie-gate__fallback {
+    padding: 1.5rem;
+    border: 1px dashed rgba(26, 24, 22, 0.2);
+    border-radius: var(--rk-radius-md);
+    color: var(--rk-anthracite);
+    background: rgba(255, 254, 249, 0.8);
+}
+
+.rk-cookie-gate__fallback-button {
+    margin-top: 1rem;
+    padding: 0.6rem 1.2rem;
+    border-radius: var(--rk-radius-pill);
+    border: 1px solid currentColor;
+    background: transparent;
+    color: inherit;
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.renderkit-footer--dark .rk-cookie-gate__fallback,
+.renderkit-cookie-banner--dark .rk-cookie-gate__fallback,
+.renderkit-cookie-gate--dark .rk-cookie-gate__fallback {
+    color: var(--rk-cream);
+    border-color: rgba(255, 254, 249, 0.2);
+    background: rgba(0, 0, 0, 0.25);
+}
