@@ -120,10 +120,7 @@ export function View({ attributes, className }: ViewProps): JSX.Element {
                                     {slide.linkUrl && slide.linkText ? (
                                         <a className="rk-swiper__link" href={slide.linkUrl}>
                                             <span>{slide.linkText}</span>
-                                            <svg className="rk-swiper__link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
-                                                <path d="M5 12h14" />
-                                                <path d="m12 5 7 7-7 7" />
-                                            </svg>
+                                            <i className="rk-swiper__link-icon fa-solid fa-arrow-right" aria-hidden="true"></i>
                                         </a>
                                     ) : null}
                                 </div>
@@ -138,14 +135,10 @@ export function View({ attributes, className }: ViewProps): JSX.Element {
                     {showArrows ? (
                         <div className="rk-swiper__buttons">
                             <button type="button" className="rk-swiper__button" data-rk-swiper-prev aria-label="Previous slide">
-                                <svg className="rk-swiper__button-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
-                                    <path d="M15 18 9 12l6-6" />
-                                </svg>
+                                <i className="rk-swiper__button-icon fa-solid fa-chevron-left" aria-hidden="true"></i>
                             </button>
                             <button type="button" className="rk-swiper__button" data-rk-swiper-next aria-label="Next slide">
-                                <svg className="rk-swiper__button-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
-                                    <path d="m9 18 6-6-6-6" />
-                                </svg>
+                                <i className="rk-swiper__button-icon fa-solid fa-chevron-right" aria-hidden="true"></i>
                             </button>
                         </div>
                     ) : (

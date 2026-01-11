@@ -37,6 +37,7 @@ require_once RENDERKIT_PLUGIN_DIR . 'includes/class-relay-client.php';
 require_once RENDERKIT_PLUGIN_DIR . 'includes/class-products.php';
 require_once RENDERKIT_PLUGIN_DIR . 'includes/class-image-optimizer.php';
 require_once RENDERKIT_PLUGIN_DIR . 'includes/integrations/class-contact-form.php';
+require_once RENDERKIT_PLUGIN_DIR . 'includes/class-maintenance.php';
 
 /**
  * Initialize the plugin
@@ -62,6 +63,10 @@ function init(): void {
     // Initialize Contact Form
     $contact_form = new Integrations\ContactForm();
     $contact_form->init();
+
+    // Initialize Maintenance Mode
+    $maintenance = new MaintenanceMode();
+    $maintenance->init();
 
     // Initialize AI Service
     require_once RENDERKIT_PLUGIN_DIR . 'includes/class-ai-service.php';

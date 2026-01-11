@@ -156,10 +156,7 @@ export function View({ attributes, className }: ViewProps): JSX.Element {
                         <div className="rk-contact-form__actions">
                             <button type="submit" className="rk-contact-form__submit">
                                 <span>{submitButtonText}</span>
-                                <svg className="rk-contact-form__submit-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
-                                    <path d="M22 2L11 13" />
-                                    <path d="M22 2L15 22L11 13L2 9L22 2Z" />
-                                </svg>
+                                <i className="rk-contact-form__submit-icon fa-solid fa-paper-plane" aria-hidden="true"></i>
                             </button>
                         </div>
                     </form>

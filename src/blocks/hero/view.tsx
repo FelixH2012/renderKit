@@ -101,16 +101,7 @@ export function View({ attributes, className }: ViewProps): JSX.Element {
                                     data-rk-hero-cta
                                 >
                                     <span className="text-sm tracking-[0.2em] uppercase font-medium">{buttonText}</span>
-                                    <svg
-                                        className="w-5 h-5"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        strokeWidth={1.5}
-                                    >
-                                        <path d="M5 12h14" />
-                                        <path d="m12 5 7 7-7 7" />
-                                    </svg>
+                                    <i className="rk-hero__cta-icon fa-solid fa-arrow-right" aria-hidden="true"></i>
                                 </a>
                             ) : null}
                         </div>

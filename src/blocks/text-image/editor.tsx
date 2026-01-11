@@ -166,16 +166,7 @@ export function Edit({ attributes, setAttributes }: EditProps): JSX.Element {
                             {buttonText ? (
                                 <span className="rk-text-image__cta">
                                     <span>{buttonText}</span>
-                                    <svg
-                                        className="rk-text-image__cta-icon"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        strokeWidth={1.5}
-                                    >
-                                        <path d="M5 12h14" />
-                                        <path d="m12 5 7 7-7 7" />
-                                    </svg>
+                                    <i className="rk-text-image__cta-icon fa-solid fa-arrow-right" aria-hidden="true"></i>
                                 </span>
                             ) : null}
                         </div>

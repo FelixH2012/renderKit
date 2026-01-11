@@ -213,8 +213,9 @@ body.rk-product-template .rk-product-main {
 }
 
 .rk-product-stage__cta-icon {
-    width: 18px;
-    height: 18px;
+    font-size: 1.1rem;
+    line-height: 1;
+    display: inline-flex;
 }
 
 .rk-product-stage__media {
@@ -351,4 +352,3 @@ body.rk-product-template .rk-product-main {
         animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
     }
 }
-

@@ -21,6 +21,12 @@
     border-bottom: 1px solid var(--rk-hero-border, rgba(0, 0, 0, 0.08));
 }
 
+.rk-hero__cta-icon {
+    font-size: 1.25rem;
+    line-height: 1;
+    display: inline-flex;
+}
+
 @keyframes rk-hero-fade-in {
     from {
         opacity: 0;
@@ -68,4 +74,3 @@
         transform: none !important;
     }
 }
-

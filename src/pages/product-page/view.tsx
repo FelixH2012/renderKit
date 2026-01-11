@@ -178,17 +178,7 @@ export function View({ attributes, content = '', className }: ViewProps): JSX.El
 
                                 <a className="rk-product-stage__cta" href="#rk-product-description">
                                     <span>{labels?.readDescription || 'Read description'}</span>
-                                    <svg
-                                        className="rk-product-stage__cta-icon"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        strokeWidth={1.5}
-                                        aria-hidden="true"
-                                    >
-                                        <path d="M5 12h14" />
-                                        <path d="m12 5 7 7-7 7" />
-                                    </svg>
+                                    <i className="rk-product-stage__cta-icon fa-solid fa-arrow-right" aria-hidden="true"></i>
                                 </a>
                             </aside>
 

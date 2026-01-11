@@ -194,16 +194,7 @@ export function View({ attributes, className }: ViewProps): JSX.Element {
 		                                                        transition: 'all 0.4s cubic-bezier(0.22,1,0.36,1)',
 		                                                    }}
 		                                                >
-		                                                    <svg
-		                                                        width="20"
-		                                                        height="20"
-		                                                        viewBox="0 0 24 24"
-		                                                        fill="none"
-		                                                        stroke="currentColor"
-		                                                        strokeWidth="1.5"
-		                                                    >
-		                                                        <path d="M7 17L17 7M17 7H7M17 7V17" />
-		                                                    </svg>
+		                                                    <i className="rk-bento-arrow__icon fa-solid fa-arrow-up-right" aria-hidden="true"></i>
 		                                                </span>
 		                                            </div>
 
@@ -270,10 +261,7 @@ export function View({ attributes, className }: ViewProps): JSX.Element {
 		                                    </div>
 
 		                                    <span className="rk-bento-close" aria-hidden="true">
-		                                        <svg className="rk-bento-close__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-		                                            <path d="M6 6l12 12" />
-		                                            <path d="M18 6L6 18" />
-                                        </svg>
+		                                        <i className="rk-bento-close__icon fa-solid fa-xmark" aria-hidden="true"></i>
 		                                    </span>
 		                                </summary>
 

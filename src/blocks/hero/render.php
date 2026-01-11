@@ -44,7 +44,7 @@ $heading_lines = preg_split("/\\r\\n|\\r|\\n/", $heading_plain) ?: [''];
                 </p>
                 <a href="<?php echo esc_url($attributes['buttonUrl'] ?? '#'); ?>" class="inline-flex items-center gap-4 transition-colors">
                     <span class="text-sm tracking-[0.2em] uppercase font-medium"><?php echo esc_html($attributes['buttonText'] ?? 'Entdecken'); ?></span>
-                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                    <i class="rk-hero__cta-icon fa-solid fa-arrow-right" aria-hidden="true"></i>
                 </a>
             </div>
         </div>

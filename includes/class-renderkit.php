@@ -131,6 +131,7 @@ class RenderKit {
         $build_url = $this->config['build_url'];
         $build_dir = $this->config['build_dir'];
         $version   = $this->config['version'];
+        $fontawesome_handle = $this->config['namespace'] . '-fontawesome';
 
         // Register editor script
         $editor_config = $this->config['assets']['editor'];
@@ -180,9 +181,16 @@ class RenderKit {
             }
 
             wp_register_style(
+                $fontawesome_handle,
+                'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css',
+                [],
+                '6.5.2'
+            );
+
+            wp_register_style(
                 $this->config['namespace'] . '-style',
                 $build_url . '/' . $editor_config['css'],
-                [],
+                [$fontawesome_handle],
                 $css_version
             );
         }

@@ -169,8 +169,9 @@
 }
 
 .rk-swiper__link-icon {
-    width: 18px;
-    height: 18px;
+    font-size: 1rem;
+    line-height: 1;
+    display: inline-flex;
 }
 
 .rk-swiper__controls {
@@ -216,8 +217,9 @@
 }
 
 .rk-swiper__button-icon {
-    width: 18px;
-    height: 18px;
+    font-size: 1rem;
+    line-height: 1;
+    display: inline-flex;
 }
 
 .rk-swiper__dots {
@@ -409,4 +411,3 @@
         grid-template-columns: 1fr;
     }
 }
-

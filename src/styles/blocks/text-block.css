@@ -32,3 +32,24 @@
     max-width: 1300px;
 }
 
+.renderkit-text-block .rk-prose {
+    font-size: clamp(1rem, 1.2vw, 1.125rem);
+    line-height: 1.85;
+    letter-spacing: -0.01em;
+}
+
+.renderkit-text-block .rk-prose > :where(h1) {
+    font-size: clamp(2rem, 4vw, 3.25rem);
+}
+
+.renderkit-text-block .rk-prose > :where(h2) {
+    font-size: clamp(1.75rem, 3.4vw, 2.6rem);
+}
+
+.renderkit-text-block .rk-prose > :where(h3) {
+    font-size: clamp(1.4rem, 2.6vw, 2rem);
+}
+
+.renderkit-text-block .rk-prose > :where(h4) {
+    font-size: clamp(1.15rem, 2vw, 1.6rem);
+}

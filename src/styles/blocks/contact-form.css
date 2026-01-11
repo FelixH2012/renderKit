@@ -213,9 +213,9 @@
 }
 
 .rk-contact-form__submit-icon {
-    width: 20px;
-    height: 20px;
-    stroke-width: 1.5;
+    font-size: 1.1rem;
+    line-height: 1;
+    display: inline-flex;
 }
 
 .rk-contact-form__actions {

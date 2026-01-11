@@ -190,15 +190,16 @@
 }
 
 .renderkit-nav__icon {
-    display: block;
-    width: 1.25rem;
-    height: 1.25rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    line-height: 1;
     vertical-align: middle;
 }
 
 .renderkit-nav__icon--lg {
-    width: 1.5rem;
-    height: 1.5rem;
+    font-size: 1.5rem;
 }
 
 .renderkit-nav__dot {
