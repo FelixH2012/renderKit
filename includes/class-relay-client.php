@@ -39,10 +39,15 @@ final class RelayClient {
     private array $memo = [];
 
     /**
-     * Circuit Breaker State (Per-Request)
+     * Circuit Breaker State (Per-Request + Time-based)
+     *
+     * In a real persistent scenario we would use transients.
+     * For now, this is static per process, but improved with timestamps.
      */
     private static int $failures = 0;
+    private static int $open_until = 0;
     private const MAX_FAILURES = 3;
+    private const OPEN_DURATION = 30; // Seconds to keep circuit open
 
     /**
      * @param array{url:string, secret:string, timeout?:float} $config
@@ -61,8 +66,7 @@ final class RelayClient {
      * @return string Rendered HTML (static markup), or empty string on error
      */
     public function render(string $block, array $props): string {
-        // Circuit Breaker Check
-        if (self::$failures >= self::MAX_FAILURES) {
+        if ($this->is_circuit_open()) {
             return $this->render_fallback($block, $props);
         }
 
@@ -99,31 +103,32 @@ final class RelayClient {
         ]);
 
         if (is_wp_error($response)) {
-            self::$failures++;
+            $this->record_failure();
             return $this->render_fallback($block, $props);
         }
 
         $status = (int) wp_remote_retrieve_response_code($response);
         $raw = (string) wp_remote_retrieve_body($response);
 
-        if ($status < 200 || $status >= 300) {
-            self::$failures++;
+        // Don't count 400s (client errors) as system failures
+        if ($status >= 400 && $status < 500) {
+            // It's an error, but Relay is alive. Fallback for this block, but don't trip breaker.
+            return $this->render_fallback($block, $props);
+        }
+
+        if ($status >= 500) {
+            $this->record_failure();
             return $this->render_fallback($block, $props);
         }
 
         $json = json_decode($raw, true);
         if (!is_array($json) || empty($json['ok']) || !isset($json['html']) || !is_string($json['html'])) {
-            // Logic error, but maybe not a connection failure. Still count as failure?
-            // Yes, if relay sends garbage, it's broken.
-            self::$failures++;
+            // Invalid response format -> System failure
+            $this->record_failure();
             return $this->render_fallback($block, $props);
         }
 
-        // Success - reset failures? 
-        // In a "per-request" breaker, maybe we don't reset to be safe if it's flaky?
-        // But usually successful request means it's up.
-        self::$failures = 0;
-
+        $this->record_success();
         $this->memo[$cache_key] = $json['html'];
         return $json['html'];
     }
@@ -140,7 +145,7 @@ final class RelayClient {
         }
 
         // Circuit Breaker Check
-        if (self::$failures >= self::MAX_FAILURES) {
+        if ($this->is_circuit_open()) {
             return array_map(fn($item) => $this->render_fallback($item['block'], $item['props']), $items);
         }
 
@@ -148,11 +153,22 @@ final class RelayClient {
             return array_map(fn($item) => $this->render_fallback($item['block'], $item['props']), $items);
         }
 
-        $payload = ['blocks' => $items];
+        // Ensure numerical indexing and safe array
+        $safe_items = array_values($items);
+
+        // Check memoization first (dedup)
+        // Note: We can reuse the same memo cache as single render.
+        // But since we don't have per-item responses yet, we can't fully check memo here easily 
+        // without iterating. We will memoize the RESULTS.
+
+        $payload = ['blocks' => $safe_items];
         $body = wp_json_encode($payload);
         
         $timestamp = (string) time();
         $signature = hash_hmac('sha256', $timestamp . '.' . $body, $this->secret);
+
+        // Cap timeout at 3 seconds max, otherwise 2x normal timeout
+        $batch_timeout = min(3.0, $this->timeout * 2);
 
         $response = wp_remote_post($this->url . '/render-batch', [
             'headers' => [
@@ -160,35 +176,62 @@ final class RelayClient {
                 'X-RenderKit-Relay-Timestamp' => $timestamp,
                 'X-RenderKit-Relay-Signature' => 'sha256=' . $signature,
             ],
-            'timeout' => $this->timeout * 2, // Double timeout for batch
+            'timeout' => $batch_timeout,
             'body' => $body,
         ]);
 
-        if (is_wp_error($response) || wp_remote_retrieve_response_code($response) !== 200) {
-            self::$failures++;
-            // Fallback for all
+        if (is_wp_error($response)) {
+            $this->record_failure();
+            return array_map(fn($item) => $this->render_fallback($item['block'], $item['props']), $items);
+        }
+
+        $status = (int) wp_remote_retrieve_response_code($response);
+        
+        // 5xx -> Server error -> Breaker trip
+        if ($status >= 500) {
+            $this->record_failure();
+            return array_map(fn($item) => $this->render_fallback($item['block'], $item['props']), $items);
+        }
+        
+        // 4xx -> Client error -> No breaker trip, but full fallback
+        if ($status >= 400) {
             return array_map(fn($item) => $this->render_fallback($item['block'], $item['props']), $items);
         }
 
         $json = json_decode(wp_remote_retrieve_body($response), true);
         if (!is_array($json) || empty($json['ok']) || !isset($json['results']) || !is_array($json['results'])) {
-            self::$failures++;
+            $this->record_failure();
             return array_map(fn($item) => $this->render_fallback($item['block'], $item['props']), $items);
         }
 
-        self::$failures = 0;
+        $this->record_success();
         
         $results = [];
-        foreach ($items as $index => $item) {
+        // Map back to original keys if necessary, but since we re-indexed to safe_items, 
+        // we just iterate 0..n-1.
+        foreach ($safe_items as $index => $item) {
             $res = $json['results'][$index] ?? null;
+            $html = '';
+
             if ($res && !empty($res['ok']) && isset($res['html']) && is_string($res['html'])) {
-                $results[$index] = $res['html'];
-                // Cache individual results too?
-                // $cache_key = ... logic is harder here without exact payload per item
-                // Skip memo for now for batch
+                $html = $res['html'];
+                
+                // Memoize this individual result so future single renders reuse it
+                $item_body = wp_json_encode($item); // {block:..., props:...}
+                if ($item_body) {
+                   $cache_key = $item['block'] . ':' . md5($item_body);
+                   $this->memo[$cache_key] = $html;
+                }
             } else {
-                $results[$index] = $this->render_fallback($item['block'], $item['props']);
+                // If specific block failed (e.g. invalid props), fallback for it.
+                // Do NOT record system failure here.
+                $html = $this->render_fallback($item['block'], $item['props']);
             }
+            
+            // Map logic: $items might have gaps or string keys. $safe_items is 0..n.
+            // But typically render_batch input is a list.
+            // We return a list indexed by 0..n.
+            $results[$index] = $html;
         }
 
         return $results;
@@ -198,30 +241,68 @@ final class RelayClient {
      * Provide minimal fallback HTML when Relay is down.
      */
     private function render_fallback(string $block, array $props): string {
-        // Minimal structure for specific blocks to avoid CLS or empty holes
-        
         $attrs = $props['attributes'] ?? [];
 
         switch ($block) {
             case 'renderkit/hero':
                 $heading = $attrs['heading'] ?? '';
+                // SEO-safe: readable content, no "loading" text
                 return sprintf(
-                    '<div style="min-height:60vh; display:flex; align-items:center; justify-content:center; background:#111; color:#fff; padding:40px;"><h1>%s</h1></div>',
+                    '<div class="rk-hero-fallback" style="min-height:50vh; display:flex; align-items:center; justify-content:center; background:#111; color:#fff; padding:40px;"><h1>%s</h1></div>',
                     esc_html($heading)
                 );
 
             case 'renderkit/text-block':
                 return sprintf(
-                    '<div class="rk-text">%s</div>', 
+                    '<div class="rk-text-fallback">%s</div>', 
                     wp_kses_post($props['content'] ?? '')
                 );
 
             case 'renderkit/product-grid':
-                return '<div class="rk-product-grid" style="padding:40px; text-align:center;">Products loading...</div>';
+                // SEO-safe: don't say "loading". Just show nothing or a generic message if needed.
+                // Or better: nothing (empty div) effectively hides it until JS/Relay works.
+                // Or "Currently unavailable".
+                return '<div class="rk-product-grid-fallback"></div>';
 
             default:
                 return '';
         }
+    }
+
+    /**
+     * Check if circuit is open
+     */
+    private function is_circuit_open(): bool {
+        if (self::$open_until > time()) {
+            return true;
+        }
+        
+        // Half-open: If time passed, allow 1 request through (effectively standard state until failure)
+        // Reset state if we passed the window
+        if (self::$open_until > 0) {
+            self::$open_until = 0;
+            self::$failures = 0; // Reset failures on probe attempt
+        }
+        
+        return self::$failures >= self::MAX_FAILURES;
+    }
+
+    /**
+     * Record a system failure
+     */
+    private function record_failure(): void {
+        self::$failures++;
+        if (self::$failures >= self::MAX_FAILURES) {
+            self::$open_until = time() + self::OPEN_DURATION;
+        }
+    }
+
+    /**
+     * Record a success
+     */
+    private function record_success(): void {
+        self::$failures = 0;
+        self::$open_until = 0;
     }
 }
 

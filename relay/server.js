@@ -465,7 +465,7 @@ const server = http.createServer((req, res) => {
         chunks.push(chunk);
     });
 
-    req.on('end', async () => {
+    req.on('end', () => {
         const rawBody = Buffer.concat(chunks).toString('utf8');
         const auth = verifySignature(req, rawBody);
         if (!auth.ok) {
