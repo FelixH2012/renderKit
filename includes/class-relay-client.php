@@ -110,27 +110,29 @@ final class RelayClient {
         $status = (int) wp_remote_retrieve_response_code($response);
         $raw = (string) wp_remote_retrieve_body($response);
 
-        // Don't count 400s (client errors) as system failures
+        // Success (2xx)
+        if ($status >= 200 && $status < 300) {
+            $json = json_decode($raw, true);
+            if (!is_array($json) || empty($json['ok']) || !isset($json['html']) || !is_string($json['html'])) {
+                // Invalid response format -> System failure
+                $this->record_failure();
+                return $this->render_fallback($block, $props);
+            }
+
+            $this->record_success();
+            $this->memo[$cache_key] = $json['html'];
+            return $json['html'];
+        }
+
+        // Client Error (4xx) - e.g. invalid props
         if ($status >= 400 && $status < 500) {
             // It's an error, but Relay is alive. Fallback for this block, but don't trip breaker.
             return $this->render_fallback($block, $props);
         }
 
-        if ($status >= 500) {
-            $this->record_failure();
-            return $this->render_fallback($block, $props);
-        }
-
-        $json = json_decode($raw, true);
-        if (!is_array($json) || empty($json['ok']) || !isset($json['html']) || !is_string($json['html'])) {
-            // Invalid response format -> System failure
-            $this->record_failure();
-            return $this->render_fallback($block, $props);
-        }
-
-        $this->record_success();
-        $this->memo[$cache_key] = $json['html'];
-        return $json['html'];
+        // System Failure (5xx) or Unexpected (3xx, 0, etc.)
+        $this->record_failure();
+        return $this->render_fallback($block, $props);
     }
 
     /**
@@ -156,10 +158,7 @@ final class RelayClient {
         // Ensure numerical indexing and safe array
         $safe_items = array_values($items);
 
-        // Check memoization first (dedup)
-        // Note: We can reuse the same memo cache as single render.
-        // But since we don't have per-item responses yet, we can't fully check memo here easily 
-        // without iterating. We will memoize the RESULTS.
+        // Check memoization first (dedup) - Skipped for now, result memoization below covers it partially
 
         $payload = ['blocks' => $safe_items];
         $body = wp_json_encode($payload);
@@ -187,54 +186,45 @@ final class RelayClient {
 
         $status = (int) wp_remote_retrieve_response_code($response);
         
-        // 5xx -> Server error -> Breaker trip
-        if ($status >= 500) {
-            $this->record_failure();
+        // Success (2xx)
+        if ($status >= 200 && $status < 300) {
+             $json = json_decode(wp_remote_retrieve_body($response), true);
+             if (!is_array($json) || empty($json['ok']) || !isset($json['results']) || !is_array($json['results'])) {
+                 $this->record_failure();
+                 return array_map(fn($item) => $this->render_fallback($item['block'], $item['props']), $items);
+             }
+
+             $this->record_success();
+             
+             $results = [];
+             foreach ($safe_items as $index => $item) {
+                 $res = $json['results'][$index] ?? null;
+                 $html = '';
+     
+                 if ($res && !empty($res['ok']) && isset($res['html']) && is_string($res['html'])) {
+                     $html = $res['html'];
+                     // Memoize this individual result
+                     $item_body = wp_json_encode($item); 
+                     if ($item_body) {
+                        $cache_key = $item['block'] . ':' . md5($item_body);
+                        $this->memo[$cache_key] = $html;
+                     }
+                 } else {
+                     $html = $this->render_fallback($item['block'], $item['props']);
+                 }
+                 $results[$index] = $html;
+             }
+             return $results;
+        }
+
+        // Client Error (4xx) - Fallback without breaker
+        if ($status >= 400 && $status < 500) {
             return array_map(fn($item) => $this->render_fallback($item['block'], $item['props']), $items);
         }
-        
-        // 4xx -> Client error -> No breaker trip, but full fallback
-        if ($status >= 400) {
-            return array_map(fn($item) => $this->render_fallback($item['block'], $item['props']), $items);
-        }
 
-        $json = json_decode(wp_remote_retrieve_body($response), true);
-        if (!is_array($json) || empty($json['ok']) || !isset($json['results']) || !is_array($json['results'])) {
-            $this->record_failure();
-            return array_map(fn($item) => $this->render_fallback($item['block'], $item['props']), $items);
-        }
-
-        $this->record_success();
-        
-        $results = [];
-        // Map back to original keys if necessary, but since we re-indexed to safe_items, 
-        // we just iterate 0..n-1.
-        foreach ($safe_items as $index => $item) {
-            $res = $json['results'][$index] ?? null;
-            $html = '';
-
-            if ($res && !empty($res['ok']) && isset($res['html']) && is_string($res['html'])) {
-                $html = $res['html'];
-                
-                // Memoize this individual result so future single renders reuse it
-                $item_body = wp_json_encode($item); // {block:..., props:...}
-                if ($item_body) {
-                   $cache_key = $item['block'] . ':' . md5($item_body);
-                   $this->memo[$cache_key] = $html;
-                }
-            } else {
-                // If specific block failed (e.g. invalid props), fallback for it.
-                // Do NOT record system failure here.
-                $html = $this->render_fallback($item['block'], $item['props']);
-            }
-            
-            // Map logic: $items might have gaps or string keys. $safe_items is 0..n.
-            // But typically render_batch input is a list.
-            // We return a list indexed by 0..n.
-            $results[$index] = $html;
-        }
-
-        return $results;
+        // System Failure (5xx / 3xx)
+        $this->record_failure();
+        return array_map(fn($item) => $this->render_fallback($item['block'], $item['props']), $items);
     }
 
     /**
@@ -246,7 +236,7 @@ final class RelayClient {
         switch ($block) {
             case 'renderkit/hero':
                 $heading = $attrs['heading'] ?? '';
-                // SEO-safe: readable content, no "loading" text
+                // SEO-safe fallback
                 return sprintf(
                     '<div class="rk-hero-fallback" style="min-height:50vh; display:flex; align-items:center; justify-content:center; background:#111; color:#fff; padding:40px;"><h1>%s</h1></div>',
                     esc_html($heading)
@@ -259,9 +249,6 @@ final class RelayClient {
                 );
 
             case 'renderkit/product-grid':
-                // SEO-safe: don't say "loading". Just show nothing or a generic message if needed.
-                // Or better: nothing (empty div) effectively hides it until JS/Relay works.
-                // Or "Currently unavailable".
                 return '<div class="rk-product-grid-fallback"></div>';
 
             default:
