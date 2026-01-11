@@ -85,12 +85,13 @@ monitoring-open:
 .PHONY: dev build stop
 dev:
 	@echo "Starting Relay + Monitoring stack..."
-	@cd "$(RELAY_DIR)" && docker compose up -d
+	@cd "$(RELAY_DIR)" && docker compose down --remove-orphans
+	@cd "$(RELAY_DIR)" && docker compose up -d renderkit-relay
 	@echo ""
 	@echo "Services running:"
 	@echo "  Relay:      http://127.0.0.1:8787"
-	@echo "  Grafana:    http://lumetric.cloud:3001"
-	@echo "  Prometheus: http://127.0.0.1:9090"
+	@echo "  Grafana:    (run: make monitoring-up)"
+	@echo "  Prometheus: (run: make monitoring-up)"
 	@echo ""
 	@npm run dev
 

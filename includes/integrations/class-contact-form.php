@@ -77,6 +77,14 @@ class ContactForm {
             }
         }
 
+        $privacy_required = sanitize_text_field($_POST['rk_privacy_required'] ?? '') === '1';
+        if ($privacy_required) {
+            $privacy_agreed = sanitize_text_field($_POST['rk_privacy_agree'] ?? '') === '1';
+            if (!$privacy_agreed) {
+                $this->redirect_with_status('privacy_missing');
+            }
+        }
+
         $name = sanitize_text_field($_POST['rk_name'] ?? '');
         $email = sanitize_email($_POST['rk_email'] ?? '');
         $subject = sanitize_text_field($_POST['rk_subject'] ?? '');

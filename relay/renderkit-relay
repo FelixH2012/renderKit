@@ -145,7 +145,7 @@ ENV
 
     up|start)
         require_env
-        compose up -d
+        compose up -d renderkit-relay
         ;;
 
     down|stop)
@@ -154,9 +154,8 @@ ENV
 
     restart)
         require_env
-        if ! compose restart; then
-            compose up -d
-        fi
+        compose down --remove-orphans
+        compose up -d renderkit-relay
         ;;
 
     status|ps)

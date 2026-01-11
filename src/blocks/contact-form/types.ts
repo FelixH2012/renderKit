@@ -8,4 +8,9 @@ export interface ContactFormAttributes {
     recaptchaSiteKey?: string;
     recaptchaEnabled?: boolean;
     nonce?: string;
+    privacyLabel?: string;
+    privacyRequired?: boolean;
+    status?: string;
+    successMessage?: string;
+    errorMessage?: string;
 }

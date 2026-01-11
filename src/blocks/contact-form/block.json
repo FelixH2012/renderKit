@@ -42,6 +42,22 @@
             "type": "string",
             "default": "Send Message"
         },
+        "privacyLabel": {
+            "type": "string",
+            "default": "I agree to the privacy policy."
+        },
+        "privacyRequired": {
+            "type": "boolean",
+            "default": true
+        },
+        "successMessage": {
+            "type": "string",
+            "default": "Thanks! Your message has been sent."
+        },
+        "errorMessage": {
+            "type": "string",
+            "default": "Something went wrong. Please try again."
+        },
         "theme": {
             "type": "string",
             "default": "light",

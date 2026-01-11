@@ -316,10 +316,15 @@ class BlockLoader {
      */
     private function prepare_contact_form_attributes(array $attributes): array {
         $site_key = Integrations\ContactForm::get_recaptcha_site_key();
+        $status = '';
+        if (isset($_GET['rk_contact_status'])) {
+            $status = sanitize_text_field(wp_unslash($_GET['rk_contact_status']));
+        }
 
         $attributes['recaptchaSiteKey'] = $site_key;
         $attributes['recaptchaEnabled'] = $site_key !== '';
         $attributes['nonce'] = wp_create_nonce('rk_contact_submission');
+        $attributes['status'] = $status;
 
         return $attributes;
     }

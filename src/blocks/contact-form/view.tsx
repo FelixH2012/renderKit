@@ -23,6 +23,11 @@ export function View({ attributes, className }: ViewProps): JSX.Element {
         recaptchaSiteKey = '',
         recaptchaEnabled = false,
         nonce = '',
+        privacyLabel = 'I agree to the privacy policy.',
+        privacyRequired = true,
+        status = '',
+        successMessage = 'Thanks! Your message has been sent.',
+        errorMessage = 'Something went wrong. Please try again.',
     } = attributes;
 
     const sectionClasses = [
@@ -38,6 +43,18 @@ export function View({ attributes, className }: ViewProps): JSX.Element {
         <section className={sectionClasses} data-rk-contact-form="1">
             <div className="rk-contact-form__inner">
                 <div className="rk-contact-form__panel">
+                    {status && (
+                        <div
+                            className={[
+                                'rk-contact-form__status',
+                                status === 'success' ? 'rk-contact-form__status--success' : 'rk-contact-form__status--error',
+                            ].join(' ')}
+                            role={status === 'success' ? 'status' : 'alert'}
+                            aria-live="polite"
+                        >
+                            {status === 'success' ? successMessage : errorMessage}
+                        </div>
+                    )}
                     <form className="rk-contact-form__form" action="/wp-admin/admin-post.php" method="POST">
                         <input type="hidden" name="action" value="rk_contact_submission" />
                         {nonce && <input type="hidden" name="rk_contact_nonce" value={nonce} />}
@@ -123,6 +140,18 @@ export function View({ attributes, className }: ViewProps): JSX.Element {
                                 </noscript>
                             </div>
                         )}
+
+                        <div className="rk-contact-form__checkbox">
+                            {privacyRequired && <input type="hidden" name="rk_privacy_required" value="1" />}
+                            <input
+                                type="checkbox"
+                                id="rk-contact-privacy"
+                                name="rk_privacy_agree"
+                                value="1"
+                                required={privacyRequired}
+                            />
+                            <label htmlFor="rk-contact-privacy">{privacyLabel}</label>
+                        </div>
 
                         <div className="rk-contact-form__actions">
                             <button type="submit" className="rk-contact-form__submit">

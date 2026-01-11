@@ -20,6 +20,10 @@ export function Edit({ attributes, setAttributes }: EditProps): JSX.Element {
         messageLabel,
         submitButtonText,
         theme,
+        privacyLabel,
+        privacyRequired,
+        successMessage,
+        errorMessage,
     } = attributes;
 
     const blockProps = useBlockProps({
@@ -61,6 +65,34 @@ export function Edit({ attributes, setAttributes }: EditProps): JSX.Element {
                         label="Button Text"
                         value={submitButtonText}
                         onChange={(value) => setAttributes({ submitButtonText: value })}
+                    />
+                </PanelBody>
+                <PanelBody title="Messages" initialOpen={false}>
+                    <TextControl
+                        label="Success Message"
+                        value={successMessage}
+                        onChange={(value) => setAttributes({ successMessage: value })}
+                    />
+                    <TextControl
+                        label="Error Message"
+                        value={errorMessage}
+                        onChange={(value) => setAttributes({ errorMessage: value })}
+                    />
+                </PanelBody>
+                <PanelBody title="Privacy" initialOpen={false}>
+                    <TextControl
+                        label="Privacy Label"
+                        value={privacyLabel}
+                        onChange={(value) => setAttributes({ privacyLabel: value })}
+                    />
+                    <SelectControl
+                        label="Privacy Required"
+                        value={privacyRequired ? 'yes' : 'no'}
+                        options={[
+                            { label: 'Yes', value: 'yes' },
+                            { label: 'No', value: 'no' },
+                        ]}
+                        onChange={(value) => setAttributes({ privacyRequired: value === 'yes' })}
                     />
                 </PanelBody>
                 <PanelBody title="Appearance" initialOpen={false}>
@@ -106,6 +138,11 @@ export function Edit({ attributes, setAttributes }: EditProps): JSX.Element {
 
                             <div className="rk-contact-form__recaptcha rk-contact-form__recaptcha--placeholder">
                                 <div className="rk-contact-form__recaptcha-box">reCAPTCHA v3 aktiv</div>
+                            </div>
+
+                            <div className="rk-contact-form__checkbox">
+                                <input type="checkbox" checked={privacyRequired} disabled />
+                                <label>{privacyLabel}</label>
                             </div>
 
                             <div className="rk-contact-form__actions">
