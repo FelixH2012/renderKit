@@ -34,6 +34,7 @@ class Products {
         add_action('add_meta_boxes', [$this, 'add_meta_boxes']);
         add_action('save_post_' . self::POST_TYPE, [$this, 'save_meta'], 10, 2);
         add_action('rest_api_init', [$this, 'register_rest_fields']);
+        add_filter('template_include', [$this, 'filter_product_templates'], 99);
     }
 
     /**
@@ -71,7 +72,10 @@ class Products {
             'menu_icon'           => 'dashicons-cart',
             'supports'            => ['title', 'editor', 'thumbnail', 'excerpt', 'custom-fields'],
             'template'            => [
-                ['core/paragraph', ['placeholder' => 'Add product description...']],
+                ['renderkit/text-block', ['theme' => 'light', 'width' => 'narrow'], [
+                    ['core/heading', ['level' => 2, 'placeholder' => 'Beschreibung']],
+                    ['core/paragraph', ['placeholder' => 'Beschreibe dein Produkt…']],
+                ]],
             ],
         ];
 
@@ -288,5 +292,21 @@ class Products {
         }
 
         return $products;
+    }
+
+    /**
+     * Use RenderKit templates for product pages, so the theme header/navigation is not rendered.
+     */
+    public function filter_product_templates(string $template): string {
+        if (!is_singular(self::POST_TYPE)) {
+            return $template;
+        }
+
+        $candidate = trailingslashit(RENDERKIT_PLUGIN_DIR) . 'templates/single-rk_product.php';
+        if (is_file($candidate)) {
+            return $candidate;
+        }
+
+        return $template;
     }
 }

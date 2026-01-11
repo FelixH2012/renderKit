@@ -57,18 +57,23 @@ This plugin uses **renderKit-Relay** for mandatory server-side rendering (SSR). 
    - Import the TSX view and add it to the `registry` map in `renderkit/src/relay/renderer.tsx`.
    - If you forget this, the frontend will render empty (admins see an HTML comment).
 
-4) Add WordPress-derived props (only when needed)
+4) Add Zod schema for props validation
+   - Add an attributes schema in `renderkit/src/relay/schemas.ts`.
+   - Add an entry to `relayPropsSchemas` with the block name.
+   - If you forget this, SSR validation fails and the block won't render.
+
+5) Add WordPress-derived props (only when needed)
    - Extend `prepare_relay_attributes()` in `renderkit/includes/class-block-loader.php`.
    - Example patterns:
      - Navigation builds `menuItems` from WP menus.
      - Product grid passes `products` from WP queries.
 
-5) Styling
+6) Styling
    - Prefer stable class names on the root element: include `renderkit-block` + `renderkit-<slug>`.
    - Put shared CSS in `renderkit/src/styles/main.css`.
    - Avoid generating Tailwind class names dynamically (Tailwind may purge them).
 
-6) Optional JS enhancements (must not be required)
+7) Optional JS enhancements (must not be required)
    - Add `data-rk-*` attributes in the TSX view and enhance them in `renderkit/src/view/index.ts`.
    - Enhancements must gracefully no-op if the element is missing.
 

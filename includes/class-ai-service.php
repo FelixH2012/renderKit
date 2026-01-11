@@ -79,7 +79,7 @@ class AIService {
                             'text' => "Analyze this product image. Act as a professional e-commerce copywriter. \n" .
                                       "Return a JSON object (no markdown, just raw JSON) with the following fields:\n" .
                                       "- title: A creative, catchy product title in German (max 50 chars).\n" .
-                                      "- excerpt: A short, engaging summary in German (max 120 chars).\n" .
+                                      "- excerpt: A short, engaging summary in German (max 20 chars).\n" .
                                       "- description: A detailed, persuasive product description in German. Use HTML tags like <strong>, <p>, <ul>, <li> to format key features and benefits clearly.\n" .
                                       "- price: An estimated price number (e.g. 49.99).\n" .
                                       "- sale_price: An estimated sale price (slightly lower) or 0.\n"

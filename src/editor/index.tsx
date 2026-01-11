@@ -30,6 +30,10 @@ import textBlockMeta from '../blocks/text-block/block.json';
 import { Edit as FooterEdit, save as FooterSave } from '../blocks/footer/editor';
 import footerMeta from '../blocks/footer/block.json';
 
+// Text-Image Block
+import { Edit as TextImageEdit } from '../blocks/text-image/editor';
+import textImageMeta from '../blocks/text-image/block.json';
+
 // Dynamic blocks return null for save
 const nullSave = () => null;
 
@@ -57,6 +61,7 @@ const blocks: BlockRegistration[] = [
     { meta: swiperMeta, edit: SwiperEdit, icon: 'images-alt2' },
     { meta: textBlockMeta, edit: TextBlockEdit, save: TextBlockSave, icon: 'editor-paragraph' },
     { meta: footerMeta, edit: FooterEdit, save: FooterSave, icon: 'admin-site' },
+    { meta: textImageMeta, edit: TextImageEdit, icon: 'align-left' },
 ];
 
 // Plugins

@@ -187,7 +187,7 @@
 
 .renderkit-nav__shell {
     width: 100%;
-    max-width: 1600px;
+    max-width: 100%;
     margin: 0 auto;
     border-radius: 0;
     padding: 0 1.5rem;
@@ -1051,6 +1051,137 @@
     }
 }
 
+/* Text-Image Block */
+.renderkit-text-image {
+    width: 100%;
+    padding: 8rem 0;
+    overflow: hidden;
+}
+
+.renderkit-text-image--light {
+    background: linear-gradient(180deg, #FFFEF9 0%, #F5F4F2 100%);
+    color: var(--rk-anthracite);
+    --rk-text-image-muted: rgba(26, 24, 22, 0.68);
+}
+
+.renderkit-text-image--dark {
+    background: var(--rk-black);
+    color: var(--rk-cream);
+    --rk-text-image-muted: rgba(255, 254, 249, 0.68);
+}
+
+.rk-text-image__inner {
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+}
+
+.rk-text-image__grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: clamp(2rem, 5vw, 5rem);
+    align-items: center;
+}
+
+.renderkit-text-image--image-left .rk-text-image__grid {
+    direction: rtl;
+}
+
+.renderkit-text-image--image-left .rk-text-image__grid>* {
+    direction: ltr;
+}
+
+.rk-text-image__content {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.rk-text-image__bar {
+    width: 80px;
+    height: 1px;
+    background: linear-gradient(90deg, #B8975A, transparent);
+    margin-bottom: 2rem;
+}
+
+.rk-text-image__heading {
+    margin: 0;
+    font-family: var(--rk-font-display);
+    font-size: clamp(2.5rem, 6vw, 5rem);
+    font-weight: 200;
+    line-height: 1;
+    letter-spacing: -0.04em;
+}
+
+.rk-text-image__description {
+    margin: 0;
+    color: var(--rk-text-image-muted);
+    font-size: 1rem;
+    line-height: 1.8;
+    max-width: 48ch;
+}
+
+.rk-text-image__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    text-decoration: none;
+    color: inherit;
+    font-size: 0.8125rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    font-weight: 600;
+    transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+    margin-top: 0.5rem;
+}
+
+.rk-text-image__cta:hover {
+    transform: translateX(6px);
+}
+
+.rk-text-image__cta-icon {
+    width: 1.25rem;
+    height: 1.25rem;
+}
+
+.rk-text-image__media {
+    position: relative;
+    aspect-ratio: 4/3;
+    overflow: hidden;
+}
+
+.rk-text-image__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.rk-text-image__placeholder {
+    width: 100%;
+    height: 100%;
+    background: rgba(128, 128, 128, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--rk-text-image-muted);
+    font-size: 0.875rem;
+}
+
+@media (max-width: 768px) {
+    .rk-text-image__grid {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+
+    .renderkit-text-image--image-left .rk-text-image__grid {
+        direction: ltr;
+    }
+
+    .rk-text-image__media {
+        order: -1;
+    }
+}
+
 /* Footer */
 .renderkit-footer {
     width: 100%;
@@ -1086,9 +1217,7 @@
 }
 
 .rk-footer__bar {
-    width: 56px;
-    height: 1px;
-    background: var(--rk-gold);
+    display: none;
 }
 
 .rk-footer__grid {
@@ -1179,11 +1308,10 @@
 
 .rk-footer__bottom {
     margin-top: clamp(4rem, 7vw, 6rem);
-    padding-top: 2.25rem;
-    border-top: 1px solid var(--rk-footer-border);
+    padding-top: clamp(2rem, 4vw, 3rem);
     display: flex;
     justify-content: space-between;
-    gap: 1rem;
+    gap: 1.5rem;
     flex-wrap: wrap;
 }
 
@@ -1208,6 +1336,360 @@
 
     .rk-footer__link:hover {
         transform: none;
+    }
+}
+
+/* Product template (single rk_product) */
+body.rk-product-template {
+    margin: 0;
+    background: var(--rk-cream);
+    color: var(--rk-anthracite);
+    font-family: var(--rk-font-body);
+}
+
+body.rk-product-template .rk-site {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+body.rk-product-template .rk-product-main {
+    flex: 1;
+}
+
+.rk-product-stage {
+    background: var(--rk-cream);
+    color: var(--rk-anthracite);
+    padding: clamp(3.5rem, 6vw, 5rem) 0;
+}
+
+.rk-product-stage__inner {
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+}
+
+.rk-product-stage__grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: clamp(1.25rem, 3vw, 2.5rem);
+    align-items: stretch;
+}
+
+.rk-product-stage__aside {
+    grid-column: span 5;
+    background: rgba(255, 254, 249, 0.92);
+    border: 1px solid rgba(26, 24, 22, 0.12);
+    padding: clamp(1.5rem, 3vw, 2.5rem);
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.rk-product-stage__back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: fit-content;
+    text-decoration: none;
+    font-size: 0.6875rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: rgba(26, 24, 22, 0.68);
+    transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.rk-product-stage__back:hover {
+    transform: translateX(-2px);
+    color: var(--rk-anthracite);
+}
+
+.rk-product-stage__meta-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.rk-product-stage__eyebrow {
+    margin: 0;
+    display: inline-flex;
+    gap: 0.75rem;
+    font-size: 0.625rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: var(--rk-gold);
+}
+
+.rk-product-stage__eyebrow span:first-child {
+    opacity: 0.65;
+}
+
+.rk-product-stage__badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.45rem 0.75rem;
+    border-radius: 999px;
+    border: 1px solid rgba(26, 24, 22, 0.14);
+    background: rgba(26, 24, 22, 0.04);
+    font-size: 0.6875rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: 700;
+}
+
+.rk-product-stage__badge--instock {
+    border-color: rgba(184, 151, 90, 0.35);
+    background: rgba(184, 151, 90, 0.08);
+    color: var(--rk-gold);
+}
+
+.rk-product-stage__badge--outofstock {
+    border-color: rgba(179, 45, 46, 0.25);
+    background: rgba(179, 45, 46, 0.08);
+    color: #b32d2e;
+}
+
+.rk-product-stage__badge--onorder {
+    border-color: rgba(26, 24, 22, 0.18);
+    background: rgba(26, 24, 22, 0.06);
+    color: rgba(26, 24, 22, 0.8);
+}
+
+.rk-product-stage__price-row {
+    margin: 0;
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+}
+
+.rk-product-stage__price-regular,
+.rk-product-stage__price-sale {
+    font-family: var(--rk-font-display);
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 300;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    color: var(--rk-anthracite);
+}
+
+.rk-product-stage__price-sale {
+    color: var(--rk-gold);
+}
+
+.rk-product-stage__price-was {
+    font-size: 1rem;
+    color: rgba(26, 24, 22, 0.6);
+    text-decoration: line-through;
+}
+
+.rk-product-stage__lead {
+    margin: 0;
+    font-size: 1.0625rem;
+    line-height: 1.85;
+    color: rgba(26, 24, 22, 0.72);
+    max-width: 50ch;
+}
+
+.rk-product-stage__facts {
+    margin: 0;
+    padding: 1.25rem 0 0;
+    border-top: 1px solid rgba(26, 24, 22, 0.12);
+    display: grid;
+    gap: 0.75rem;
+}
+
+.rk-product-stage__fact {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.rk-product-stage__fact dt {
+    font-size: 0.625rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: rgba(26, 24, 22, 0.55);
+}
+
+.rk-product-stage__fact dd {
+    margin: 0;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: rgba(26, 24, 22, 0.82);
+}
+
+.rk-product-stage__cta {
+    display: inline-flex;
+    width: fit-content;
+    align-items: center;
+    gap: 0.75rem;
+    text-decoration: none;
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: var(--rk-anthracite);
+    border: 1px solid rgba(26, 24, 22, 0.16);
+    padding: 0.85rem 1.1rem;
+    background: rgba(255, 254, 249, 0.8);
+    transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+}
+
+.rk-product-stage__cta:hover {
+    transform: translateY(-2px);
+    border-color: rgba(184, 151, 90, 0.8);
+    background: rgba(184, 151, 90, 0.12);
+    color: var(--rk-black);
+}
+
+.rk-product-stage__cta:focus-visible {
+    outline: 2px solid var(--rk-gold);
+    outline-offset: 4px;
+}
+
+.rk-product-stage__cta-icon {
+    width: 18px;
+    height: 18px;
+}
+
+.rk-product-stage__media {
+    grid-column: span 7;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(26, 24, 22, 0.12);
+    background: var(--rk-black);
+    min-height: clamp(420px, 55vw, 720px);
+}
+
+.rk-product-stage__img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+    transform: scale(1.02);
+    transition: transform 1.1s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.rk-product-stage__media:hover .rk-product-stage__img {
+    transform: scale(1.06);
+}
+
+.rk-product-stage__placeholder {
+    width: 100%;
+    height: 100%;
+    display: grid;
+    place-items: center;
+    font-size: clamp(5rem, 12vw, 10rem);
+    background: linear-gradient(135deg, #E8E3DB 0%, #D4CEC4 100%);
+    color: var(--rk-anthracite);
+}
+
+.rk-product-stage__scrim {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.12) 0%, rgba(0, 0, 0, 0) 40%, rgba(0, 0, 0, 0.42) 100%);
+    pointer-events: none;
+}
+
+.rk-product-gallery {
+    margin-top: clamp(1.5rem, 3vw, 2.25rem);
+    display: flex;
+    gap: 1rem;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    padding-bottom: 0.25rem;
+    scrollbar-width: none;
+}
+
+.rk-product-gallery::-webkit-scrollbar {
+    display: none;
+}
+
+.rk-product-gallery__item {
+    flex: 0 0 auto;
+    width: clamp(120px, 12vw, 160px);
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+    border: 1px solid rgba(26, 24, 22, 0.12);
+    background: rgba(255, 254, 249, 0.8);
+    display: block;
+    scroll-snap-align: start;
+}
+
+.rk-product-gallery__item:focus-visible {
+    outline: 2px solid var(--rk-gold);
+    outline-offset: 4px;
+}
+
+.rk-product-gallery__img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+    transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.rk-product-gallery__item:hover .rk-product-gallery__img {
+    transform: scale(1.06);
+}
+
+.rk-product-content {
+    background: var(--rk-cream);
+    color: var(--rk-anthracite);
+    padding: clamp(3rem, 6vw, 5rem) 0;
+    --rk-prose-muted: rgba(26, 24, 22, 0.72);
+    --rk-prose-rule: rgba(26, 24, 22, 0.14);
+}
+
+.rk-product-content__inner {
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+}
+
+.rk-product-content__prose {
+    max-width: 880px;
+}
+
+@media (max-width: 1024px) {
+
+    .rk-product-stage__aside,
+    .rk-product-stage__media {
+        grid-column: 1 / -1;
+    }
+
+    .rk-product-stage__media {
+        min-height: clamp(320px, 75vw, 520px);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    .rk-product-stage__img,
+    .rk-product-stage__media:hover .rk-product-stage__img,
+    .rk-product-stage__cta,
+    .rk-product-gallery__img,
+    .rk-product-stage__back {
+        transition: none !important;
+        transform: none !important;
+    }
+}
+
+@supports (view-transition-name: none) {
+
+    ::view-transition-old(rk-product-media),
+    ::view-transition-new(rk-product-media) {
+        animation-duration: 0.7s;
+        animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
     }
 }
 
@@ -1237,7 +1719,7 @@
     transition: opacity 0.25s ease;
 }
 
-.renderkit-product-grid .rk-bento-item > summary {
+.renderkit-product-grid .rk-bento-item>summary {
     list-style: none;
     cursor: pointer;
     position: absolute;
@@ -1251,11 +1733,11 @@
     border: 0;
 }
 
-.renderkit-product-grid .rk-bento-item > summary::-webkit-details-marker {
+.renderkit-product-grid .rk-bento-item>summary::-webkit-details-marker {
     display: none;
 }
 
-.renderkit-product-grid .rk-bento-item > summary:focus-visible {
+.renderkit-product-grid .rk-bento-item>summary:focus-visible {
     outline: 2px solid var(--rk-gold);
     outline-offset: 6px;
 }
@@ -1286,7 +1768,7 @@
     display: inline;
 }
 
-.renderkit-product-grid .rk-bento-item[open] > summary {
+.renderkit-product-grid .rk-bento-item[open]>summary {
     position: fixed;
     top: max(1.5rem, calc(env(safe-area-inset-top) + 1rem));
     right: max(1.5rem, calc(env(safe-area-inset-right) + 1rem));
@@ -1307,7 +1789,7 @@
         0 2px 12px rgba(0, 0, 0, 0.25);
 }
 
-.renderkit-product-grid .rk-bento-item[open] > summary:hover {
+.renderkit-product-grid .rk-bento-item[open]>summary:hover {
     transform: translateY(-1px);
     background: rgba(0, 0, 0, 0.48);
     border-color: rgba(255, 254, 249, 0.22);
@@ -1346,62 +1828,65 @@
     }
 }
 
+/* Modal container - instant visibility, opacity handled by children */
 .renderkit-product-grid .rk-bento-modal {
     position: fixed;
     inset: 0;
     z-index: 1000;
-    opacity: 0;
     visibility: hidden;
     pointer-events: none;
-    transition: opacity 0.35s ease, visibility 0.35s ease;
 }
 
 .renderkit-product-grid .rk-bento-item[open] .rk-bento-modal {
-    opacity: 1;
     visibility: visible;
     pointer-events: auto;
 }
 
+/* Backdrop - simple fade */
 .renderkit-product-grid .rk-bento-modal__backdrop {
     position: absolute;
     inset: 0;
-    background: rgba(0, 0, 0, 0.42);
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     opacity: 0;
-    transition: opacity 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: opacity 0.4s ease-out;
 }
 
 .renderkit-product-grid .rk-bento-item[open] .rk-bento-modal__backdrop {
     opacity: 1;
 }
 
+/* Surface - simple scale + fade */
 .renderkit-product-grid .rk-bento-modal__surface {
     position: absolute;
     inset: 0;
     overflow: hidden;
     background: var(--rk-black);
-    transform-origin: top left;
-    will-change: transform;
-    transform: translate3d(0, 12px, 0) scale(0.985);
-    transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+    opacity: 0;
+    transform: scale(0.96);
+    transition: opacity 0.35s ease-out, transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 .renderkit-product-grid .rk-bento-item[open] .rk-bento-modal__surface {
+    opacity: 1;
     transform: none;
 }
 
-.rk-js .renderkit-product-grid .rk-bento-modal {
-    transition: none !important;
-}
-
-.rk-js .renderkit-product-grid .rk-bento-modal__surface {
-    transform: none;
-    transition: none !important;
-}
-
+/* JS-enhanced: WAAPI controls animations, CSS provides base states */
+.rk-js .renderkit-product-grid .rk-bento-modal__surface,
 .rk-js .renderkit-product-grid .rk-bento-modal__backdrop {
-    transition: none !important;
+    transition: none;
+}
+
+/* When animation is complete (state="open"), show elements */
+.rk-js .renderkit-product-grid details.rk-bento-item[data-rk-bento-state="open"] .rk-bento-modal__surface {
+    opacity: 1;
+    transform: none;
+}
+
+.rk-js .renderkit-product-grid details.rk-bento-item[data-rk-bento-state="open"] .rk-bento-modal__backdrop {
+    opacity: 1;
 }
 
 .renderkit-product-grid .rk-bento-modal__aside {
@@ -1414,30 +1899,27 @@
     padding: clamp(1.5rem, 3vw, 2.5rem);
     display: flex;
     border-right: 1px solid rgba(26, 24, 22, 0.08);
-    transform: translate3d(-10px, 0, 0);
+    /* Base state: hidden */
     opacity: 0;
-    transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1) 0.08s, opacity 0.35s ease 0.08s;
+    transform: translateX(-30px);
+    transition: opacity 0.4s ease-out 0.1s, transform 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.1s;
 }
 
-.rk-js .renderkit-product-grid details.rk-bento-item[data-rk-bento-state="opening"] .rk-bento-modal__aside {
-    opacity: 0;
-    transform: translate3d(-18px, 0, 0);
+/* No-JS: CSS controls animation */
+.renderkit-product-grid .rk-bento-item[open] .rk-bento-modal__aside {
+    opacity: 1;
+    transform: none;
 }
 
+/* JS-enhanced: WAAPI controls animation, CSS should NOT override */
+.rk-js .renderkit-product-grid .rk-bento-modal__aside {
+    transition: none;
+}
+
+/* When animation is complete (state="open"), show aside */
 .rk-js .renderkit-product-grid details.rk-bento-item[data-rk-bento-state="open"] .rk-bento-modal__aside {
     opacity: 1;
     transform: none;
-}
-
-.rk-js .renderkit-product-grid details.rk-bento-item[data-rk-bento-state="closing"] .rk-bento-modal__aside {
-    opacity: 0;
-    transform: translate3d(-8px, 0, 0);
-    transition-delay: 0s;
-}
-
-.renderkit-product-grid .rk-bento-item[open] .rk-bento-modal__aside {
-    transform: none;
-    opacity: 1;
 }
 
 .renderkit-product-grid .rk-bento-modal__aside-inner {
@@ -1472,23 +1954,12 @@
     height: 100%;
     object-fit: cover;
     display: block;
-    transform: translate3d(var(--rk-bento-img-x, 0px), var(--rk-bento-img-y, 0px), 0)
-        scale(var(--rk-bento-img-scale, 1.08));
-    will-change: transform;
-    transition: transform 1.1s cubic-bezier(0.16, 1, 0.3, 1);
+    /* Simple parallax: subtle translation on mouse move, constant slight scale */
+    transform: translate3d(var(--rk-bento-img-x, 0px), var(--rk-bento-img-y, 0px), 0) scale(1.03);
+    transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-.rk-js .renderkit-product-grid details.rk-bento-item[data-rk-bento-state="opening"] .rk-bento-modal__img {
-    --rk-bento-img-scale: 1.12;
-}
-
-.rk-js .renderkit-product-grid details.rk-bento-item[data-rk-bento-state="open"] .rk-bento-modal__img {
-    --rk-bento-img-scale: 1.04;
-}
-
-.rk-js .renderkit-product-grid details.rk-bento-item[data-rk-bento-state="closing"] .rk-bento-modal__img {
-    --rk-bento-img-scale: 1.08;
-}
+/* No state-dependent scale changes - keeps animation smooth and predictable */
 
 .renderkit-product-grid .rk-bento-modal__placeholder {
     width: 100%;
@@ -1574,6 +2045,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+
     .renderkit-product-grid .rk-bento-modal,
     .renderkit-product-grid .rk-bento-modal__backdrop,
     .renderkit-product-grid .rk-bento-modal__surface,

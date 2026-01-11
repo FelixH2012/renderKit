@@ -214,6 +214,21 @@ function add_theme_color_meta(): void {
 add_action('wp_head', __NAMESPACE__ . '\\add_theme_color_meta', 1);
 
 /**
+ * Enable same-origin view transitions (progressive enhancement).
+ */
+function add_view_transition_meta(): void {
+    if (is_admin()) {
+        return;
+    }
+
+    ?>
+    <meta name="view-transition" content="same-origin">
+    <?php
+}
+
+add_action('wp_head', __NAMESPACE__ . '\\add_view_transition_meta', 0);
+
+/**
  * Add font preload and font-display:swap for performance
  */
 function add_font_optimizations(): void {

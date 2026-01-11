@@ -86,7 +86,7 @@ const ProductAISidebar = () => {
         >
             <PanelBody title="Generate Content">
                 <p style={{ marginBottom: 20 }}>
-                    Automatically generate Titles, Excerpts, and Prices from your product image using Gemini 1.5 Flash.
+                    Automatically generate product content from your product image using Gemini 2.5 Flash.
                 </p>
 
                 {featuredImageUrl ? (

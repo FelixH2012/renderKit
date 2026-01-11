@@ -223,7 +223,8 @@ function enhanceProductGridBento() {
         typeof window.matchMedia === 'function' &&
         window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    const fromRects = new WeakMap<HTMLDetailsElement, DOMRect>();
+    const cardParallaxScale = 1.02;
+    const cardParallaxY = new WeakMap<HTMLDetailsElement, number>();
     const modalParallaxCleanup = new WeakMap<HTMLDetailsElement, () => void>();
     const runningAnimations = new WeakMap<
         HTMLDetailsElement,
@@ -232,9 +233,6 @@ function enhanceProductGridBento() {
     const animationSeq = new WeakMap<HTMLDetailsElement, number>();
     let seqCounter = 0;
     let scrollLock: null | { y: number; styles: Partial<CSSStyleDeclaration> } = null;
-
-    const easingOpen = 'cubic-bezier(0.16, 1, 0.3, 1)';
-    const easingClose = 'cubic-bezier(0.2, 1, 0.2, 1)';
 
     const nextSeq = (details: HTMLDetailsElement) => {
         const seq = (seqCounter += 1);
@@ -260,16 +258,6 @@ function enhanceProductGridBento() {
         runningAnimations.delete(details);
     };
 
-    const rectToInset = (rect: DOMRect): string => {
-        const vw = window.innerWidth || 0;
-        const vh = window.innerHeight || 0;
-        const top = Math.max(0, Math.min(vh, rect.top));
-        const left = Math.max(0, Math.min(vw, rect.left));
-        const right = Math.max(0, Math.min(vw, vw - rect.right));
-        const bottom = Math.max(0, Math.min(vh, vh - rect.bottom));
-        return `inset(${top}px ${right}px ${bottom}px ${left}px round 0px)`;
-    };
-
     const lockScroll = () => {
         if (scrollLock) return;
         const y = window.scrollY || 0;
@@ -277,35 +265,25 @@ function enhanceProductGridBento() {
         scrollLock = {
             y,
             styles: {
-                position: document.body.style.position,
-                top: document.body.style.top,
-                left: document.body.style.left,
-                right: document.body.style.right,
-                width: document.body.style.width,
+                overflow: document.documentElement.style.overflow,
                 paddingRight: document.body.style.paddingRight,
             },
         };
 
-        document.body.style.position = 'fixed';
-        document.body.style.top = `-${y}px`;
-        document.body.style.left = '0';
-        document.body.style.right = '0';
-        document.body.style.width = '100%';
-        if (scrollbarWidth > 0) document.body.style.paddingRight = `${scrollbarWidth}px`;
+        // Use overflow hidden instead of position fixed - prevents layout shifts
+        document.documentElement.style.overflow = 'hidden';
+        if (scrollbarWidth > 0) {
+            document.body.style.paddingRight = `${scrollbarWidth}px`;
+        }
     };
 
     const unlockScroll = () => {
         if (!scrollLock) return;
-        const { y, styles } = scrollLock;
+        const { styles } = scrollLock;
         scrollLock = null;
 
-        document.body.style.position = styles.position || '';
-        document.body.style.top = styles.top || '';
-        document.body.style.left = styles.left || '';
-        document.body.style.right = styles.right || '';
-        document.body.style.width = styles.width || '';
+        document.documentElement.style.overflow = styles.overflow || '';
         document.body.style.paddingRight = styles.paddingRight || '';
-        window.scrollTo(0, y);
     };
 
     const closeAnimated = (details: HTMLDetailsElement) => {
@@ -317,7 +295,7 @@ function enhanceProductGridBento() {
 
         const surface = details.querySelector<HTMLElement>('[data-rk-bento-surface]');
         const backdrop = details.querySelector<HTMLElement>('[data-rk-bento-backdrop]');
-        const modalImg = details.querySelector<HTMLElement>('[data-rk-bento-modal-img]');
+        const aside = details.querySelector<HTMLElement>('[data-rk-bento-aside]');
 
         if (!surface || !backdrop) {
             details.open = false;
@@ -325,69 +303,60 @@ function enhanceProductGridBento() {
         }
 
         const seq = nextSeq(details);
-
-        // Capture the current visual state so we can close smoothly even if the user closes mid-open.
-        const computedSurface = window.getComputedStyle(surface);
-        const computedBackdrop = window.getComputedStyle(backdrop);
-        const fromClip =
-            computedSurface.clipPath && computedSurface.clipPath !== 'none'
-                ? computedSurface.clipPath
-                : 'inset(0px 0px 0px 0px round 0px)';
-        const parsedOpacity = Number.parseFloat(computedBackdrop.opacity || '1');
-        const fromOpacity = Number.isFinite(parsedOpacity) ? parsedOpacity : 1;
-
         stopRunningAnimations(details);
         details.dataset.rkBentoState = 'closing';
 
-        const cardRect = fromRects.get(details) || details.getBoundingClientRect();
-        const insetTo = rectToInset(cardRect);
-
-        if (typeof surface.animate !== 'function' || typeof backdrop.animate !== 'function') {
+        if (typeof surface.animate !== 'function') {
             details.open = false;
             return;
         }
 
-        // Re-apply the current state as inline styles so cancelling previous animations doesn't jump.
-        surface.style.clipPath = fromClip;
-        backdrop.style.opacity = String(fromOpacity);
-        void surface.getBoundingClientRect();
+        // Premium easing - smooth deceleration
+        const easing = 'cubic-bezier(0.4, 0, 0.2, 1)';
 
-        const durationClose = 680;
-        const clipAnimation = surface.animate([{ clipPath: fromClip }, { clipPath: insetTo }], {
-            duration: durationClose,
-            easing: easingClose,
-            fill: 'both',
-        });
+        // Staggered exit: Aside fades out first, then surface scales down
+        if (aside) {
+            aside.animate(
+                [
+                    { opacity: 1, transform: 'translateX(0)' },
+                    { opacity: 0, transform: 'translateX(-20px)' },
+                ],
+                { duration: 250, easing, fill: 'forwards' }
+            );
+        }
 
-        const fadeAnimation = backdrop.animate(
+        // Main surface animation - starts slightly delayed
+        const surfaceAnimation = surface.animate(
             [
-                { opacity: fromOpacity, offset: 0 },
-                { opacity: fromOpacity, offset: 0.55 },
-                { opacity: 0, offset: 1 },
+                { opacity: 1, transform: 'scale(1)' },
+                { opacity: 0, transform: 'scale(0.98)' },
             ],
-            { duration: durationClose, easing: 'linear', fill: 'both' }
+            { duration: 450, easing, fill: 'forwards', delay: 50 }
+        );
+
+        const backdropAnimation = backdrop.animate(
+            [{ opacity: 1 }, { opacity: 0 }],
+            { duration: 400, easing, fill: 'forwards' }
         );
 
         runningAnimations.set(details, {
-            clip: clipAnimation,
-            fade: fadeAnimation,
-            finished: Promise.allSettled([clipAnimation.finished, fadeAnimation.finished]),
+            clip: surfaceAnimation,
+            fade: backdropAnimation,
+            finished: Promise.allSettled([surfaceAnimation.finished, backdropAnimation.finished]),
         });
 
-        if (modalImg) {
-            modalImg.style.setProperty('--rk-bento-img-x', '0px');
-            modalImg.style.setProperty('--rk-bento-img-y', '0px');
-        }
-
-        Promise.allSettled([clipAnimation.finished, fadeAnimation.finished]).finally(() => {
-            if (!isSeq(details, seq)) return;
-            details.open = false;
-            // Ensure filled WAAPI effects don't leak into the next open.
-            window.requestAnimationFrame(() => {
+        surfaceAnimation.finished
+            .then(() => {
+                if (!isSeq(details, seq)) return;
+                details.open = false;
+            })
+            .catch(() => {
+                // cancelled
+            })
+            .finally(() => {
                 if (!isSeq(details, seq)) return;
                 stopRunningAnimations(details);
             });
-        });
     };
 
     // Close on Escape (JS-only enhancement; <details> still works without it)
@@ -399,28 +368,24 @@ function enhanceProductGridBento() {
     items.forEach((details) => {
         const summary = details.querySelector<HTMLElement>('summary');
         if (summary) {
-            const captureRect = () => {
+            // Prevent a dark "flash" on open by forcing the backdrop to start transparent
+            const prepareOpen = () => {
                 if (details.open) return;
-                const card = details.querySelector<HTMLElement>('[data-rk-bento-card]') || details;
-                fromRects.set(details, card.getBoundingClientRect());
-
-                // Prevent a dark "flash" on open by forcing the backdrop to start transparent
-                // before the <details> open state becomes visible.
                 const backdrop = details.querySelector<HTMLElement>('[data-rk-bento-backdrop]');
                 if (backdrop) backdrop.style.opacity = '0';
             };
 
-            summary.addEventListener('pointerdown', captureRect);
+            summary.addEventListener('pointerdown', prepareOpen);
 
             summary.addEventListener('click', (event) => {
-                // Before opening: capture the card rect for a high-quality animation.
+                // Before opening: prepare backdrop
                 if (!details.open) {
-                    captureRect();
+                    prepareOpen();
                     details.dataset.rkBentoState = prefersReduced ? '' : 'opening';
                     return;
                 }
 
-                // Smooth close animation (JS enhancement). Without JS, native <details> behavior still works.
+                // Smooth close animation (JS enhancement)
                 if (prefersReduced) return;
                 event.preventDefault();
                 closeAnimated(details);
@@ -440,7 +405,10 @@ function enhanceProductGridBento() {
             if (!details.open) {
                 const surface = details.querySelector<HTMLElement>('[data-rk-bento-surface]');
                 const backdrop = details.querySelector<HTMLElement>('[data-rk-bento-backdrop]');
-                if (surface) surface.style.clipPath = '';
+                if (surface) {
+                    surface.style.opacity = '';
+                    surface.style.transform = '';
+                }
                 if (backdrop) backdrop.style.opacity = '';
                 details.dataset.rkBentoState = '';
                 if (!items.some((d) => d.open)) unlockScroll();
@@ -456,71 +424,90 @@ function enhanceProductGridBento() {
 
             const surface = details.querySelector<HTMLElement>('[data-rk-bento-surface]');
             const backdrop = details.querySelector<HTMLElement>('[data-rk-bento-backdrop]');
-            const modalImg = details.querySelector<HTMLElement>('[data-rk-bento-modal-img]');
             const media = details.querySelector<HTMLElement>('[data-rk-bento-media]');
 
             if (!prefersReduced && surface && backdrop) {
                 const seq = nextSeq(details);
                 details.dataset.rkBentoState = 'opening';
 
-                const cardRect = fromRects.get(details) || details.getBoundingClientRect();
-                const insetFrom = rectToInset(cardRect);
+                const aside = details.querySelector<HTMLElement>('[data-rk-bento-aside]');
 
-                if (typeof surface.animate !== 'function' || typeof backdrop.animate !== 'function') {
+                if (typeof surface.animate !== 'function') {
                     details.dataset.rkBentoState = 'open';
                     return;
                 }
 
-                // Start with a transparent backdrop and a clipped surface.
+                // Start from hidden state
+                surface.style.opacity = '0';
+                surface.style.transform = 'scale(0.98)';
                 backdrop.style.opacity = '0';
-                surface.style.clipPath = insetFrom;
-
-                // Force styles to apply before starting animations.
+                if (aside) {
+                    aside.style.opacity = '0';
+                    aside.style.transform = 'translateX(-30px)';
+                }
                 void surface.getBoundingClientRect();
 
-                const durationOpen = 820;
-                const fadeInDuration = 420;
-                const clipAnimation = surface.animate(
-                    [{ clipPath: insetFrom }, { clipPath: 'inset(0px 0px 0px 0px round 0px)' }],
-                    { duration: durationOpen, easing: easingOpen, fill: 'both' }
+                // Premium spring-like easing
+                const easing = 'cubic-bezier(0.16, 1, 0.3, 1)';
+
+                // Backdrop fades in first
+                const backdropAnimation = backdrop.animate(
+                    [{ opacity: 0 }, { opacity: 1 }],
+                    { duration: 400, easing: 'ease-out', fill: 'forwards' }
                 );
 
-                const fadeAnimation = backdrop.animate(
+                // Surface scales up with spring effect
+                const surfaceAnimation = surface.animate(
                     [
-                        { opacity: 0, offset: 0 },
-                        { opacity: 0, offset: 0.25 },
-                        { opacity: 1, offset: 1 },
+                        { opacity: 0, transform: 'scale(0.98)' },
+                        { opacity: 1, transform: 'scale(1)' },
                     ],
-                    { duration: fadeInDuration, easing: easingOpen, fill: 'both' }
+                    { duration: 550, easing, fill: 'forwards' }
                 );
+
+                // Aside slides in after surface starts (staggered entrance)
+                if (aside) {
+                    aside.animate(
+                        [
+                            { opacity: 0, transform: 'translateX(-30px)' },
+                            { opacity: 1, transform: 'translateX(0)' },
+                        ],
+                        { duration: 500, easing, fill: 'forwards', delay: 150 }
+                    );
+                }
 
                 runningAnimations.set(details, {
-                    clip: clipAnimation,
-                    fade: fadeAnimation,
-                    finished: Promise.allSettled([clipAnimation.finished, fadeAnimation.finished]),
+                    clip: surfaceAnimation,
+                    fade: backdropAnimation,
+                    finished: Promise.allSettled([surfaceAnimation.finished, backdropAnimation.finished]),
                 });
 
-                fadeAnimation.finished
+                surfaceAnimation.finished
                     .then(() => {
                         if (!isSeq(details, seq)) return;
                         if (!details.open) return;
-                        if (details.dataset.rkBentoState !== 'closing') details.dataset.rkBentoState = 'open';
+                        details.dataset.rkBentoState = 'open';
+                        // Clear inline styles, let CSS take over
+                        surface.style.opacity = '';
+                        surface.style.transform = '';
+                        backdrop.style.opacity = '';
+                        if (aside) {
+                            aside.style.opacity = '';
+                            aside.style.transform = '';
+                        }
                     })
                     .catch(() => {
-                        // no-op
+                        // cancelled
+                    })
+                    .finally(() => {
+                        if (!isSeq(details, seq)) return;
+                        stopRunningAnimations(details);
                     });
-
-                Promise.allSettled([clipAnimation.finished, fadeAnimation.finished]).finally(() => {
-                    if (!isSeq(details, seq)) return;
-                    surface.style.clipPath = '';
-                    backdrop.style.opacity = '';
-                    stopRunningAnimations(details);
-                    if (details.open && details.dataset.rkBentoState !== 'closing') details.dataset.rkBentoState = 'open';
-                });
             } else {
                 details.dataset.rkBentoState = 'open';
             }
 
+            const modalImg = details.querySelector<HTMLElement>('[data-rk-bento-modal-img]');
             const cleanupFns: Array<() => void> = [];
 
             // Click on the image area closes (JS-only quality-of-life enhancement)
@@ -599,7 +586,8 @@ function enhanceProductGridBento() {
             const progress = (midpoint - viewportH / 2) / viewportH;
             const clamped = Math.max(-1, Math.min(1, progress));
             const y = clamped * -12;
-            img.style.transform = `translate3d(0, ${y}px, 0) scale(1.06)`;
+            cardParallaxY.set(card, y);
+            img.style.transform = `translate3d(0, ${y}px, 0) scale(${cardParallaxScale})`;
         });
     };
 
@@ -614,10 +602,86 @@ function enhanceProductGridBento() {
     schedule();
 }
 
+function enhanceProductViewTransitions() {
+    if (!('viewTransitionName' in document.documentElement.style)) return;
+
+    const storageKey = 'rk-product-vt';
+    const transitionName = 'rk-product-media';
+    const storage = {
+        get: (): null | string => {
+            try {
+                return sessionStorage.getItem(storageKey);
+            } catch {
+                return null;
+            }
+        },
+        set: (value: string) => {
+            try {
+                sessionStorage.setItem(storageKey, value);
+            } catch {
+                // ignore
+            }
+        },
+        clear: () => {
+            try {
+                sessionStorage.removeItem(storageKey);
+            } catch {
+                // ignore
+            }
+        },
+    };
+
+    const hero = document.querySelector<HTMLElement>('[data-rk-product-hero]');
+    const pending = storage.get();
+    if (pending && hero) {
+        hero.style.setProperty('view-transition-name', pending);
+    }
+    if (pending) {
+        storage.clear();
+    }
+
+    const links = Array.from(document.querySelectorAll<HTMLAnchorElement>('[data-rk-product-link]'));
+    if (links.length === 0) return;
+
+    const clearActive = () => {
+        const current = Array.from(document.querySelectorAll<HTMLElement>('[data-rk-vt-active="1"]'));
+        if (current.length === 0) return;
+        current.forEach((el) => {
+            el.style.removeProperty('view-transition-name');
+            el.removeAttribute('data-rk-vt-active');
+        });
+    };
+
+    links.forEach((link) => {
+        link.addEventListener('click', (event) => {
+            if (event.defaultPrevented) return;
+            if (link.target && link.target !== '_self') return;
+            if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+            if (link.origin !== window.location.origin) return;
+
+            const card = link.closest<HTMLElement>('details.rk-bento-item[data-rk-bento="1"]');
+            if (!card) return;
+
+            const media =
+                card.querySelector<HTMLElement>('[data-rk-bento-card-media]') ??
+                card.querySelector<HTMLElement>('[data-rk-bento-img]') ??
+                card.querySelector<HTMLElement>('[data-rk-bento-media]');
+
+            if (!media) return;
+
+            clearActive();
+            media.style.setProperty('view-transition-name', transitionName);
+            media.setAttribute('data-rk-vt-active', '1');
+            storage.set(transitionName);
+        });
+    });
+}
+
 onReady(() => {
     enhanceStickyNavigation();
     enhanceNavMobileDetails();
     enhanceHeroScrollAnimations();
     enhanceSwipers();
     enhanceProductGridBento();
+    enhanceProductViewTransitions();
 });

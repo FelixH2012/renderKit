@@ -145,13 +145,80 @@ const footerAttributesSchema = z
     })
     .strip();
 
+const productPageImageSchema = z
+    .object({
+        id: z.coerce.number().int().catch(0),
+        src: z.string().optional().default(''),
+        fullSrc: z.string().optional(),
+        alt: z.string().optional().default(''),
+        width: z.coerce.number().optional(),
+        height: z.coerce.number().optional(),
+        srcSet: z.string().optional(),
+        sizes: z.string().optional(),
+    })
+    .strip();
+
+const productPageAttributesSchema = z
+    .object({
+        navigation: navigationAttributesSchema.optional().default({} as any),
+        footer: footerAttributesSchema.optional().default({} as any),
+        hero: heroAttributesSchema.optional().default({} as any),
+        labels: z
+            .object({
+                backToProducts: z.string().optional().default('Back to products'),
+                sku: z.string().optional().default('SKU'),
+                availability: z.string().optional().default('Availability'),
+                readDescription: z.string().optional().default('Zum Produkt'),
+                priceOnRequest: z.string().optional().default('Price on request'),
+                gallery: z.string().optional().default('Product gallery'),
+            })
+            .strip()
+            .optional()
+            .default({} as any),
+        product: z
+            .object({
+                id: z.coerce.number().int().catch(0),
+                title: z.string().optional().default(''),
+                excerpt: z.string().optional().default(''),
+                archiveUrl: z.string().optional().default(''),
+                sku: z.string().optional().default(''),
+                stockStatus: z.string().optional().default('instock'),
+                stockLabel: z.string().optional().default(''),
+                price: z.coerce.number().optional().default(0),
+                salePrice: z.coerce.number().optional().default(0),
+                priceFormatted: z.string().optional().default(''),
+                salePriceFormatted: z.string().optional().default(''),
+                featuredImage: productPageImageSchema.nullable().optional().default(null),
+                gallery: z.array(productPageImageSchema).catch([]),
+                hasRenderkitBlocks: z.boolean().optional().default(false),
+            })
+            .strip(),
+    })
+    .strip();
+
+const textImageAttributesSchema = z
+    .object({
+        heading: z.string().optional().default(''),
+        description: z.string().optional().default(''),
+        imageUrl: z.string().optional().default(''),
+        imageAlt: z.string().optional().default(''),
+        imageId: z.coerce.number().optional().default(0),
+        imagePosition: z.enum(['left', 'right']).optional().default('right'),
+        buttonText: z.string().optional().default(''),
+        buttonUrl: z.string().optional().default(''),
+        theme: themeSchema.optional().default('light'),
+    })
+    .strip();
+
 export const relayPropsSchemas = {
     'renderkit/hero': relayPropsSchema(heroAttributesSchema),
     'renderkit/navigation': relayPropsSchema(navigationAttributesSchema),
     'renderkit/product-grid': relayPropsSchema(productGridAttributesSchema),
     'renderkit/swiper': relayPropsSchema(swiperAttributesSchema),
     'renderkit/text-block': relayPropsSchema(textBlockAttributesSchema),
+    'renderkit/text-image': relayPropsSchema(textImageAttributesSchema),
     'renderkit/footer': relayPropsSchema(footerAttributesSchema),
+    'renderkit/product-page': relayPropsSchema(productPageAttributesSchema),
 } as const;
 
 export type RelayBlockName = keyof typeof relayPropsSchemas;

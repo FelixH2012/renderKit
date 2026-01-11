@@ -41,6 +41,15 @@ declare module '@wordpress/block-editor' {
     export function AlignmentToolbar(props: Record<string, any>): JSX.Element;
 }
 
+declare module '@wordpress/edit-post' {
+    export function PluginSidebar(props: {
+        name: string;
+        title?: string;
+        icon?: any;
+        children?: React.ReactNode;
+    }): JSX.Element;
+}
+
 declare module '@wordpress/components' {
     export function PanelBody(props: {
         title?: string;

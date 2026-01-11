@@ -13,6 +13,8 @@ import { View as ProductGridView } from '../blocks/product-grid/view';
 import { View as SwiperView } from '../blocks/swiper/view';
 import { View as TextBlockView } from '../blocks/text-block/view';
 import { View as FooterView } from '../blocks/footer/view';
+import { View as TextImageView } from '../blocks/text-image/view';
+import { View as ProductPageView } from '../pages/product-page/view';
 import { relayPropsSchemas } from './schemas';
 
 export const relayVersion = '1';
@@ -24,6 +26,8 @@ const registry: Record<string, React.ComponentType<any>> = {
     'renderkit/swiper': SwiperView,
     'renderkit/text-block': TextBlockView,
     'renderkit/footer': FooterView,
+    'renderkit/text-image': TextImageView,
+    'renderkit/product-page': ProductPageView,
 };
 
 const validatedPropsSymbol = Symbol.for('renderkit.relay.validatedProps');

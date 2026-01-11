@@ -122,6 +122,7 @@ export function View({ attributes, className }: ViewProps): JSX.Element {
 		                                    <div className="rk-bento-card" data-rk-bento-card>
 		                                        <div
 		                                            className="rk-bento-image"
+		                                            data-rk-bento-card-media
 		                                            style={{
 		                                                position: 'absolute',
 		                                                inset: 0,
@@ -315,7 +316,7 @@ export function View({ attributes, className }: ViewProps): JSX.Element {
 	                                                    </p>
 	                                                ) : null}
 
-	                                                <a className="rk-bento-modal__cta" href={product.url}>
+	                                                <a className="rk-bento-modal__cta" href={product.url} data-rk-product-link>
 	                                                    Zum Produkt
 	                                                </a>
 	                                            </div>

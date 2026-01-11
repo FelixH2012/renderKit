@@ -1,0 +1,70 @@
+{
+    "$schema": "https://schemas.wp.org/trunk/block.json",
+    "apiVersion": 3,
+    "name": "renderkit/text-image",
+    "version": "1.0.0",
+    "title": "RenderKit Text-Image",
+    "category": "renderkit",
+    "description": "Text and image side by side with optional CTA",
+    "keywords": [
+        "text",
+        "image",
+        "media",
+        "content"
+    ],
+    "icon": "align-left",
+    "textdomain": "renderkit",
+    "supports": {
+        "html": false,
+        "align": [
+            "full",
+            "wide"
+        ]
+    },
+    "attributes": {
+        "heading": {
+            "type": "string",
+            "default": "Handgefertigt mit Liebe"
+        },
+        "description": {
+            "type": "string",
+            "default": "Jedes unserer Produkte wird mit größter Sorgfalt in unserer kleinen Manufaktur hergestellt. Wir verwenden nur hochwertige, nachhaltige Materialien."
+        },
+        "imageUrl": {
+            "type": "string",
+            "default": ""
+        },
+        "imageAlt": {
+            "type": "string",
+            "default": ""
+        },
+        "imageId": {
+            "type": "number",
+            "default": 0
+        },
+        "imagePosition": {
+            "type": "string",
+            "default": "right",
+            "enum": [
+                "left",
+                "right"
+            ]
+        },
+        "buttonText": {
+            "type": "string",
+            "default": ""
+        },
+        "buttonUrl": {
+            "type": "string",
+            "default": ""
+        },
+        "theme": {
+            "type": "string",
+            "default": "light",
+            "enum": [
+                "light",
+                "dark"
+            ]
+        }
+    }
+}
