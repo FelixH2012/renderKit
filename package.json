@@ -4,7 +4,7 @@
     "description": "Premium Gutenberg block system with React frontend rendering",
     "scripts": {
         "build": "node esbuild.config.mjs",
-        "watch": "node esbuild.config.mjs --watch",
+        "watch": "RENDERKIT_WATCH_POLL=1 node esbuild.config.mjs --watch",
         "dev": "npm run watch"
     },
     "dependencies": {

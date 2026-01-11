@@ -7,6 +7,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 const isWatch = process.argv.includes('--watch');
+const usePolling = process.env.RENDERKIT_WATCH_POLL === '1';
 
 // WordPress externals - these are provided by WordPress at runtime
 const wpExternals = [
@@ -173,12 +174,31 @@ async function runBuilds() {
             console.log('👀 Watching for changes...\n');
 
             const contexts = await Promise.all(builds.map((config) => esbuild.context(config)));
-            await Promise.all(contexts.map((ctx) => ctx.watch()));
+            if (!usePolling) {
+                await Promise.all(contexts.map((ctx) => ctx.watch()));
+            } else {
+                await Promise.all(contexts.map((ctx) => ctx.rebuild()));
+            }
 
             const chokidarModule = await import('chokidar').catch(() => null);
             const chokidar = chokidarModule && (chokidarModule.watch ? chokidarModule : chokidarModule.default);
             if (chokidar && typeof chokidar.watch === 'function') {
-                chokidar.watch('src/**/*.css', { ignoreInitial: true }).on('change', buildCSS);
+                const watcher = chokidar.watch('src/**/*.{ts,tsx,css}', {
+                    ignoreInitial: true,
+                    usePolling,
+                    interval: usePolling ? 300 : undefined,
+                });
+                const rebuildAll = async (file) => {
+                    try {
+                        await Promise.all(contexts.map((ctx) => ctx.rebuild()));
+                        if (file && file.endsWith('.css')) {
+                            await buildCSS();
+                        }
+                    } catch (error) {
+                        console.error('Rebuild failed:', error);
+                    }
+                };
+                watcher.on('change', rebuildAll).on('add', rebuildAll).on('unlink', rebuildAll);
             } else {
                 const cssFile = path.resolve('src/styles/main.css');
                 if (fs.existsSync(cssFile)) {

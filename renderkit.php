@@ -36,6 +36,7 @@ require_once RENDERKIT_PLUGIN_DIR . 'includes/class-block-loader.php';
 require_once RENDERKIT_PLUGIN_DIR . 'includes/class-relay-client.php';
 require_once RENDERKIT_PLUGIN_DIR . 'includes/class-products.php';
 require_once RENDERKIT_PLUGIN_DIR . 'includes/class-image-optimizer.php';
+require_once RENDERKIT_PLUGIN_DIR . 'includes/integrations/class-contact-form.php';
 
 /**
  * Initialize the plugin
@@ -57,6 +58,10 @@ function init(): void {
     // Initialize Image Optimizer
     $optimizer = new ImageOptimizer();
     $optimizer->init();
+
+    // Initialize Contact Form
+    $contact_form = new Integrations\ContactForm();
+    $contact_form->init();
 
     // Initialize AI Service
     require_once RENDERKIT_PLUGIN_DIR . 'includes/class-ai-service.php';
@@ -207,6 +212,7 @@ function add_theme_color_meta(): void {
     <meta name="theme-color" content="#FFFEF9" media="(prefers-color-scheme: light)">
     <meta name="theme-color" content="#FFFEF9">
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <?php
 }

@@ -1,0 +1,54 @@
+{
+    "$schema": "https://schemas.wp.org/trunk/block.json",
+    "apiVersion": 3,
+    "name": "renderkit/contact-form",
+    "version": "1.0.0",
+    "title": "Contact Form",
+    "category": "renderkit",
+    "description": "Simple contact form with customizable labels",
+    "keywords": [
+        "contact",
+        "form",
+        "email",
+        "message"
+    ],
+    "icon": "email",
+    "textdomain": "renderkit",
+    "supports": {
+        "html": false,
+        "align": [
+            "full",
+            "wide"
+        ]
+    },
+    "attributes": {
+        "nameLabel": {
+            "type": "string",
+            "default": "Name"
+        },
+        "emailLabel": {
+            "type": "string",
+            "default": "Email"
+        },
+        "subjectLabel": {
+            "type": "string",
+            "default": "Subject"
+        },
+        "messageLabel": {
+            "type": "string",
+            "default": "Message"
+        },
+        "submitButtonText": {
+            "type": "string",
+            "default": "Send Message"
+        },
+        "theme": {
+            "type": "string",
+            "default": "light",
+            "enum": [
+                "light",
+                "dark"
+            ]
+        }
+    }
+}

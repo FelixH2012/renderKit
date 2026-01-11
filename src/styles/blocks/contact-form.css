@@ -1,0 +1,192 @@
+.renderkit-contact-form {
+    padding: clamp(3rem, 6vw, 5rem) 0;
+    width: 100%;
+}
+
+.renderkit-contact-form--dark {
+    background-color: var(--rk-black);
+    color: var(--rk-cream);
+    --rk-contact-muted: rgba(255, 254, 249, 0.7);
+    --rk-contact-panel-bg: rgba(255, 254, 249, 0.04);
+    --rk-contact-panel-border: rgba(255, 254, 249, 0.12);
+    --rk-contact-field-bg: rgba(255, 254, 249, 0.06);
+    --rk-contact-field-border: rgba(255, 254, 249, 0.22);
+}
+
+.renderkit-contact-form--light {
+    background: linear-gradient(180deg, var(--rk-cream) 0%, #F5F4F2 100%);
+    color: var(--rk-anthracite);
+    --rk-contact-muted: rgba(26, 24, 22, 0.64);
+    --rk-contact-panel-bg: rgba(255, 255, 255, 0.7);
+    --rk-contact-panel-border: rgba(26, 24, 22, 0.12);
+    --rk-contact-field-bg: rgba(255, 255, 255, 0.8);
+    --rk-contact-field-border: rgba(26, 24, 22, 0.14);
+}
+
+.rk-contact-form__inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+}
+
+.rk-contact-form__panel {
+    background: var(--rk-contact-panel-bg);
+    border: 1px solid var(--rk-contact-panel-border);
+    border-radius: var(--rk-radius-xl);
+    padding: clamp(1.5rem, 3vw, 2.75rem);
+    box-shadow: var(--rk-shadow-soft);
+    backdrop-filter: blur(8px);
+}
+
+.rk-contact-form__form {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(1.5rem, 3vw, 2.5rem);
+}
+
+.rk-contact-form__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(1rem, 2vw, 1.5rem);
+}
+
+.rk-contact-form__group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.rk-contact-form__group--full {
+    grid-column: 1 / -1;
+}
+
+.rk-contact-form__label {
+    font-family: var(--rk-font-body);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--rk-contact-muted);
+}
+
+.rk-contact-form__input,
+.rk-contact-form__textarea {
+    width: 100%;
+    padding: 14px 16px;
+    background: var(--rk-contact-field-bg);
+    border: 1px solid var(--rk-contact-field-border);
+    border-radius: var(--rk-radius-md);
+    font-family: var(--rk-font-body);
+    font-size: 1rem;
+    color: currentColor;
+    transition: border-color var(--rk-duration-fast) var(--rk-ease-standard),
+        box-shadow var(--rk-duration-fast) var(--rk-ease-standard),
+        background var(--rk-duration-fast) var(--rk-ease-standard);
+}
+
+.rk-contact-form__input:focus,
+.rk-contact-form__textarea:focus {
+    outline: none;
+    border-color: var(--rk-gold);
+    box-shadow: 0 0 0 1px var(--rk-gold), 0 0 0 4px rgba(184, 151, 90, 0.18);
+}
+
+.rk-contact-form__textarea {
+    resize: vertical;
+    min-height: 140px;
+}
+
+.rk-contact-form__recaptcha {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+}
+
+.rk-contact-form__recaptcha-note {
+    margin: 0;
+    font-size: 0.625rem;
+    color: var(--rk-contact-muted);
+    max-width: 46ch;
+    line-height: 1.5;
+}
+
+.rk-contact-form__recaptcha-note a {
+    color: inherit;
+    text-decoration: underline;
+}
+
+.rk-contact-form__recaptcha-fallback {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--rk-contact-muted);
+}
+
+.rk-contact-form__recaptcha--placeholder .rk-contact-form__recaptcha-box {
+    border: 1px dashed var(--rk-contact-field-border);
+    color: var(--rk-contact-muted);
+    font-size: 0.75rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    padding: 0.85rem 1.5rem;
+    border-radius: var(--rk-radius-md);
+}
+
+/* Submit Button */
+.rk-contact-form__submit {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.65rem;
+    padding: 14px 34px;
+    background-color: currentColor;
+    border: none;
+    border-radius: var(--rk-radius-pill);
+    cursor: pointer;
+    font-family: var(--rk-font-body);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    transition: transform var(--rk-duration-fast) var(--rk-ease-standard),
+        box-shadow var(--rk-duration-fast) var(--rk-ease-standard),
+        opacity var(--rk-duration-fast) var(--rk-ease-standard);
+}
+
+.renderkit-contact-form--light .rk-contact-form__submit {
+    color: var(--rk-cream);
+    background-color: var(--rk-anthracite);
+    box-shadow: 0 12px 30px rgba(26, 24, 22, 0.22);
+}
+
+.renderkit-contact-form--dark .rk-contact-form__submit {
+    color: var(--rk-black);
+    background-color: var(--rk-cream);
+    box-shadow: 0 12px 30px rgba(255, 254, 249, 0.16);
+}
+
+.rk-contact-form__submit:hover {
+    transform: translateY(-1px);
+}
+
+.rk-contact-form__submit:active {
+    transform: translateY(0);
+    opacity: 0.92;
+}
+
+.rk-contact-form__submit-icon {
+    width: 20px;
+    height: 20px;
+    stroke-width: 1.5;
+}
+
+.rk-contact-form__actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+@media (max-width: 768px) {
+    .rk-contact-form__grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}

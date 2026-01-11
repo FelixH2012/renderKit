@@ -34,6 +34,10 @@ import footerMeta from '../blocks/footer/block.json';
 import { Edit as TextImageEdit } from '../blocks/text-image/editor';
 import textImageMeta from '../blocks/text-image/block.json';
 
+// Contact Form Block
+import { Edit as ContactFormEdit } from '../blocks/contact-form/editor';
+import contactFormMeta from '../blocks/contact-form/block.json';
+
 // Dynamic blocks return null for save
 const nullSave = () => null;
 
@@ -62,6 +66,7 @@ const blocks: BlockRegistration[] = [
     { meta: textBlockMeta, edit: TextBlockEdit, save: TextBlockSave, icon: 'editor-paragraph' },
     { meta: footerMeta, edit: FooterEdit, save: FooterSave, icon: 'admin-site' },
     { meta: textImageMeta, edit: TextImageEdit, icon: 'align-left' },
+    { meta: contactFormMeta, edit: ContactFormEdit, icon: 'email' },
 ];
 
 // Plugins

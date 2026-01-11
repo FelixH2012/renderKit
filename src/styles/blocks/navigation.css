@@ -246,22 +246,33 @@
 }
 
 .renderkit-nav__mobile {
-    display: none;
     position: fixed;
     inset: 0;
-    top: 80px;
     z-index: 40;
-    padding: 2rem;
+    padding: 2.5rem 2rem;
+    transform: translateX(100%);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+        opacity 0.4s ease,
+        visibility 0s linear 0.4s;
 }
 
 .renderkit-nav__mobile-details[open] .renderkit-nav__mobile {
-    display: block;
+    transform: translateX(0);
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+        opacity 0.4s ease;
 }
 
 .renderkit-nav__mobile-links {
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
+    margin-top: 3rem;
 }
 
 .renderkit-nav__mobile-link {
@@ -351,10 +362,16 @@
     .renderkit-nav__menu {
         display: flex;
         gap: 3rem;
+        flex: 1;
+        justify-content: center;
     }
 
     .renderkit-nav__mobile-details,
     .renderkit-nav__mobile-toggle {
+        display: none;
+    }
+
+    .renderkit-nav__mobile {
         display: none;
     }
 }

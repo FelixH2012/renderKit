@@ -210,6 +210,20 @@ const textImageAttributesSchema = z
     })
     .strip();
 
+const contactFormAttributesSchema = z
+    .object({
+        nameLabel: z.string().optional().default('Name'),
+        emailLabel: z.string().optional().default('Email'),
+        subjectLabel: z.string().optional().default('Subject'),
+        messageLabel: z.string().optional().default('Message'),
+        submitButtonText: z.string().optional().default('Send Message'),
+        theme: themeSchema.optional().default('light'),
+        recaptchaSiteKey: z.string().optional().default(''),
+        recaptchaEnabled: z.boolean().optional().default(false),
+        nonce: z.string().optional().default(''),
+    })
+    .strip();
+
 export const relayPropsSchemas = {
     'renderkit/hero': relayPropsSchema(heroAttributesSchema),
     'renderkit/navigation': relayPropsSchema(navigationAttributesSchema),
@@ -217,6 +231,7 @@ export const relayPropsSchemas = {
     'renderkit/swiper': relayPropsSchema(swiperAttributesSchema),
     'renderkit/text-block': relayPropsSchema(textBlockAttributesSchema),
     'renderkit/text-image': relayPropsSchema(textImageAttributesSchema),
+    'renderkit/contact-form': relayPropsSchema(contactFormAttributesSchema),
     'renderkit/footer': relayPropsSchema(footerAttributesSchema),
     'renderkit/product-page': relayPropsSchema(productPageAttributesSchema),
 } as const;

@@ -677,6 +677,62 @@ function enhanceProductViewTransitions() {
     });
 }
 
+function enhanceRecaptcha() {
+    const widgets = Array.from(document.querySelectorAll<HTMLElement>('[data-rk-recaptcha="v3"]'));
+    if (widgets.length === 0) return;
+
+    const first = widgets[0];
+    if (!first) return;
+    const siteKey = first.dataset.sitekey || '';
+    if (!siteKey) return;
+
+    const existing = document.querySelector<HTMLScriptElement>('script[src*="recaptcha/api.js"]');
+    if (existing) return;
+
+    const script = document.createElement('script');
+    script.src = `https://www.google.com/recaptcha/api.js?render=${encodeURIComponent(siteKey)}`;
+    script.async = true;
+    script.defer = true;
+    document.head.appendChild(script);
+
+    const wireForms = () => {
+        widgets.forEach((widget) => {
+            const form = widget.closest<HTMLFormElement>('form');
+            if (!form) return;
+
+            const action = widget.dataset.action || 'contact_form';
+            const input = widget.querySelector<HTMLInputElement>('input[name="g-recaptcha-response"]');
+            if (!input) return;
+
+            form.addEventListener('submit', (event) => {
+                if (form.dataset.rkRecaptchaSubmitting === '1') return;
+                const grecaptcha = (window as { grecaptcha?: { ready: (cb: () => void) => void; execute: (key: string, options: { action: string }) => Promise<string> } }).grecaptcha;
+                if (!grecaptcha) return;
+
+                event.preventDefault();
+                form.dataset.rkRecaptchaSubmitting = '1';
+
+                grecaptcha.ready(() => {
+                    grecaptcha
+                        .execute(siteKey, { action })
+                        .then((token: string) => {
+                            input.value = token;
+                            form.dataset.rkRecaptchaSubmitting = '0';
+                            form.submit();
+                        })
+                        .catch(() => {
+                            form.dataset.rkRecaptchaSubmitting = '0';
+                            form.submit();
+                        });
+                });
+            });
+        });
+    };
+
+    script.addEventListener('load', wireForms);
+    wireForms();
+}
+
 onReady(() => {
     enhanceStickyNavigation();
     enhanceNavMobileDetails();
@@ -684,4 +740,5 @@ onReady(() => {
     enhanceSwipers();
     enhanceProductGridBento();
     enhanceProductViewTransitions();
+    enhanceRecaptcha();
 });

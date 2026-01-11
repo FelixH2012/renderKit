@@ -210,6 +210,8 @@ class BlockLoader {
                 return $this->prepare_swiper_attributes($attributes);
             case 'renderkit/footer':
                 return $this->prepare_footer_attributes($attributes);
+            case 'renderkit/contact-form':
+                return $this->prepare_contact_form_attributes($attributes);
             default:
                 return $attributes;
         }
@@ -305,6 +307,20 @@ class BlockLoader {
         }
 
         $attributes['products'] = Products::get_products($args);
+        return $attributes;
+    }
+
+    /**
+     * @param array<string, mixed> $attributes
+     * @return array<string, mixed>
+     */
+    private function prepare_contact_form_attributes(array $attributes): array {
+        $site_key = Integrations\ContactForm::get_recaptcha_site_key();
+
+        $attributes['recaptchaSiteKey'] = $site_key;
+        $attributes['recaptchaEnabled'] = $site_key !== '';
+        $attributes['nonce'] = wp_create_nonce('rk_contact_submission');
+
         return $attributes;
     }
 

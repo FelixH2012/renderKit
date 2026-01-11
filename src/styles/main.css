@@ -6,6 +6,7 @@
 @import './blocks/swiper.css';
 @import './blocks/text-block.css';
 @import './blocks/text-image.css';
+@import './blocks/contact-form.css';
 @import './blocks/footer.css';
 @import './pages/product-page.css';
 @import './utilities.css';
@@ -14,3 +15,5 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* trigger rebuild */
