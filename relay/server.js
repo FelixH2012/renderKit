@@ -153,6 +153,10 @@ const metrics = {
     cacheStoresTotal: {},     // { block: count }
     cacheClearsTotal: 0,
     rendererReloads: 0,
+    batchRequestsTotal: 0,
+    batchBlocksTotal: 0,
+    batchSuccessTotal: 0,
+    batchErrorsTotal: 0,
 };
 
 function incCounter(map, key) {
@@ -283,6 +287,23 @@ function formatPrometheusMetrics() {
         lines.push(`renderkit_relay_system_errors_total{type="${type}"} ${count}`);
     }
 
+    // Batch metrics
+    lines.push('# HELP renderkit_relay_batch_requests_total Total batch render requests');
+    lines.push('# TYPE renderkit_relay_batch_requests_total counter');
+    lines.push(`renderkit_relay_batch_requests_total ${metrics.batchRequestsTotal}`);
+
+    lines.push('# HELP renderkit_relay_batch_blocks_total Total blocks rendered via batch');
+    lines.push('# TYPE renderkit_relay_batch_blocks_total counter');
+    lines.push(`renderkit_relay_batch_blocks_total ${metrics.batchBlocksTotal}`);
+
+    lines.push('# HELP renderkit_relay_batch_success_total Successful batch block renders');
+    lines.push('# TYPE renderkit_relay_batch_success_total counter');
+    lines.push(`renderkit_relay_batch_success_total ${metrics.batchSuccessTotal}`);
+
+    lines.push('# HELP renderkit_relay_batch_errors_total Failed batch block renders');
+    lines.push('# TYPE renderkit_relay_batch_errors_total counter');
+    lines.push(`renderkit_relay_batch_errors_total ${metrics.batchErrorsTotal}`);
+
     return lines.join('\n') + '\n';
 }
 
@@ -342,6 +363,66 @@ function makeCacheKey(block, props) {
     }
 }
 
+/**
+ * Render a single block with caching and metrics.
+ * Used by both /render and /render-batch endpoints.
+ *
+ * @param {string} block - Block name (e.g., 'renderkit/hero')
+ * @param {object} props - Block props
+ * @returns {{ ok: boolean, html?: string, error?: string, durationSeconds: number }}
+ */
+function renderSingleBlock(block, props) {
+    const renderStart = process.hrtime.bigint();
+
+    try {
+        const renderer = getRenderer();
+
+        let safeProps = props;
+        if (typeof renderer.validateRelayProps === 'function') {
+            safeProps = renderer.validateRelayProps(block, props);
+        }
+
+        const cacheKey = renderCache ? makeCacheKey(block, safeProps) : null;
+        if (renderCache && cacheKey) {
+            const cached = renderCache.get(cacheKey);
+            if (cached !== null) {
+                incCounter(metrics.cacheHitsTotal, block);
+                const durationNs = Number(process.hrtime.bigint() - renderStart);
+                const durationSeconds = durationNs / 1e9;
+                observeHistogram(block, durationSeconds);
+                return { ok: true, html: cached, durationSeconds };
+            }
+            incCounter(metrics.cacheMissesTotal, block);
+        }
+
+        const html = renderer.renderRelay(block, safeProps);
+        if (renderCache && cacheKey) {
+            renderCache.set(cacheKey, html);
+            incCounter(metrics.cacheStoresTotal, block);
+        }
+
+        const durationNs = Number(process.hrtime.bigint() - renderStart);
+        const durationSeconds = durationNs / 1e9;
+        observeHistogram(block, durationSeconds);
+        return { ok: true, html, durationSeconds };
+    } catch (error) {
+        const durationNs = Number(process.hrtime.bigint() - renderStart);
+        const durationSeconds = durationNs / 1e9;
+
+        const relayErrorCode =
+            error && typeof error === 'object' && typeof error.code === 'string' ? error.code : null;
+
+        if (relayErrorCode === 'unsupported_block' || relayErrorCode === 'invalid_props') {
+            return { ok: false, error: relayErrorCode, durationSeconds };
+        }
+
+        const errorType = error instanceof Error ? error.message : 'unknown';
+        incCounter(metrics.renderErrorsTotal, `${block}:${errorType}`);
+        console.error('renderKit-Relay render error:', error);
+        return { ok: false, error: 'render_error', durationSeconds };
+    }
+}
+
 const server = http.createServer((req, res) => {
     const url = new URL(req.url || '/', 'http://localhost');
 
@@ -367,7 +448,7 @@ const server = http.createServer((req, res) => {
         }
     }
 
-    if (req.method !== 'POST' || url.pathname !== '/render') {
+    if (req.method !== 'POST' || (url.pathname !== '/render' && url.pathname !== '/render-batch')) {
         incCounter(metrics.requestsTotal, 'unknown:404');
         return sendJson(res, 404, { ok: false, error: 'not_found' });
     }
@@ -384,11 +465,12 @@ const server = http.createServer((req, res) => {
         chunks.push(chunk);
     });
 
-    req.on('end', () => {
+    req.on('end', async () => {
         const rawBody = Buffer.concat(chunks).toString('utf8');
         const auth = verifySignature(req, rawBody);
         if (!auth.ok) {
-            incCounter(metrics.requestsTotal, 'render:401');
+            const endpoint = url.pathname === '/render-batch' ? 'render_batch' : 'render';
+            incCounter(metrics.requestsTotal, `${endpoint}:401`);
             incSystemError('auth_failure');
             return sendJson(res, 401, { ok: false, error: auth.error });
         }
@@ -397,13 +479,63 @@ const server = http.createServer((req, res) => {
         try {
             payload = JSON.parse(rawBody);
         } catch {
-            incCounter(metrics.requestsTotal, 'render:400');
+            const endpoint = url.pathname === '/render-batch' ? 'render_batch' : 'render';
+            incCounter(metrics.requestsTotal, `${endpoint}:400`);
             incSystemError('invalid_json');
             return sendJson(res, 400, { ok: false, error: 'invalid_json' });
         }
 
+        // ─────────────────────────────────────────────────────────────────────────────
+        // Endpoint: /render-batch
+        // ─────────────────────────────────────────────────────────────────────────────
+        if (url.pathname === '/render-batch') {
+            const blocks = payload?.blocks;
+            if (!Array.isArray(blocks)) {
+                incCounter(metrics.requestsTotal, 'render_batch:400');
+                incSystemError('missing_blocks');
+                return sendJson(res, 400, { ok: false, error: 'missing_blocks' });
+            }
+
+            metrics.batchRequestsTotal++;
+            metrics.batchBlocksTotal += blocks.length;
+
+            // Render all blocks in parallel (Promise.all is fine here since loop is small)
+            // But getRenderer() is sync, renderRelay() is sync.
+            // So parallel means concurrent processing if we were async, but here we just loop.
+            // Since this is Node single thread, it blocks anyway.
+            // However, we structuring it to return an array of results.
+
+            const results = blocks.map(item => {
+                if (!item || typeof item !== 'object' || typeof item.block !== 'string') {
+                    metrics.batchErrorsTotal++;
+                    return { ok: false, error: 'invalid_item' };
+                }
+                const result = renderSingleBlock(item.block, item.props || {});
+                if (result.ok) {
+                    metrics.batchSuccessTotal++;
+                } else {
+                    metrics.batchErrorsTotal++;
+                }
+                // Don't expose duration in response to keep payload small? Or do we want to?
+                // Plan said: { ok: true, results: [{ ok, html?, error? }, ...] }
+                // renderSingleBlock returns { ok, html?, error?, durationSeconds }
+                return {
+                    ok: result.ok,
+                    html: result.html,
+                    error: result.error
+                };
+            });
+
+            incCounter(metrics.requestsTotal, 'render_batch:200');
+            return sendJson(res, 200, { ok: true, results });
+        }
+
+        // ─────────────────────────────────────────────────────────────────────────────
+        // Endpoint: /render (Legacy / Single)
+        // ─────────────────────────────────────────────────────────────────────────────
         const block = payload?.block;
         const props = payload?.props;
+
         if (typeof block !== 'string') {
             incCounter(metrics.requestsTotal, 'render:400');
             incSystemError('missing_block');
@@ -415,57 +547,20 @@ const server = http.createServer((req, res) => {
             return sendJson(res, 400, { ok: false, error: 'missing_props' });
         }
 
-        const renderStart = process.hrtime.bigint();
-        try {
-            const renderer = getRenderer();
-
-            let safeProps = props;
-            if (typeof renderer.validateRelayProps === 'function') {
-                safeProps = renderer.validateRelayProps(block, props);
-            }
-
-            const cacheKey = renderCache ? makeCacheKey(block, safeProps) : null;
-            if (renderCache && cacheKey) {
-                const cached = renderCache.get(cacheKey);
-                if (cached !== null) {
-                    incCounter(metrics.cacheHitsTotal, block);
-                    const durationNs = Number(process.hrtime.bigint() - renderStart);
-                    const durationSeconds = durationNs / 1e9;
-                    observeHistogram(block, durationSeconds);
-                    incCounter(metrics.requestsTotal, 'render:200');
-                    return sendJson(res, 200, { ok: true, html: cached });
-                }
-                incCounter(metrics.cacheMissesTotal, block);
-            }
-
-            const html = renderer.renderRelay(block, safeProps);
-            if (renderCache && cacheKey) {
-                renderCache.set(cacheKey, html);
-                incCounter(metrics.cacheStoresTotal, block);
-            }
-
-            const durationNs = Number(process.hrtime.bigint() - renderStart);
-            const durationSeconds = durationNs / 1e9;
-            observeHistogram(block, durationSeconds);
-            incCounter(metrics.requestsTotal, 'render:200');
-            return sendJson(res, 200, { ok: true, html });
-        } catch (error) {
-            const relayErrorCode =
-                error && typeof error === 'object' && typeof error.code === 'string' ? error.code : null;
-
-            if (relayErrorCode === 'unsupported_block' || relayErrorCode === 'invalid_props') {
+        const result = renderSingleBlock(block, props);
+        if (!result.ok) {
+            // Check specific error codes to match original behavior
+            if (result.error === 'unsupported_block' || result.error === 'invalid_props') {
                 incCounter(metrics.requestsTotal, 'render:400');
-                incSystemError(relayErrorCode);
-                return sendJson(res, 400, { ok: false, error: relayErrorCode });
+                incSystemError(result.error);
+                return sendJson(res, 400, { ok: false, error: result.error });
             }
-
-            const errorType = error instanceof Error ? error.message : 'unknown';
-            incCounter(metrics.renderErrorsTotal, `${block}:${errorType}`);
             incCounter(metrics.requestsTotal, 'render:500');
-            incSystemError('render_exception');
-            console.error('renderKit-Relay render error:', error);
-            return sendJson(res, 500, { ok: false, error: 'render_error' });
+            return sendJson(res, 500, { ok: false, error: result.error });
         }
+
+        incCounter(metrics.requestsTotal, 'render:200');
+        return sendJson(res, 200, { ok: true, html: result.html });
     });
 });
 
