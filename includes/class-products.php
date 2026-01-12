@@ -64,7 +64,7 @@ class Products {
             'show_in_menu'        => true,
             'show_in_rest'        => true,
             'query_var'           => true,
-            'rewrite'             => ['slug' => 'products', 'with_front' => false],
+            'rewrite'             => ['slug' => 'produkte', 'with_front' => false],
             'capability_type'     => 'post',
             'has_archive'         => true,
             'hierarchical'        => false,
@@ -299,6 +299,12 @@ class Products {
      */
     public function filter_product_templates(string $template): string {
         if (!is_singular(self::POST_TYPE)) {
+            if (is_post_type_archive(self::POST_TYPE)) {
+                $candidate = trailingslashit(RENDERKIT_PLUGIN_DIR) . 'templates/archive-rk_product.php';
+                if (is_file($candidate)) {
+                    return $candidate;
+                }
+            }
             return $template;
         }
 

@@ -19,6 +19,7 @@ import { View as CookieBannerView } from '../blocks/cookie-banner/view';
 import { View as CookieGateView } from '../blocks/cookie-gate/view';
 import { View as FaqView } from '../blocks/faq/view';
 import { View as ProductPageView } from '../pages/product-page/view';
+import { View as ProductArchiveView } from '../pages/product-archive/view';
 import { relayPropsSchemas } from './schemas';
 
 export const relayVersion = '1';
@@ -36,6 +37,7 @@ const registry: Record<string, React.ComponentType<any>> = {
     'renderkit/cookie-gate': CookieGateView,
     'renderkit/faq': FaqView,
     'renderkit/product-page': ProductPageView,
+    'renderkit/product-archive': ProductArchiveView,
 };
 
 const validatedPropsSymbol = Symbol.for('renderkit.relay.validatedProps');

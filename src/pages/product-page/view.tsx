@@ -79,6 +79,19 @@ interface ProductPageLabels {
     readDescription: string;
     priceOnRequest: string;
     gallery: string;
+    relatedHeading: string;
+}
+
+interface ProductPageRelatedProduct {
+    id: number;
+    title: string;
+    excerpt: string;
+    url: string;
+    image: string;
+    price: number;
+    salePrice: number;
+    priceFormatted: string;
+    salePriceFormatted: string;
 }
 
 export interface ProductPageAttributes {
@@ -87,6 +100,7 @@ export interface ProductPageAttributes {
     product: ProductPageProduct;
     footer: ProductPageFooter;
     labels: ProductPageLabels;
+    relatedProducts: ProductPageRelatedProduct[];
 }
 
 interface ViewProps {
@@ -96,8 +110,9 @@ interface ViewProps {
 }
 
 export function View({ attributes, content = '', className }: ViewProps): JSX.Element {
-    const { navigation, hero, product, footer, labels } = attributes as any;
+    const { navigation, hero, product, footer, labels, relatedProducts } = attributes as any;
     const gallery = Array.isArray(product?.gallery) ? (product.gallery as ProductImage[]) : [];
+    const related = Array.isArray(relatedProducts) ? (relatedProducts as ProductPageRelatedProduct[]) : [];
 
     const rootClasses = ['wp-site-blocks', 'rk-site', className].filter(Boolean).join(' ');
     const hasGallery = gallery.length > 1;
@@ -245,6 +260,59 @@ export function View({ attributes, content = '', className }: ViewProps): JSX.El
                         )}
                     </div>
                 </section>
+
+                {related.length > 0 ? (
+                    <section className="rk-product-related" aria-label={labels?.relatedHeading || 'Weitere Produkte'}>
+                        <div className="rk-product-related__inner">
+                            <div className="rk-product-related__header">
+                                <div className="rk-product-related__bar" aria-hidden="true" />
+                                <h2 className="rk-product-related__heading">
+                                    {labels?.relatedHeading || 'Weitere Produkte'}
+                                </h2>
+                            </div>
+                            <div className="rk-product-related__grid">
+                                {related.map((item) => {
+                                    const showSaleRelated = Number(item.salePrice || 0) > 0;
+                                    const showPriceRelated = Number(item.price || 0) > 0;
+                                    return (
+                                        <a key={item.id} className="rk-product-related__card" href={item.url}>
+                                            <div className="rk-product-related__media">
+                                                {item.image ? (
+                                                    <img
+                                                        className="rk-product-related__img"
+                                                        src={item.image}
+                                                        alt={item.title}
+                                                        loading="lazy"
+                                                    />
+                                                ) : (
+                                                    <div className="rk-product-related__placeholder" aria-hidden="true">
+                                                        🕯️
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div className="rk-product-related__body">
+                                                <p className="rk-product-related__eyebrow">{item.excerpt || 'Handgefertigt'}</p>
+                                                <h3 className="rk-product-related__title">{item.title}</h3>
+                                                {showSaleRelated ? (
+                                                    <p className="rk-product-related__price">
+                                                        <span className="rk-product-related__price-sale">€{item.salePriceFormatted}</span>
+                                                        {showPriceRelated ? (
+                                                            <span className="rk-product-related__price-was">€{item.priceFormatted}</span>
+                                                        ) : null}
+                                                    </p>
+                                                ) : showPriceRelated ? (
+                                                    <p className="rk-product-related__price">
+                                                        <span className="rk-product-related__price-regular">€{item.priceFormatted}</span>
+                                                    </p>
+                                                ) : null}
+                                            </div>
+                                        </a>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </section>
+                ) : null}
             </main>
 
             <FooterView attributes={footer} />

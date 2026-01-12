@@ -262,6 +262,7 @@ class BlockLoader {
     private function prepare_navigation_attributes(array $attributes): array {
         $menu_slug = (string) ($attributes['menuSlug'] ?? 'renderkit-primary');
         $site_name = !empty($attributes['siteName']) ? (string) $attributes['siteName'] : get_bloginfo('name');
+        $current_url = home_url(add_query_arg([]));
 
         $menu_items = [];
         $locations = get_nav_menu_locations();
@@ -287,6 +288,7 @@ class BlockLoader {
 
         $attributes['menuItems'] = $menu_items;
         $attributes['siteName'] = $site_name;
+        $attributes['currentUrl'] = $current_url;
 
         return $attributes;
     }

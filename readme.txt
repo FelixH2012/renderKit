@@ -3,7 +3,7 @@ Contributors: felix
 Tags: react, blocks, ssr, relay, performance
 Requires at least: 6.4
 Tested up to: 6.7
-Stable tag: 1.5.0
+Stable tag: 1.5.1
 Requires PHP: 8.0
 License: GPLv2 or later
 
@@ -27,6 +27,9 @@ Key Features:
 4. Ensure the Relay service (Docker) is running via `make relay-up` or `make dev`.
 
 == Changelog ==
+
+= 1.5.1 =
+* **Improvement:** Relay fallback now serves last successful SSR snapshot when Relay is down.
 
 = 1.5.0 =
 * **Feature:** Cookie consent system (banner + gate) with editor controls, consent storage, and footer settings link.

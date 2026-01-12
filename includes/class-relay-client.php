@@ -32,6 +32,11 @@ final class RelayClient {
     private float $timeout;
 
     /**
+     * Snapshot TTL in seconds (0 disables snapshots)
+     */
+    private int $snapshot_ttl;
+
+    /**
      * Per-request memoization cache
      *
      * @var array<string, string>
@@ -56,6 +61,7 @@ final class RelayClient {
         $this->url = rtrim($config['url'] ?? '', '/');
         $this->secret = (string) ($config['secret'] ?? '');
         $this->timeout = (float) ($config['timeout'] ?? 1.5);
+        $this->snapshot_ttl = isset($config['snapshot_ttl']) ? (int) $config['snapshot_ttl'] : 86400;
     }
 
     /**
@@ -121,6 +127,7 @@ final class RelayClient {
 
             $this->record_success();
             $this->memo[$cache_key] = $json['html'];
+            $this->store_snapshot($block, $props, $json['html']);
             return $json['html'];
         }
 
@@ -209,6 +216,7 @@ final class RelayClient {
                         $cache_key = $item['block'] . ':' . md5($item_body);
                         $this->memo[$cache_key] = $html;
                      }
+                     $this->store_snapshot($item['block'], $item['props'], $html);
                  } else {
                      $html = $this->render_fallback($item['block'], $item['props']);
                  }
@@ -231,6 +239,11 @@ final class RelayClient {
      * Provide minimal fallback HTML when Relay is down.
      */
     private function render_fallback(string $block, array $props): string {
+        $snapshot = $this->get_snapshot($block, $props);
+        if ($snapshot !== '') {
+            return $snapshot;
+        }
+
         $attrs = $props['attributes'] ?? [];
 
         switch ($block) {
@@ -254,6 +267,55 @@ final class RelayClient {
             default:
                 return '';
         }
+    }
+
+    /**
+     * Build snapshot cache key for a block+props payload.
+     */
+    private function make_snapshot_key(string $block, array $props): ?string {
+        if ($this->snapshot_ttl <= 0) {
+            return null;
+        }
+
+        $payload = [
+            'block' => $block,
+            'props' => $props,
+        ];
+        $body = wp_json_encode($payload);
+        if (!is_string($body) || $body === '') {
+            return null;
+        }
+
+        return 'rk_relay_snap_' . md5($body);
+    }
+
+    /**
+     * Retrieve a previously stored snapshot.
+     */
+    private function get_snapshot(string $block, array $props): string {
+        $key = $this->make_snapshot_key($block, $props);
+        if ($key === null) {
+            return '';
+        }
+
+        $value = get_transient($key);
+        return is_string($value) ? $value : '';
+    }
+
+    /**
+     * Store a snapshot of the last successful SSR HTML.
+     */
+    private function store_snapshot(string $block, array $props, string $html): void {
+        if ($html === '' || $this->snapshot_ttl <= 0) {
+            return;
+        }
+
+        $key = $this->make_snapshot_key($block, $props);
+        if ($key === null) {
+            return;
+        }
+
+        set_transient($key, $html, $this->snapshot_ttl);
     }
 
     /**
@@ -292,4 +354,3 @@ final class RelayClient {
         self::$open_until = 0;
     }
 }
-

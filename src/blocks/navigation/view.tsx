@@ -21,7 +21,19 @@ export function View({ attributes, className }: ViewProps): JSX.Element {
         sticky,
         theme = 'light',
         showCart,
+        currentUrl = '',
     } = attributes;
+
+    const normalizePath = (url: string) => {
+        try {
+            const parsed = new URL(url, 'http://placeholder.local');
+            return parsed.pathname.replace(/\/+$/, '') || '/';
+        } catch {
+            return url.replace(/\/+$/, '') || '/';
+        }
+    };
+
+    const currentPath = currentUrl ? normalizePath(currentUrl) : '';
 
     const navClasses = [
         'renderkit-block',
@@ -45,11 +57,25 @@ export function View({ attributes, className }: ViewProps): JSX.Element {
                     )}
 
                     <div className="renderkit-nav__menu">
-                        {menuItems.map((item) => (
-                            <a key={item.id} href={item.url} className="renderkit-nav__link">
-                                {item.title}
-                            </a>
-                        ))}
+                        {menuItems.map((item) => {
+                            const itemPath = normalizePath(item.url);
+                            const isActive = currentPath !== '' && currentPath === itemPath;
+                            return (
+                                <a
+                                    key={item.id}
+                                    href={item.url}
+                                    className={[
+                                        'renderkit-nav__link',
+                                        isActive && 'renderkit-nav__link--active',
+                                    ]
+                                        .filter(Boolean)
+                                        .join(' ')}
+                                    aria-current={isActive ? 'page' : undefined}
+                                >
+                                    {item.title}
+                                </a>
+                            );
+                        })}
                     </div>
 
                     <div className="renderkit-nav__actions">
@@ -68,11 +94,25 @@ export function View({ attributes, className }: ViewProps): JSX.Element {
 
                             <div className={`renderkit-nav__mobile renderkit-nav--${theme}`}>
                                 <div className="renderkit-nav__mobile-links">
-                                    {menuItems.map((item) => (
-                                        <a key={item.id} href={item.url} className="renderkit-nav__mobile-link">
-                                            {item.title}
-                                        </a>
-                                    ))}
+                                    {menuItems.map((item) => {
+                                        const itemPath = normalizePath(item.url);
+                                        const isActive = currentPath !== '' && currentPath === itemPath;
+                                        return (
+                                            <a
+                                                key={item.id}
+                                                href={item.url}
+                                                className={[
+                                                    'renderkit-nav__mobile-link',
+                                                    isActive && 'renderkit-nav__mobile-link--active',
+                                                ]
+                                                    .filter(Boolean)
+                                                    .join(' ')}
+                                                aria-current={isActive ? 'page' : undefined}
+                                            >
+                                                {item.title}
+                                            </a>
+                                        );
+                                    })}
                                 </div>
                                 <div className="renderkit-nav__mobile-rule" />
                             </div>

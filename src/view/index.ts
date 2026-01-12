@@ -32,8 +32,10 @@ function enhanceStickyNavigation() {
             // Add 'is-scrolled' class when scrolled past 20px (pill transformation)
             nav.classList.toggle('is-scrolled', scrollY > 20);
 
+            const mobileMenuOpen = Boolean(nav.querySelector('.renderkit-nav__mobile-details[open]'));
+
             // Hide/show based on scroll direction
-            if (scrollY > 100) {
+            if (scrollY > 100 && !mobileMenuOpen) {
                 // Only apply hide/show logic when scrolled past 100px
                 if (scrollingDown) {
                     nav.classList.add('is-hidden');

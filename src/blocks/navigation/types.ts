@@ -18,5 +18,5 @@ export interface NavigationAttributes {
 
 export interface NavigationViewAttributes extends NavigationAttributes {
     menuItems: MenuItem[];
+    currentUrl?: string;
 }
-

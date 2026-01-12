@@ -156,6 +156,7 @@ $rk_navigation_attrs = [
     'theme' => 'light',
     'showCart' => false,
     'menuItems' => rk_renderkit_menu_items('renderkit-primary'),
+    'currentUrl' => home_url(add_query_arg([])),
 ];
 
 $rk_footer_attrs = [
@@ -238,7 +239,30 @@ $rk_labels = [
     'readDescription' => __('Zum Produkt', 'renderkit'),
     'priceOnRequest' => __('Price on request', 'renderkit'),
     'gallery' => __('Product gallery', 'renderkit'),
+    'relatedHeading' => __('Weitere Produkte', 'renderkit'),
 ];
+
+$rk_related_raw = Products::get_products([
+    'posts_per_page' => 6,
+    'post__not_in' => [$rk_product_id],
+]);
+
+$rk_related_products = array_map(function ($product) {
+    $price = isset($product['price']) ? (float) $product['price'] : 0;
+    $sale_price = isset($product['sale_price']) ? (float) $product['sale_price'] : 0;
+
+    return [
+        'id' => (int) ($product['id'] ?? 0),
+        'title' => (string) ($product['title'] ?? ''),
+        'excerpt' => (string) ($product['excerpt'] ?? ''),
+        'url' => (string) ($product['url'] ?? ''),
+        'image' => (string) ($product['image'] ?? ''),
+        'price' => $price,
+        'salePrice' => $sale_price,
+        'priceFormatted' => $price > 0 ? number_format($price, 2, ',', '.') : '',
+        'salePriceFormatted' => $sale_price > 0 ? number_format($sale_price, 2, ',', '.') : '',
+    ];
+}, $rk_related_raw);
 
 $rk_relay_settings = class_exists(RelaySettings::class)
     ? RelaySettings::get_effective_settings()
@@ -257,6 +281,7 @@ $rk_page_props = [
         'footer' => $rk_footer_attrs,
         'product' => $rk_product_attrs,
         'labels' => $rk_labels,
+        'relatedProducts' => $rk_related_products,
     ],
     'content' => $rk_content_html,
 ];

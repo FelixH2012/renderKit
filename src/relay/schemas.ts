@@ -46,6 +46,7 @@ const navigationAttributesSchema = z
         theme: themeSchema.optional().default('light'),
         showCart: z.boolean().optional().default(false),
         menuItems: z.array(menuItemSchema).catch([]),
+        currentUrl: z.string().optional().default(''),
     })
     .strip();
 
@@ -171,6 +172,7 @@ const productPageAttributesSchema = z
                 readDescription: z.string().optional().default('Zum Produkt'),
                 priceOnRequest: z.string().optional().default('Price on request'),
                 gallery: z.string().optional().default('Product gallery'),
+                relatedHeading: z.string().optional().default('Weitere Produkte'),
             })
             .strip()
             .optional()
@@ -193,6 +195,24 @@ const productPageAttributesSchema = z
                 hasRenderkitBlocks: z.boolean().optional().default(false),
             })
             .strip(),
+        relatedProducts: z
+            .array(
+                z
+                    .object({
+                        id: z.coerce.number().int().catch(0),
+                        title: z.string().optional().default(''),
+                        excerpt: z.string().optional().default(''),
+                        url: z.string().optional().default(''),
+                        image: z.string().optional().default(''),
+                        price: z.coerce.number().optional().default(0),
+                        salePrice: z.coerce.number().optional().default(0),
+                        priceFormatted: z.string().optional().default(''),
+                        salePriceFormatted: z.string().optional().default(''),
+                    })
+                    .strip()
+            )
+            .optional()
+            .default([]),
     })
     .strip();
 
@@ -282,6 +302,76 @@ const faqAttributesSchema = z
     })
     .strip();
 
+const productArchiveImageSchema = z
+    .object({
+        id: z.coerce.number().int().catch(0),
+        src: z.string().optional().default(''),
+        fullSrc: z.string().optional(),
+        alt: z.string().optional().default(''),
+        width: z.coerce.number().optional(),
+        height: z.coerce.number().optional(),
+        srcSet: z.string().optional(),
+        sizes: z.string().optional(),
+    })
+    .strip()
+    .nullable();
+
+const productArchiveAttributesSchema = z
+    .object({
+        navigation: navigationAttributesSchema.optional().default({} as any),
+        footer: footerAttributesSchema.optional().default({} as any),
+        hero: heroAttributesSchema.optional().default({} as any),
+        labels: z
+            .object({
+                heading: z.string().optional().default('Produkte'),
+                intro: z.string().optional().default('Unsere Auswahl handgefertigter Lieblingsstuecke.'),
+                priceOnRequest: z.string().optional().default('Price on request'),
+                pagination: z.string().optional().default('Seite'),
+            })
+            .strip()
+            .optional()
+            .default({} as any),
+        products: z
+            .array(
+                z
+                    .object({
+                        id: z.coerce.number().int().catch(0),
+                        title: z.string().optional().default(''),
+                        excerpt: z.string().optional().default(''),
+                        url: z.string().optional().default(''),
+                        image: productArchiveImageSchema.optional().default(null),
+                        price: z.coerce.number().optional().default(0),
+                        salePrice: z.coerce.number().optional().default(0),
+                        priceFormatted: z.string().optional().default(''),
+                        salePriceFormatted: z.string().optional().default(''),
+                    })
+                    .strip()
+            )
+            .optional()
+            .default([]),
+        pagination: z
+            .object({
+                current: z.coerce.number().int().optional().default(1),
+                total: z.coerce.number().int().optional().default(1),
+                links: z
+                    .array(
+                        z
+                            .object({
+                                label: z.string().optional().default(''),
+                                url: z.string().optional().default(''),
+                                isCurrent: z.boolean().optional().default(false),
+                            })
+                            .strip()
+                    )
+                    .optional()
+                    .default([]),
+            })
+            .strip()
+            .optional()
+            .default({} as any),
+    })
+    .strip();
+
 export const relayPropsSchemas = {
     'renderkit/hero': relayPropsSchema(heroAttributesSchema),
     'renderkit/navigation': relayPropsSchema(navigationAttributesSchema),
@@ -295,6 +385,7 @@ export const relayPropsSchemas = {
     'renderkit/faq': relayPropsSchema(faqAttributesSchema),
     'renderkit/footer': relayPropsSchema(footerAttributesSchema),
     'renderkit/product-page': relayPropsSchema(productPageAttributesSchema),
+    'renderkit/product-archive': relayPropsSchema(productArchiveAttributesSchema),
 } as const;
 
 export type RelayBlockName = keyof typeof relayPropsSchemas;
