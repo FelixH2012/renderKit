@@ -214,6 +214,8 @@ class BlockLoader {
                 return $this->prepare_contact_form_attributes($attributes);
             case 'renderkit/cookie-banner':
                 return $this->prepare_cookie_banner_attributes($attributes);
+            case 'renderkit/cart':
+                return $this->prepare_cart_attributes($attributes);
             default:
                 return $attributes;
         }
@@ -289,6 +291,17 @@ class BlockLoader {
         $attributes['menuItems'] = $menu_items;
         $attributes['siteName'] = $site_name;
         $attributes['currentUrl'] = $current_url;
+
+        // Inject cart data
+        $cart = new Cart();
+        $attributes['cartCount'] = $cart->get_count();
+
+        // Get cart page URL (try by slug first, then by path)
+        $cart_page = get_page_by_path('warenkorb');
+        if (!$cart_page) {
+            $cart_page = get_page_by_path('cart');
+        }
+        $attributes['cartUrl'] = $cart_page ? get_permalink($cart_page) : '/warenkorb/';
 
         return $attributes;
     }
@@ -372,6 +385,19 @@ class BlockLoader {
         }
 
         $attributes['settings'] = $settings;
+        return $attributes;
+    }
+
+    /**
+     * Prepare cart attributes with current cart data.
+     *
+     * @param array<string, mixed> $attributes
+     * @return array<string, mixed>
+     */
+    private function prepare_cart_attributes(array $attributes): array {
+        $cart = new Cart();
+        $attributes['items'] = $cart->get_items();
+        $attributes['total'] = $cart->get_total();
         return $attributes;
     }
 

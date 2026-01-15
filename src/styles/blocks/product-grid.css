@@ -327,6 +327,57 @@
     color: var(--rk-black);
 }
 
+/* Modal Actions Container */
+.renderkit-product-grid .rk-bento-modal__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+}
+
+/* Add to Cart Button */
+.renderkit-product-grid .rk-bento-modal__cart-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.85rem 1.25rem;
+    background: var(--rk-gold);
+    color: var(--rk-cream);
+    border: 1px solid var(--rk-gold);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.renderkit-product-grid .rk-bento-modal__cart-btn i {
+    font-size: 0.875rem;
+    transition: transform 0.3s ease;
+}
+
+.renderkit-product-grid .rk-bento-modal__cart-btn:hover {
+    background: #9A7D4A;
+    border-color: #9A7D4A;
+    transform: translateY(-2px);
+}
+
+.renderkit-product-grid .rk-bento-modal__cart-btn:hover i {
+    transform: scale(1.1);
+}
+
+.renderkit-product-grid .rk-bento-modal__cart-btn[data-rk-cart-adding] {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.renderkit-product-grid .rk-bento-modal__cart-btn[data-rk-cart-added] {
+    background: #4CAF50;
+    border-color: #4CAF50;
+}
+
 @media (max-width: 1024px) {
     .renderkit-product-grid .rk-bento-modal__aside {
         inset: auto 0 0 0;

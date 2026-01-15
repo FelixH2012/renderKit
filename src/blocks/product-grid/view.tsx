@@ -304,9 +304,21 @@ export function View({ attributes, className }: ViewProps): JSX.Element {
 													</p>
 												) : null}
 
-												<a className="rk-bento-modal__cta" href={product.url} data-rk-product-link>
-													Zum Produkt
-												</a>
+												<div className="rk-bento-modal__actions">
+													<button
+														className="rk-bento-modal__cart-btn"
+														type="button"
+														data-rk-add-to-cart={product.id}
+														data-rk-product-title={product.title}
+														data-rk-product-price={product.sale_price > 0 ? product.sale_price : product.price}
+													>
+														<i className="fa-solid fa-bag-shopping" aria-hidden="true"></i>
+														In den Warenkorb
+													</button>
+													<a className="rk-bento-modal__cta" href={product.url} data-rk-product-link>
+														Zum Produkt
+													</a>
+												</div>
 											</div>
 										</aside>
 									</div>

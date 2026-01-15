@@ -517,6 +517,10 @@ function makeCacheKey(block, props) {
     }
 }
 
+function isInvariantResponse(value) {
+    return Boolean(value && typeof value === 'object' && value.invariant === true);
+}
+
 /**
  * Render a single block with caching and metrics.
  * Used by both /render and /render-batch endpoints.
@@ -533,7 +537,17 @@ function renderSingleBlock(block, props) {
 
         let safeProps = props;
         if (typeof renderer.validateRelayProps === 'function') {
-            safeProps = renderer.validateRelayProps(block, props);
+            const validated = renderer.validateRelayProps(block, props);
+            if (isInvariantResponse(validated)) {
+                if (!validated.ok) {
+                    const durationNs = Number(process.hrtime.bigint() - renderStart);
+                    const durationSeconds = durationNs / 1e9;
+                    return { ok: false, error: validated.error, durationSeconds };
+                }
+                safeProps = validated.value;
+            } else {
+                safeProps = validated;
+            }
         }
 
         const cacheKey = renderCache ? makeCacheKey(block, safeProps) : null;
@@ -549,7 +563,26 @@ function renderSingleBlock(block, props) {
             incCounter(metrics.cacheMissesTotal, block);
         }
 
-        const html = renderer.renderRelay(block, safeProps);
+        const renderResult = renderer.renderRelay(block, safeProps);
+        if (isInvariantResponse(renderResult)) {
+            if (!renderResult.ok) {
+                const durationNs = Number(process.hrtime.bigint() - renderStart);
+                const durationSeconds = durationNs / 1e9;
+                return { ok: false, error: renderResult.error, durationSeconds };
+            }
+            const html = renderResult.value;
+            if (renderCache && cacheKey) {
+                renderCache.set(cacheKey, html);
+                incCounter(metrics.cacheStoresTotal, block);
+            }
+
+            const durationNs = Number(process.hrtime.bigint() - renderStart);
+            const durationSeconds = durationNs / 1e9;
+            observeHistogram(block, durationSeconds);
+            return { ok: true, html, durationSeconds };
+        }
+
+        const html = renderResult;
         if (renderCache && cacheKey) {
             renderCache.set(cacheKey, html);
             incCounter(metrics.cacheStoresTotal, block);

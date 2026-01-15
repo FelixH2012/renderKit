@@ -50,6 +50,10 @@ import cookieGateMeta from '../blocks/cookie-gate/block.json';
 import { Edit as FaqEdit } from '../blocks/faq/editor';
 import faqMeta from '../blocks/faq/block.json';
 
+// Cart Block
+import { Edit as CartEdit } from '../blocks/cart/editor';
+import cartMeta from '../blocks/cart/block.json';
+
 // Dynamic blocks return null for save
 const nullSave = () => null;
 
@@ -82,6 +86,7 @@ const blocks: BlockRegistration[] = [
     { meta: cookieBannerMeta, edit: CookieBannerEdit, icon: 'shield' },
     { meta: cookieGateMeta, edit: CookieGateEdit, icon: 'lock' },
     { meta: faqMeta, edit: FaqEdit, icon: 'editor-help' },
+    { meta: cartMeta, edit: CartEdit, icon: 'cart' },
 ];
 
 // Plugins

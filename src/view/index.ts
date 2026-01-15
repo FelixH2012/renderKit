@@ -1067,6 +1067,262 @@ function enhanceForge() {
     }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Shopping Cart Enhancements
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface CartState {
+    items: Array<{ id: number; quantity: number }>;
+    count: number;
+    total: number;
+}
+
+function enhanceCart() {
+    const cartConfig = (window as unknown as { renderKitCart?: { restUrl: string; nonce: string; count: number } }).renderKitCart;
+    if (!cartConfig) return;
+
+    const { restUrl, nonce } = cartConfig;
+    let cartState: CartState = { items: [], count: cartConfig.count || 0, total: 0 };
+
+    // Load from localStorage for instant UI
+    const loadFromStorage = () => {
+        try {
+            const stored = localStorage.getItem('rk_cart');
+            if (stored) {
+                const parsed = JSON.parse(stored);
+                if (parsed && typeof parsed.count === 'number') {
+                    cartState = parsed;
+                }
+            }
+        } catch {
+            // ignore
+        }
+    };
+
+    const saveToStorage = () => {
+        try {
+            localStorage.setItem('rk_cart', JSON.stringify(cartState));
+        } catch {
+            // ignore
+        }
+    };
+
+    // Update all cart badges on the page
+    const updateCartBadges = () => {
+        const badges = document.querySelectorAll<HTMLElement>('[data-rk-cart-count]');
+        badges.forEach((badge) => {
+            badge.textContent = String(cartState.count);
+            badge.classList.toggle('is-empty', cartState.count === 0);
+            // Bump animation
+            badge.classList.remove('is-bumping');
+            void badge.offsetHeight; // Force reflow
+            badge.classList.add('is-bumping');
+        });
+    };
+
+    // Make API request
+    const apiRequest = async (endpoint: string, data?: object): Promise<CartState | null> => {
+        try {
+            const response = await fetch(`${restUrl}${endpoint}`, {
+                method: data ? 'POST' : 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-WP-Nonce': nonce,
+                },
+                body: data ? JSON.stringify(data) : undefined,
+            });
+
+            if (!response.ok) return null;
+
+            const json = await response.json();
+            if (json && json.success) {
+                cartState = {
+                    items: json.items || [],
+                    count: json.count || 0,
+                    total: json.total || 0,
+                };
+                saveToStorage();
+                return cartState;
+            }
+            return null;
+        } catch {
+            return null;
+        }
+    };
+
+    // Show feedback on add-to-cart button
+    const showAddedFeedback = (button: HTMLElement) => {
+        const originalHTML = button.innerHTML;
+        button.setAttribute('data-rk-cart-added', '1');
+        button.innerHTML = '<i class="fa-solid fa-check" aria-hidden="true"></i> Hinzugefügt';
+
+        setTimeout(() => {
+            button.removeAttribute('data-rk-cart-added');
+            button.innerHTML = originalHTML;
+        }, 1500);
+    };
+
+    // Handle add-to-cart clicks
+    document.addEventListener('click', async (event) => {
+        const button = (event.target as HTMLElement).closest<HTMLElement>('[data-rk-add-to-cart]');
+        if (!button) return;
+
+        event.preventDefault();
+
+        if (button.hasAttribute('data-rk-cart-adding')) return;
+        button.setAttribute('data-rk-cart-adding', '1');
+
+        const productId = Number(button.getAttribute('data-rk-add-to-cart'));
+        if (!productId) {
+            button.removeAttribute('data-rk-cart-adding');
+            return;
+        }
+
+        // Optimistic update
+        cartState.count += 1;
+        updateCartBadges();
+
+        const result = await apiRequest('/add', { product_id: productId, quantity: 1 });
+        button.removeAttribute('data-rk-cart-adding');
+
+        if (result) {
+            showAddedFeedback(button);
+            updateCartBadges();
+        } else {
+            // Rollback
+            cartState.count -= 1;
+            updateCartBadges();
+        }
+    });
+
+    // Handle quantity changes on cart page (dynamic, no reload)
+    document.addEventListener('click', async (event) => {
+        const decrease = (event.target as HTMLElement).closest<HTMLElement>('[data-rk-cart-qty-decrease]');
+        const increase = (event.target as HTMLElement).closest<HTMLElement>('[data-rk-cart-qty-increase]');
+
+        if (!decrease && !increase) return;
+        event.preventDefault();
+
+        const button = decrease || increase;
+        if (!button) return;
+
+        const productId = Number(button.getAttribute(decrease ? 'data-rk-cart-qty-decrease' : 'data-rk-cart-qty-increase'));
+        if (!productId) return;
+
+        const valueEl = document.querySelector<HTMLElement>(`[data-rk-cart-qty-value="${productId}"]`);
+        const currentQty = valueEl ? parseInt(valueEl.textContent || '1', 10) : 1;
+        const newQty = decrease ? currentQty - 1 : currentQty + 1;
+
+        if (newQty < 1) {
+            // Remove item with animation
+            const item = document.querySelector<HTMLElement>(`[data-rk-cart-item="${productId}"]`);
+            if (item) {
+                item.style.transition = 'opacity 0.3s, transform 0.3s';
+                item.style.opacity = '0';
+                item.style.transform = 'translateX(-20px)';
+                await apiRequest('/remove', { product_id: productId });
+                setTimeout(() => item.remove(), 300);
+                updateCartUI();
+            }
+        } else {
+            // Update quantity in DOM immediately
+            if (valueEl) {
+                valueEl.textContent = String(newQty);
+                valueEl.style.transform = 'scale(1.2)';
+                setTimeout(() => { valueEl.style.transform = ''; }, 150);
+            }
+            await apiRequest('/update', { product_id: productId, quantity: newQty });
+            updateCartUI();
+        }
+        updateCartBadges();
+    });
+
+    // Handle remove item (dynamic, no reload)
+    document.addEventListener('click', async (event) => {
+        const button = (event.target as HTMLElement).closest<HTMLElement>('[data-rk-cart-remove]');
+        if (!button) return;
+        event.preventDefault();
+
+        const productId = Number(button.getAttribute('data-rk-cart-remove'));
+        if (!productId) return;
+
+        const item = document.querySelector<HTMLElement>(`[data-rk-cart-item="${productId}"]`);
+        if (item) {
+            item.style.transition = 'opacity 0.3s, transform 0.3s, max-height 0.3s';
+            item.style.opacity = '0';
+            item.style.transform = 'translateX(-20px)';
+            await apiRequest('/remove', { product_id: productId });
+            setTimeout(() => item.remove(), 300);
+            updateCartBadges();
+            updateCartUI();
+        }
+    });
+
+    // Handle clear cart (dynamic, no reload)
+    document.addEventListener('click', async (event) => {
+        const button = (event.target as HTMLElement).closest<HTMLElement>('[data-rk-cart-clear]');
+        if (!button) return;
+        event.preventDefault();
+
+        const items = document.querySelectorAll<HTMLElement>('[data-rk-cart-item]');
+        items.forEach((item, index) => {
+            item.style.transition = `opacity 0.3s ${index * 0.05}s, transform 0.3s ${index * 0.05}s`;
+            item.style.opacity = '0';
+            item.style.transform = 'translateX(-20px)';
+        });
+
+        await apiRequest('/clear');
+
+        setTimeout(() => {
+            const cartBlock = document.querySelector('[data-rk-cart-block]');
+            if (cartBlock) {
+                window.location.reload(); // Reload to show empty state
+            }
+        }, 400);
+    });
+
+    // Update cart totals and UI
+    const updateCartUI = () => {
+        // Calculate totals from DOM
+        const items = document.querySelectorAll<HTMLElement>('[data-rk-cart-item]');
+        let total = 0;
+        let count = 0;
+
+        items.forEach((item) => {
+            const productId = Number(item.getAttribute('data-rk-cart-item'));
+            const qtyEl = document.querySelector<HTMLElement>(`[data-rk-cart-qty-value="${productId}"]`);
+            const qty = qtyEl ? parseInt(qtyEl.textContent || '1', 10) : 1;
+
+            // Get price from item element
+            const priceAttr = item.getAttribute('data-rk-product-price');
+            const price = priceAttr ? parseFloat(priceAttr) : 0;
+
+            // Update line total
+            const totalEl = item.querySelector<HTMLElement>('.rk-cart__item-total');
+            if (totalEl) {
+                totalEl.textContent = `€${(price * qty).toFixed(2).replace('.', ',')}`;
+            }
+
+            total += price * qty;
+            count += qty;
+        });
+
+        // Update summary
+        const subtotalEl = document.querySelector<HTMLElement>('[data-rk-cart-subtotal]');
+        const totalEl = document.querySelector<HTMLElement>('[data-rk-cart-total]');
+        if (subtotalEl) subtotalEl.textContent = `€${total.toFixed(2).replace('.', ',')}`;
+        if (totalEl) totalEl.textContent = `€${total.toFixed(2).replace('.', ',')}`;
+
+        cartState.count = count;
+        cartState.total = total;
+        saveToStorage();
+    };
+
+    // Initialize
+    loadFromStorage();
+    updateCartBadges();
+}
+
 onReady(() => {
     enhanceStickyNavigation();
     enhanceNavMobileDetails();
@@ -1078,4 +1334,6 @@ onReady(() => {
     enhanceCookieBanner();
     enhanceCookieGates();
     enhanceForge();
+    enhanceCart();
 });
+

@@ -40,6 +40,7 @@ require_once RENDERKIT_PLUGIN_DIR . 'includes/integrations/class-contact-form.ph
 require_once RENDERKIT_PLUGIN_DIR . 'includes/admin/class-maintenance.php';
 require_once RENDERKIT_PLUGIN_DIR . 'includes/admin/class-cookie-settings.php';
 require_once RENDERKIT_PLUGIN_DIR . 'includes/services/class-forge.php';
+require_once RENDERKIT_PLUGIN_DIR . 'includes/services/class-cart.php';
 
 /**
  * Initialize the plugin
@@ -77,6 +78,10 @@ function init(): void {
     // Initialize Forge
     $forge = new Forge();
     $forge->init();
+
+    // Initialize Cart
+    $cart = new Cart();
+    $cart->init();
 
     // Initialize AI Service
     require_once RENDERKIT_PLUGIN_DIR . 'includes/services/class-ai-service.php';

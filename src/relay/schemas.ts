@@ -47,6 +47,8 @@ const navigationAttributesSchema = z
         showCart: z.boolean().optional().default(false),
         menuItems: z.array(menuItemSchema).catch([]),
         currentUrl: z.string().optional().default(''),
+        cartCount: z.coerce.number().int().optional().default(0),
+        cartUrl: z.string().optional().default('/warenkorb/'),
     })
     .strip();
 
@@ -302,6 +304,29 @@ const faqAttributesSchema = z
     })
     .strip();
 
+const cartItemSchema = z
+    .object({
+        id: z.coerce.number().int(),
+        title: z.string().optional().default(''),
+        price: z.coerce.number().optional().default(0),
+        sale_price: z.coerce.number().optional().default(0),
+        quantity: z.coerce.number().int().optional().default(1),
+        image: z.union([z.string(), z.null()]).optional().default(null),
+        url: z.string().optional().default(''),
+    })
+    .strip();
+
+const cartAttributesSchema = z
+    .object({
+        emptyMessage: z.string().optional().default('Dein Warenkorb ist leer.'),
+        emptyButtonText: z.string().optional().default('Weiter einkaufen'),
+        continueUrl: z.string().optional().default('/'),
+        theme: themeSchema.optional().default('light'),
+        items: z.array(cartItemSchema).catch([]),
+        total: z.coerce.number().optional().default(0),
+    })
+    .strip();
+
 const productArchiveImageSchema = z
     .object({
         id: z.coerce.number().int().catch(0),
@@ -383,6 +408,7 @@ export const relayPropsSchemas = {
     'renderkit/cookie-banner': relayPropsSchema(cookieBannerAttributesSchema),
     'renderkit/cookie-gate': relayPropsSchema(cookieGateAttributesSchema),
     'renderkit/faq': relayPropsSchema(faqAttributesSchema),
+    'renderkit/cart': relayPropsSchema(cartAttributesSchema),
     'renderkit/footer': relayPropsSchema(footerAttributesSchema),
     'renderkit/product-page': relayPropsSchema(productPageAttributesSchema),
     'renderkit/product-archive': relayPropsSchema(productArchiveAttributesSchema),

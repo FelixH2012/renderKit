@@ -1,0 +1,33 @@
+{
+    "apiVersion": 3,
+    "name": "renderkit/cart",
+    "title": "Warenkorb",
+    "category": "renderkit",
+    "description": "Warenkorb-Anzeige mit Produktliste und Gesamtsumme",
+    "textdomain": "renderkit",
+    "attributes": {
+        "emptyMessage": {
+            "type": "string",
+            "default": "Dein Warenkorb ist leer."
+        },
+        "emptyButtonText": {
+            "type": "string",
+            "default": "Weiter einkaufen"
+        },
+        "continueUrl": {
+            "type": "string",
+            "default": "/"
+        },
+        "theme": {
+            "type": "string",
+            "default": "light"
+        }
+    },
+    "supports": {
+        "html": false,
+        "align": [
+            "wide",
+            "full"
+        ]
+    }
+}

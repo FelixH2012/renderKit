@@ -22,6 +22,8 @@ export function View({ attributes, className }: ViewProps): JSX.Element {
         theme = 'light',
         showCart,
         currentUrl = '',
+        cartCount = 0,
+        cartUrl = '/warenkorb/',
     } = attributes;
 
     const normalizePath = (url: string) => {
@@ -80,10 +82,20 @@ export function View({ attributes, className }: ViewProps): JSX.Element {
 
                     <div className="renderkit-nav__actions">
                         {showCart && (
-                            <button className="renderkit-nav__icon-button" type="button" aria-label="Warenkorb">
+                            <a
+                                href={cartUrl}
+                                className="renderkit-nav__icon-button renderkit-nav__cart"
+                                aria-label={`Warenkorb${cartCount > 0 ? ` (${cartCount} Artikel)` : ''}`}
+                                data-rk-cart-trigger
+                            >
                                 <i className="renderkit-nav__icon fa-solid fa-bag-shopping" aria-hidden="true"></i>
-                                <span className="renderkit-nav__dot" />
-                            </button>
+                                <span
+                                    className={`renderkit-nav__cart-count${cartCount === 0 ? ' is-empty' : ''}`}
+                                    data-rk-cart-count
+                                >
+                                    {cartCount}
+                                </span>
+                            </a>
                         )}
 
                         <details className="renderkit-nav__mobile-details">

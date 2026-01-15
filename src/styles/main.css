@@ -15,6 +15,7 @@
 @import './pages/product-archive.css';
 @import './utilities.css';
 @import './blocks/product-grid.css';
+@import './blocks/cart.css';
 
 @tailwind base;
 @tailwind components;

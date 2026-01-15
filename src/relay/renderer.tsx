@@ -18,6 +18,7 @@ import { View as ContactFormView } from '../blocks/contact-form/view';
 import { View as CookieBannerView } from '../blocks/cookie-banner/view';
 import { View as CookieGateView } from '../blocks/cookie-gate/view';
 import { View as FaqView } from '../blocks/faq/view';
+import { View as CartView } from '../blocks/cart/view';
 import { View as ProductPageView } from '../pages/product-page/view';
 import { View as ProductArchiveView } from '../pages/product-archive/view';
 import { relayPropsSchemas } from './schemas';
@@ -36,23 +37,24 @@ const registry: Record<string, React.ComponentType<any>> = {
     'renderkit/cookie-banner': CookieBannerView,
     'renderkit/cookie-gate': CookieGateView,
     'renderkit/faq': FaqView,
+    'renderkit/cart': CartView,
     'renderkit/product-page': ProductPageView,
     'renderkit/product-archive': ProductArchiveView,
 };
 
 const validatedPropsSymbol = Symbol.for('renderkit.relay.validatedProps');
 
-export class RelayPayloadError extends Error {
-    code: 'unsupported_block' | 'invalid_props';
+type RelayErrorCode = 'unsupported_block' | 'invalid_props';
 
-    constructor(code: RelayPayloadError['code'], details?: unknown) {
-        super(code);
-        this.name = 'RelayPayloadError';
-        this.code = code;
-        if (details) {
-            (this as { details?: unknown }).details = details;
-        }
+export type InvariantResponse<T> =
+    | { ok: true; value: T; invariant: true }
+    | { ok: false; error: RelayErrorCode; details?: unknown; invariant: true };
+
+export function invariantResponse(error: RelayErrorCode, details?: unknown): InvariantResponse<never> {
+    if (details === undefined) {
+        return { ok: false, error, invariant: true };
     }
+    return { ok: false, error, details, invariant: true };
 }
 
 function markValidated<T>(value: T): T {
@@ -69,31 +71,39 @@ function markValidated<T>(value: T): T {
     return value;
 }
 
-export function validateRelayProps(block: string, props: unknown): unknown {
+export function validateRelayProps(block: string, props: unknown): InvariantResponse<unknown> {
     const schema = (relayPropsSchemas as Record<string, { safeParse: (value: unknown) => any }>)[block];
     if (!schema) {
-        throw new RelayPayloadError('unsupported_block');
+        return invariantResponse('unsupported_block');
     }
 
     const result = schema.safeParse(props);
     if (!result.success) {
-        throw new RelayPayloadError('invalid_props', result.error.issues);
+        return invariantResponse('invalid_props', result.error.issues);
     }
 
-    return markValidated(result.data);
+    return { ok: true, value: markValidated(result.data), invariant: true };
 }
 
-export function renderRelay(block: string, props: unknown): string {
+export function renderRelay(block: string, props: unknown): InvariantResponse<string> {
     const Component = registry[block];
     if (!Component) {
-        throw new RelayPayloadError('unsupported_block');
+        return invariantResponse('unsupported_block');
     }
 
     const isValidated = Boolean(
         props && typeof props === 'object' && (props as Record<symbol, unknown>)[validatedPropsSymbol] === true
     );
 
-    const safeProps = isValidated ? props : validateRelayProps(block, props);
+    let safeProps = props;
+    if (!isValidated) {
+        const validation = validateRelayProps(block, props);
+        if (!validation.ok) {
+            return validation;
+        }
+        safeProps = validation.value;
+    }
+
     const element = createElement(Component, safeProps as any);
-    return renderToStaticMarkup(element);
+    return { ok: true, value: renderToStaticMarkup(element), invariant: true };
 }
