@@ -39,6 +39,7 @@ require_once RENDERKIT_PLUGIN_DIR . 'includes/class-image-optimizer.php';
 require_once RENDERKIT_PLUGIN_DIR . 'includes/integrations/class-contact-form.php';
 require_once RENDERKIT_PLUGIN_DIR . 'includes/class-maintenance.php';
 require_once RENDERKIT_PLUGIN_DIR . 'includes/class-cookie-settings.php';
+require_once RENDERKIT_PLUGIN_DIR . 'includes/class-forge.php';
 
 /**
  * Initialize the plugin
@@ -72,6 +73,10 @@ function init(): void {
     // Initialize Cookie Settings CPT
     $cookie_settings = new CookieSettings();
     $cookie_settings->init();
+
+    // Initialize Forge
+    $forge = new Forge();
+    $forge->init();
 
     // Initialize AI Service
     require_once RENDERKIT_PLUGIN_DIR . 'includes/class-ai-service.php';

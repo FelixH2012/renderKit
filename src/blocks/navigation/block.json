@@ -54,6 +54,5 @@
             "default": false
         }
     },
-    "textdomain": "renderkit",
-    "render": "file:./render.php"
+    "textdomain": "renderkit"
 }

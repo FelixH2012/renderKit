@@ -823,6 +823,7 @@ function enhanceCookieBanner() {
             setCookie(cookieName, JSON.stringify(payload));
             applyConsent(version, prefs, payload.timestamp);
             updateCookieGates(version, prefs);
+            document.dispatchEvent(new CustomEvent('renderkit:consent-changed', { detail: { prefs, version } }));
             banner.dataset.rkCookieHidden = '1';
             banner.setAttribute('aria-hidden', 'true');
             window.setTimeout(() => {
@@ -915,6 +916,157 @@ function enhanceCookieGates() {
     });
 }
 
+function enhanceForge() {
+    const endpoint = new URL('/wp-json/renderkit/v1/forge/events', window.location.origin).toString();
+    const maxBatch = 20;
+    const flushDelay = 1000;
+    const queueLimit = 100;
+    const pagePath = window.location.pathname || '/';
+    let queue: Array<{ type: string; block?: string; page?: string; target?: string; depth?: number }> = [];
+    let flushTimer: number | null = null;
+    let started = false;
+
+    const hasConsent = () => {
+        const consent = (window as unknown as { renderKitConsent?: { has?: (key: string) => boolean } }).renderKitConsent;
+        if (consent?.has && consent.has('analytics')) return true;
+        return document.documentElement.dataset.rkConsentAnalytics === '1';
+    };
+
+    const sendBatch = (events: typeof queue, useBeacon: boolean) => {
+        if (events.length === 0) return;
+        const body = JSON.stringify({ events });
+
+        if (useBeacon && typeof navigator.sendBeacon === 'function') {
+            const blob = new Blob([body], { type: 'application/json' });
+            navigator.sendBeacon(endpoint, blob);
+            return;
+        }
+
+        fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body,
+            credentials: 'same-origin',
+            keepalive: true,
+        }).catch(() => {
+            // ignore network errors
+        });
+    };
+
+    const flush = (useBeacon = false) => {
+        if (flushTimer !== null) {
+            window.clearTimeout(flushTimer);
+            flushTimer = null;
+        }
+        if (queue.length === 0) return;
+        const batch = queue.slice(0, maxBatch);
+        queue = queue.slice(maxBatch);
+        sendBatch(batch, useBeacon);
+        if (queue.length > 0) {
+            flushTimer = window.setTimeout(() => flush(false), flushDelay);
+        }
+    };
+
+    const enqueue = (event: { type: string; block?: string; page?: string; target?: string; depth?: number }) => {
+        if (!hasConsent()) return;
+        if (queue.length >= queueLimit) {
+            queue.shift();
+        }
+        queue.push({ ...event, page: pagePath });
+        if (!flushTimer) {
+            flushTimer = window.setTimeout(() => flush(false), flushDelay);
+        }
+    };
+
+    const startTracking = () => {
+        if (started) return;
+        started = true;
+
+        enqueue({ type: 'page_view' });
+
+        const seenBlocks = new WeakSet<Element>();
+        const blocks = Array.from(document.querySelectorAll<HTMLElement>('[data-renderkit-block]'));
+        if (blocks.length > 0 && 'IntersectionObserver' in window) {
+            const observer = new IntersectionObserver(
+                (entries) => {
+                    entries.forEach((entry) => {
+                        if (!entry.isIntersecting) return;
+                        const target = entry.target as HTMLElement;
+                        if (seenBlocks.has(target)) return;
+                        seenBlocks.add(target);
+                        const block = target.dataset.renderkitBlock || '';
+                        if (block) {
+                            enqueue({ type: 'block_view', block });
+                        }
+                    });
+                },
+                { threshold: 0.35 }
+            );
+            blocks.forEach((block) => observer.observe(block));
+        }
+
+        document.addEventListener('click', (event) => {
+            const target = event.target as HTMLElement | null;
+            if (!target) return;
+            const clickable = target.closest<HTMLElement>('a, button, [data-rk-track], [data-rk-cta]');
+            if (!clickable) return;
+            const blockEl = clickable.closest<HTMLElement>('[data-renderkit-block]');
+            const block = blockEl?.dataset.renderkitBlock || '';
+            const label =
+                clickable.getAttribute('data-rk-track') ||
+                clickable.getAttribute('data-rk-cta') ||
+                clickable.getAttribute('aria-label') ||
+                (clickable.textContent || '').trim() ||
+                clickable.tagName.toLowerCase();
+            const trimmed = label.length > 80 ? label.slice(0, 80) : label;
+            enqueue({ type: 'click', block, target: trimmed });
+        });
+
+        const depthMarkers = [0.25, 0.5, 0.75, 1];
+        const seenDepths = new Set<number>();
+        let ticking = false;
+
+        const measureDepth = () => {
+            ticking = false;
+            const doc = document.documentElement;
+            const scrollHeight = doc.scrollHeight || 0;
+            const viewport = window.innerHeight || 0;
+            const scrollTop = window.scrollY || doc.scrollTop || 0;
+            if (scrollHeight <= 0) return;
+            const depth = Math.min(1, (scrollTop + viewport) / scrollHeight);
+            depthMarkers.forEach((marker) => {
+                if (depth >= marker && !seenDepths.has(marker)) {
+                    seenDepths.add(marker);
+                    enqueue({ type: 'scroll_depth', depth: marker });
+                }
+            });
+        };
+
+        const onScroll = () => {
+            if (!ticking) {
+                window.requestAnimationFrame(measureDepth);
+                ticking = true;
+            }
+        };
+
+        window.addEventListener('scroll', onScroll, { passive: true });
+        window.addEventListener('resize', onScroll, { passive: true });
+        onScroll();
+
+        window.addEventListener('pagehide', () => flush(true));
+    };
+
+    if (hasConsent()) {
+        startTracking();
+    } else {
+        document.addEventListener('renderkit:consent-changed', () => {
+            if (hasConsent()) {
+                startTracking();
+            }
+        });
+    }
+}
+
 onReady(() => {
     enhanceStickyNavigation();
     enhanceNavMobileDetails();
@@ -925,4 +1077,5 @@ onReady(() => {
     enhanceRecaptcha();
     enhanceCookieBanner();
     enhanceCookieGates();
+    enhanceForge();
 });

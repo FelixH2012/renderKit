@@ -236,6 +236,91 @@ final class RelayClient {
     }
 
     /**
+     * Send analytics events to renderKit-Forge.
+     *
+     * @param array<int, array<string, mixed>> $events
+     */
+    public function forge_events(array $events): bool {
+        if ($this->url === '' || $this->secret === '') {
+            return false;
+        }
+
+        $payload = ['events' => array_values($events)];
+        $body = wp_json_encode($payload);
+        if (!is_string($body) || $body === '') {
+            return false;
+        }
+
+        $timestamp = (string) time();
+        $signature = hash_hmac('sha256', $timestamp . '.' . $body, $this->secret);
+
+        $response = wp_remote_post($this->url . '/forge/events', [
+            'headers' => [
+                'Content-Type' => 'application/json',
+                'X-RenderKit-Relay-Timestamp' => $timestamp,
+                'X-RenderKit-Relay-Signature' => 'sha256=' . $signature,
+            ],
+            'timeout' => min(2.0, $this->timeout),
+            'body' => $body,
+        ]);
+
+        if (is_wp_error($response)) {
+            return false;
+        }
+
+        $status = (int) wp_remote_retrieve_response_code($response);
+        return $status >= 200 && $status < 300;
+    }
+
+    /**
+     * Fetch insights from renderKit-Forge.
+     *
+     * @param array<string, mixed> $query
+     * @return array<string, mixed>|\WP_Error
+     */
+    public function forge_insights(array $query = []): array|\WP_Error {
+        if ($this->url === '' || $this->secret === '') {
+            return new \WP_Error('forge_unconfigured', 'Relay is not configured.');
+        }
+
+        $body = wp_json_encode($query);
+        if (!is_string($body)) {
+            return new \WP_Error('forge_invalid_query', 'Invalid forge query.');
+        }
+
+        $timestamp = (string) time();
+        $signature = hash_hmac('sha256', $timestamp . '.' . $body, $this->secret);
+
+        $response = wp_remote_post($this->url . '/forge/insights', [
+            'headers' => [
+                'Content-Type' => 'application/json',
+                'X-RenderKit-Relay-Timestamp' => $timestamp,
+                'X-RenderKit-Relay-Signature' => 'sha256=' . $signature,
+            ],
+            'timeout' => min(2.0, $this->timeout),
+            'body' => $body,
+        ]);
+
+        if (is_wp_error($response)) {
+            return $response;
+        }
+
+        $status = (int) wp_remote_retrieve_response_code($response);
+        $raw = (string) wp_remote_retrieve_body($response);
+
+        if ($status < 200 || $status >= 300) {
+            return new \WP_Error('forge_error', 'Forge insights request failed.', ['status' => $status]);
+        }
+
+        $json = json_decode($raw, true);
+        if (!is_array($json)) {
+            return new \WP_Error('forge_invalid_response', 'Invalid forge insights response.');
+        }
+
+        return $json;
+    }
+
+    /**
      * Provide minimal fallback HTML when Relay is down.
      */
     private function render_fallback(string $block, array $props): string {

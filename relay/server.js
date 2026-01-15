@@ -133,6 +133,112 @@ class LruCache {
 renderCache = cacheEnabled && cacheMaxEntries > 0 ? new LruCache(cacheMaxEntries, cacheTtlMs) : null;
 
 // ─────────────────────────────────────────────────────────────────────────────
+// renderKit-Forge (Analytics + Insights)
+// ─────────────────────────────────────────────────────────────────────────────
+
+const forgeEnabled = (process.env.RENDERKIT_FORGE_ENABLED || '1') !== '0';
+const forgeStartTime = Date.now();
+const forgeMaxEvents = parseNonNegativeInt(process.env.RENDERKIT_FORGE_MAX_EVENTS, 50);
+const forgeAllowedTypes = new Set(['page_view', 'block_view', 'click', 'scroll_depth', 'form_start', 'form_submit']);
+
+const forge = {
+    eventsTotal: 0,
+    eventTypes: {},
+    pages: {},
+    blockViews: {},
+    blockClicks: {},
+    targetClicks: {},
+    scrollDepth: {},
+    lastEventAt: 0,
+};
+
+function normalizeForgeString(value, maxLength = 120) {
+    if (typeof value !== 'string') return '';
+    const trimmed = value.trim();
+    if (trimmed === '') return '';
+    return trimmed.length > maxLength ? trimmed.slice(0, maxLength) : trimmed;
+}
+
+function normalizeForgeDepth(value) {
+    if (typeof value !== 'number' || !Number.isFinite(value)) return null;
+    if (value > 1 && value <= 100) {
+        value = value / 100;
+    }
+    if (value < 0 || value > 1) return null;
+    return value;
+}
+
+function bucketForgeDepth(value) {
+    if (value <= 0.25) return '0.25';
+    if (value <= 0.5) return '0.5';
+    if (value <= 0.75) return '0.75';
+    return '1.0';
+}
+
+function recordForgeEvent(event) {
+    metrics.forgeEventsTotal++;
+    incCounter(metrics.forgeEventTypesTotal, event.type);
+
+    forge.eventsTotal++;
+    forge.lastEventAt = Date.now();
+    incCounter(forge.eventTypes, event.type);
+
+    if (event.type === 'page_view' && event.page) {
+        incCounter(forge.pages, event.page);
+        incCounter(metrics.forgePageViewsTotal, event.page);
+    }
+    if (event.type === 'block_view' && event.block) {
+        incCounter(forge.blockViews, event.block);
+        incCounter(metrics.forgeBlockViewsTotal, event.block);
+    }
+    if (event.type === 'click' && event.block) {
+        incCounter(forge.blockClicks, event.block);
+        incCounter(metrics.forgeBlockClicksTotal, event.block);
+        if (event.target) {
+            incCounter(forge.targetClicks, event.target);
+            incCounter(metrics.forgeTargetClicksTotal, event.target);
+        }
+    }
+    if (event.type === 'scroll_depth' && typeof event.depth === 'number') {
+        const bucket = bucketForgeDepth(event.depth);
+        incCounter(forge.scrollDepth, bucket);
+        incCounter(metrics.forgeScrollDepthTotal, bucket);
+    }
+}
+
+function buildForgeInsights() {
+    const topEntries = (map, limit = 10) =>
+        Object.entries(map)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, limit)
+            .map(([key, count]) => ({ key, count }));
+
+    const blocks = Object.keys(forge.blockViews).map((block) => {
+        const views = forge.blockViews[block] || 0;
+        const clicks = forge.blockClicks[block] || 0;
+        const ctr = views > 0 ? Number((clicks / views).toFixed(4)) : 0;
+        return { block, views, clicks, ctr };
+    }).sort((a, b) => b.views - a.views);
+
+    return {
+        ok: true,
+        forge: 'renderKit-Forge',
+        startedAt: new Date(forgeStartTime).toISOString(),
+        lastEventAt: forge.lastEventAt ? new Date(forge.lastEventAt).toISOString() : null,
+        totals: {
+            events: forge.eventsTotal,
+            eventTypes: forge.eventTypes,
+        },
+        top: {
+            pages: topEntries(forge.pages, 10),
+            blocks: blocks.slice(0, 20),
+            targets: topEntries(forge.targetClicks, 10),
+            scrollDepth: topEntries(forge.scrollDepth, 4),
+        },
+    };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Prometheus Metrics
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -157,6 +263,13 @@ const metrics = {
     batchBlocksTotal: 0,
     batchSuccessTotal: 0,
     batchErrorsTotal: 0,
+    forgeEventsTotal: 0,
+    forgeEventTypesTotal: {},
+    forgePageViewsTotal: {},
+    forgeBlockViewsTotal: {},
+    forgeBlockClicksTotal: {},
+    forgeTargetClicksTotal: {},
+    forgeScrollDepthTotal: {},
 };
 
 function incCounter(map, key) {
@@ -304,6 +417,47 @@ function formatPrometheusMetrics() {
     lines.push('# TYPE renderkit_relay_batch_errors_total counter');
     lines.push(`renderkit_relay_batch_errors_total ${metrics.batchErrorsTotal}`);
 
+    // Forge metrics
+    lines.push('# HELP renderkit_forge_events_total Total forge events received');
+    lines.push('# TYPE renderkit_forge_events_total counter');
+    lines.push(`renderkit_forge_events_total ${metrics.forgeEventsTotal}`);
+
+    lines.push('# HELP renderkit_forge_event_types_total Forge events by type');
+    lines.push('# TYPE renderkit_forge_event_types_total counter');
+    for (const [type, count] of Object.entries(metrics.forgeEventTypesTotal)) {
+        lines.push(`renderkit_forge_event_types_total{type="${type}"} ${count}`);
+    }
+
+    lines.push('# HELP renderkit_forge_page_views_total Forge page views by path');
+    lines.push('# TYPE renderkit_forge_page_views_total counter');
+    for (const [page, count] of Object.entries(metrics.forgePageViewsTotal)) {
+        lines.push(`renderkit_forge_page_views_total{page="${page}"} ${count}`);
+    }
+
+    lines.push('# HELP renderkit_forge_block_views_total Forge block views');
+    lines.push('# TYPE renderkit_forge_block_views_total counter');
+    for (const [block, count] of Object.entries(metrics.forgeBlockViewsTotal)) {
+        lines.push(`renderkit_forge_block_views_total{block="${block}"} ${count}`);
+    }
+
+    lines.push('# HELP renderkit_forge_block_clicks_total Forge block clicks');
+    lines.push('# TYPE renderkit_forge_block_clicks_total counter');
+    for (const [block, count] of Object.entries(metrics.forgeBlockClicksTotal)) {
+        lines.push(`renderkit_forge_block_clicks_total{block="${block}"} ${count}`);
+    }
+
+    lines.push('# HELP renderkit_forge_target_clicks_total Forge click targets');
+    lines.push('# TYPE renderkit_forge_target_clicks_total counter');
+    for (const [target, count] of Object.entries(metrics.forgeTargetClicksTotal)) {
+        lines.push(`renderkit_forge_target_clicks_total{target="${target}"} ${count}`);
+    }
+
+    lines.push('# HELP renderkit_forge_scroll_depth_total Forge scroll depth buckets');
+    lines.push('# TYPE renderkit_forge_scroll_depth_total counter');
+    for (const [depth, count] of Object.entries(metrics.forgeScrollDepthTotal)) {
+        lines.push(`renderkit_forge_scroll_depth_total{depth="${depth}"} ${count}`);
+    }
+
     return lines.join('\n') + '\n';
 }
 
@@ -448,7 +602,10 @@ const server = http.createServer((req, res) => {
         }
     }
 
-    if (req.method !== 'POST' || (url.pathname !== '/render' && url.pathname !== '/render-batch')) {
+    if (
+        req.method !== 'POST' ||
+        (url.pathname !== '/render' && url.pathname !== '/render-batch' && url.pathname !== '/forge/events' && url.pathname !== '/forge/insights')
+    ) {
         incCounter(metrics.requestsTotal, 'unknown:404');
         return sendJson(res, 404, { ok: false, error: 'not_found' });
     }
@@ -469,7 +626,10 @@ const server = http.createServer((req, res) => {
         const rawBody = Buffer.concat(chunks).toString('utf8');
         const auth = verifySignature(req, rawBody);
         if (!auth.ok) {
-            const endpoint = url.pathname === '/render-batch' ? 'render_batch' : 'render';
+            let endpoint = 'render';
+            if (url.pathname === '/render-batch') endpoint = 'render_batch';
+            if (url.pathname === '/forge/events') endpoint = 'forge_events';
+            if (url.pathname === '/forge/insights') endpoint = 'forge_insights';
             incCounter(metrics.requestsTotal, `${endpoint}:401`);
             incSystemError('auth_failure');
             return sendJson(res, 401, { ok: false, error: auth.error });
@@ -483,6 +643,63 @@ const server = http.createServer((req, res) => {
             incCounter(metrics.requestsTotal, `${endpoint}:400`);
             incSystemError('invalid_json');
             return sendJson(res, 400, { ok: false, error: 'invalid_json' });
+        }
+
+        // ─────────────────────────────────────────────────────────────────────────────
+        // Endpoint: /forge/events
+        // ─────────────────────────────────────────────────────────────────────────────
+        if (url.pathname === '/forge/events') {
+            if (!forgeEnabled) {
+                incCounter(metrics.requestsTotal, 'forge_events:404');
+                return sendJson(res, 404, { ok: false, error: 'forge_disabled' });
+            }
+
+            const events = payload?.events;
+            if (!Array.isArray(events)) {
+                incCounter(metrics.requestsTotal, 'forge_events:400');
+                incSystemError('forge_invalid_events');
+                return sendJson(res, 400, { ok: false, error: 'invalid_events' });
+            }
+
+            const accepted = [];
+            for (const item of events.slice(0, forgeMaxEvents)) {
+                if (!item || typeof item !== 'object') continue;
+                const type = normalizeForgeString(item.type, 32);
+                if (type === '') continue;
+
+                const event = {
+                    type,
+                    block: normalizeForgeString(item.block, 80),
+                    page: normalizeForgeString(item.page, 160),
+                    target: normalizeForgeString(item.target, 120),
+                    depth: normalizeForgeDepth(item.depth),
+                };
+
+                if (!forgeAllowedTypes.has(event.type)) continue;
+
+                if (event.depth === null) {
+                    delete event.depth;
+                }
+
+                accepted.push(event);
+                recordForgeEvent(event);
+            }
+
+            incCounter(metrics.requestsTotal, 'forge_events:202');
+            return sendJson(res, 202, { ok: true, received: accepted.length });
+        }
+
+        // ─────────────────────────────────────────────────────────────────────────────
+        // Endpoint: /forge/insights
+        // ─────────────────────────────────────────────────────────────────────────────
+        if (url.pathname === '/forge/insights') {
+            if (!forgeEnabled) {
+                incCounter(metrics.requestsTotal, 'forge_insights:404');
+                return sendJson(res, 404, { ok: false, error: 'forge_disabled' });
+            }
+
+            incCounter(metrics.requestsTotal, 'forge_insights:200');
+            return sendJson(res, 200, buildForgeInsights());
         }
 
         // ─────────────────────────────────────────────────────────────────────────────
