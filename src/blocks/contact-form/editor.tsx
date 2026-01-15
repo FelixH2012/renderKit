@@ -41,48 +41,48 @@ export function Edit({ attributes, setAttributes }: EditProps): JSX.Element {
                 <PanelBody title="Form Labels" initialOpen={true}>
                     <TextControl
                         label="Name Label"
-                        value={nameLabel}
+                        value={nameLabel ?? ''}
                         onChange={(value) => setAttributes({ nameLabel: value })}
                     />
                     <TextControl
                         label="Email Label"
-                        value={emailLabel}
+                        value={emailLabel ?? ''}
                         onChange={(value) => setAttributes({ emailLabel: value })}
                     />
                     <TextControl
                         label="Subject Label"
-                        value={subjectLabel}
+                        value={subjectLabel ?? ''}
                         onChange={(value) => setAttributes({ subjectLabel: value })}
                     />
                     <TextControl
                         label="Message Label"
-                        value={messageLabel}
+                        value={messageLabel ?? ''}
                         onChange={(value) => setAttributes({ messageLabel: value })}
                     />
                 </PanelBody>
                 <PanelBody title="Submit Button" initialOpen={false}>
                     <TextControl
                         label="Button Text"
-                        value={submitButtonText}
+                        value={submitButtonText ?? ''}
                         onChange={(value) => setAttributes({ submitButtonText: value })}
                     />
                 </PanelBody>
                 <PanelBody title="Messages" initialOpen={false}>
                     <TextControl
                         label="Success Message"
-                        value={successMessage}
+                        value={successMessage ?? ''}
                         onChange={(value) => setAttributes({ successMessage: value })}
                     />
                     <TextControl
                         label="Error Message"
-                        value={errorMessage}
+                        value={errorMessage ?? ''}
                         onChange={(value) => setAttributes({ errorMessage: value })}
                     />
                 </PanelBody>
                 <PanelBody title="Privacy" initialOpen={false}>
                     <TextControl
                         label="Privacy Label"
-                        value={privacyLabel}
+                        value={privacyLabel ?? ''}
                         onChange={(value) => setAttributes({ privacyLabel: value })}
                     />
                     <SelectControl

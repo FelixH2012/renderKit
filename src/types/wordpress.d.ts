@@ -99,9 +99,17 @@ declare module '@wordpress/components' {
 
     export function Button(props: {
         variant?: 'primary' | 'secondary' | 'tertiary' | 'link';
+        isDestructive?: boolean;
         isPressed?: boolean;
         icon?: any;
         onClick?: () => void;
+        children?: React.ReactNode;
+    }): JSX.Element;
+
+    export function Notice(props: {
+        status?: 'info' | 'warning' | 'error' | 'success';
+        isDismissible?: boolean;
+        onRemove?: () => void;
         children?: React.ReactNode;
     }): JSX.Element;
 
@@ -126,6 +134,21 @@ declare module '@wordpress/element' {
     export const createElement: typeof import('react').createElement;
     export const Fragment: typeof import('react').Fragment;
     export const Component: typeof import('react').Component;
+}
+
+declare module '@wordpress/data' {
+    export function useSelect<T>(
+        mapSelect: (select: (storeName: string) => any) => T,
+        deps?: any[]
+    ): T;
+    export function useDispatch(storeName?: string): any;
+}
+
+declare module '@wordpress/plugins' {
+    export function registerPlugin(
+        name: string,
+        settings: Record<string, any>
+    ): any;
 }
 
 declare module '@wordpress/i18n' {

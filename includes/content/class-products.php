@@ -70,6 +70,7 @@ class Products {
             'hierarchical'        => false,
             'menu_position'       => 5,
             'menu_icon'           => 'dashicons-cart',
+            'taxonomies'          => [self::TAXONOMY],
             'supports'            => ['title', 'editor', 'thumbnail', 'excerpt', 'custom-fields'],
             'template'            => [
                 ['renderkit/text-block', ['theme' => 'light', 'width' => 'narrow'], [
@@ -105,6 +106,7 @@ class Products {
             'hierarchical'      => true,
             'public'            => true,
             'show_ui'           => true,
+            'show_in_menu'      => true,
             'show_admin_column' => true,
             'show_in_rest'      => true,
             'rewrite'           => ['slug' => 'product-category'],

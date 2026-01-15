@@ -6,7 +6,8 @@
 
 import { __ } from '@wordpress/i18n';
 import { useBlockProps, InspectorControls } from '@wordpress/block-editor';
-import { PanelBody, RangeControl, ToggleControl } from '@wordpress/components';
+import { PanelBody, RangeControl, SelectControl, ToggleControl } from '@wordpress/components';
+import { useSelect } from '@wordpress/data';
 import { Sparkles } from 'lucide-react';
 
 interface ProductGridAttributes {
@@ -33,8 +34,33 @@ const bentoSpans = [
     { col: 4, row: 1, featured: false },
 ];
 
+const categoryQuery = { per_page: 100, orderby: 'name', order: 'asc', _fields: 'id,name' };
+
 export function Edit({ attributes, setAttributes, className }: EditProps): JSX.Element {
-    const { count, showPrice, showButton } = attributes;
+    const { count, showPrice, showButton, category } = attributes;
+
+    const { categories, hasResolved } = useSelect((select) => {
+        const records = select('core').getEntityRecords('taxonomy', 'rk_product_category', categoryQuery) as
+            | Array<{ id: number; name: string }>
+            | null
+            | undefined;
+        return {
+            categories: records ?? [],
+            hasResolved: select('core').hasFinishedResolution('getEntityRecords', [
+                'taxonomy',
+                'rk_product_category',
+                categoryQuery,
+            ]),
+        };
+    }, []);
+
+    const categoryOptions = [
+        { label: __('All categories', 'renderkit'), value: '0' },
+        ...categories.map((term) => ({
+            label: term.name,
+            value: String(term.id),
+        })),
+    ];
 
     const blockProps = useBlockProps({
         className: `renderkit-block renderkit-product-grid ${className || ''}`,
@@ -63,6 +89,13 @@ export function Edit({ attributes, setAttributes, className }: EditProps): JSX.E
                     <p className="components-base-control__help">
                         {__('Bento grid works best with 4-6 products', 'renderkit')}
                     </p>
+                    <SelectControl
+                        label={__('Category', 'renderkit')}
+                        value={String(category)}
+                        options={categoryOptions}
+                        onChange={(value) => setAttributes({ category: Number(value) || 0 })}
+                        help={!hasResolved ? __('Loading categories...', 'renderkit') : undefined}
+                    />
                 </PanelBody>
                 <PanelBody title={__('Display Options', 'renderkit')} initialOpen={false}>
                     <ToggleControl

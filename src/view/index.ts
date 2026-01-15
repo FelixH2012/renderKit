@@ -869,7 +869,7 @@ function enhanceCookieBanner() {
         });
 
         if (hasConsent) {
-            const summary = banner.querySelector<HTMLSummaryElement>('.rk-cookie-banner__settings-toggle');
+            const summary = banner.querySelector<HTMLElement>('.rk-cookie-banner__settings-toggle');
             if (summary && settingsPanel) {
                 settingsPanel.open = false;
             }

@@ -30,16 +30,16 @@ define('RENDERKIT_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('RENDERKIT_PLUGIN_BASENAME', plugin_basename(__FILE__));
 
 // Load dependencies
-require_once RENDERKIT_PLUGIN_DIR . 'includes/class-relay-settings.php';
-require_once RENDERKIT_PLUGIN_DIR . 'includes/class-renderkit.php';
-require_once RENDERKIT_PLUGIN_DIR . 'includes/class-block-loader.php';
-require_once RENDERKIT_PLUGIN_DIR . 'includes/class-relay-client.php';
-require_once RENDERKIT_PLUGIN_DIR . 'includes/class-products.php';
-require_once RENDERKIT_PLUGIN_DIR . 'includes/class-image-optimizer.php';
+require_once RENDERKIT_PLUGIN_DIR . 'includes/admin/class-relay-settings.php';
+require_once RENDERKIT_PLUGIN_DIR . 'includes/core/class-renderkit.php';
+require_once RENDERKIT_PLUGIN_DIR . 'includes/core/class-block-loader.php';
+require_once RENDERKIT_PLUGIN_DIR . 'includes/core/class-relay-client.php';
+require_once RENDERKIT_PLUGIN_DIR . 'includes/content/class-products.php';
+require_once RENDERKIT_PLUGIN_DIR . 'includes/services/class-image-optimizer.php';
 require_once RENDERKIT_PLUGIN_DIR . 'includes/integrations/class-contact-form.php';
-require_once RENDERKIT_PLUGIN_DIR . 'includes/class-maintenance.php';
-require_once RENDERKIT_PLUGIN_DIR . 'includes/class-cookie-settings.php';
-require_once RENDERKIT_PLUGIN_DIR . 'includes/class-forge.php';
+require_once RENDERKIT_PLUGIN_DIR . 'includes/admin/class-maintenance.php';
+require_once RENDERKIT_PLUGIN_DIR . 'includes/admin/class-cookie-settings.php';
+require_once RENDERKIT_PLUGIN_DIR . 'includes/services/class-forge.php';
 
 /**
  * Initialize the plugin
@@ -79,7 +79,7 @@ function init(): void {
     $forge->init();
 
     // Initialize AI Service
-    require_once RENDERKIT_PLUGIN_DIR . 'includes/class-ai-service.php';
+    require_once RENDERKIT_PLUGIN_DIR . 'includes/services/class-ai-service.php';
     $ai_service = new AIService();
     $ai_service->init();
 }
