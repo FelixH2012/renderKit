@@ -30,7 +30,6 @@ export function View({ attributes, className }: ViewProps): JSX.Element {
         buttonUrl,
         theme: colorTheme,
         variant = 'full',
-        enableAnimations,
     } = attributes as any;
 
     const headingLines = useMemo(() => splitLines(heading), [heading]);
@@ -43,69 +42,59 @@ export function View({ attributes, className }: ViewProps): JSX.Element {
         className,
     ].filter(Boolean).join(' ');
 
-    const contentClasses = isMinimal
-        ? 'w-full max-w-[1600px] mx-auto px-6 pt-32 pb-20 relative z-10'
-        : 'w-full max-w-[1600px] mx-auto px-6 py-40 min-h-screen flex items-center relative z-10';
-
-    const showCta = !isMinimal || (buttonText.trim() !== '' && buttonUrl.trim() !== '' && buttonUrl.trim() !== '#');
+    const hasCta = buttonText?.trim();
 
     return (
         <section
             className={sectionClasses}
             data-rk-hero-render="view"
             data-rk-hero-variant={variant}
-            data-rk-hero-animations={enableAnimations ? '1' : '0'}
+            data-rk-hero-theme={colorTheme}
         >
-            <div className="absolute inset-0" data-rk-hero-bg>
-                <div
-                    className="absolute inset-0 opacity-[0.02]"
-                    style={{
-                        backgroundImage:
-                            'radial-gradient(circle at 2px 2px, currentColor 1px, transparent 0)',
-                        backgroundSize: '64px 64px',
-                    }}
-                />
-            </div>
+            {/* Subtle background texture */}
+            <div className="rk-hero__bg" aria-hidden="true" />
 
-            <div className={contentClasses} data-rk-hero-content>
-                <div className="w-full">
-                    <div className={isMinimal ? 'mb-10' : 'mb-16'} data-rk-hero-anim="bar">
-                        <div className="w-12 h-px" style={{ backgroundColor: 'var(--rk-gold)' }} />
-                    </div>
-                    <div className={`max-w-4xl flex flex-col ${isMinimal ? 'gap-6' : 'gap-8'}`}>
-                        <h1 className={`${isMinimal ? 'rk-heading-page' : 'rk-heading-display'} mb-8`} data-rk-hero-anim="heading">
-                            {headingLines.map((line, i) => (
-                                <Fragment key={i}>
-                                    {line}
-                                    {i < headingLines.length - 1 && <br />}
-                                </Fragment>
-                            ))}
-                        </h1>
-                        <div className={isMinimal ? 'space-y-6' : 'space-y-8'} data-rk-hero-anim="copy">
-                            <p
-                                className={isMinimal ? 'max-w-2xl text-[1.0625rem] leading-[1.85]' : 'max-w-lg text-[1.125rem] leading-[1.8]'}
-                                style={{ color: 'var(--rk-hero-muted)' }}
+            <div className="rk-hero__content" data-rk-hero-content>
+                <div className="rk-hero__inner">
+                    <h1 className={isMinimal ? 'rk-heading-page' : 'rk-heading-display'} data-rk-hero-anim="heading">
+                        {headingLines.map((line, i) => (
+                            <Fragment key={i}>
+                                {line}
+                                {i < headingLines.length - 1 && <br />}
+                            </Fragment>
+                        ))}
+                    </h1>
+
+                    <p className="rk-hero__description" data-rk-hero-anim="copy">
+                        {description}
+                    </p>
+
+                    {hasCta && (
+                        <a
+                            href={buttonUrl || '#'}
+                            className="rk-hero__cta"
+                            data-rk-hero-cta
+                            data-rk-hero-anim="copy"
+                        >
+                            <span className="rk-hero__cta-text">{buttonText}</span>
+                            <svg
+                                className="rk-hero__cta-arrow"
+                                width="16"
+                                height="16"
+                                viewBox="0 0 16 16"
+                                fill="none"
+                                aria-hidden="true"
                             >
-                                {description}
-                            </p>
-                            {showCta ? (
-                                <a
-                                    href={buttonUrl}
-                                    className={[
-                                        'inline-flex items-center gap-4 transition-colors',
-                                        enableAnimations &&
-                                        'transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:translate-x-2 focus-visible:translate-x-2 motion-reduce:transition-none motion-reduce:transform-none',
-                                    ]
-                                        .filter(Boolean)
-                                        .join(' ')}
-                                    data-rk-hero-cta
-                                >
-                                    <span className="text-sm tracking-[0.2em] uppercase font-medium">{buttonText}</span>
-                                    <i className="rk-hero__cta-icon fa-solid fa-arrow-right" aria-hidden="true"></i>
-                                </a>
-                            ) : null}
-                        </div>
-                    </div>
+                                <path
+                                    d="M3.5 8H12.5M12.5 8L8.5 4M12.5 8L8.5 12"
+                                    stroke="currentColor"
+                                    strokeWidth="1.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                />
+                            </svg>
+                        </a>
+                    )}
                 </div>
             </div>
         </section>

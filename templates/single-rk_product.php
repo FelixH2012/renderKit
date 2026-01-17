@@ -91,44 +91,6 @@ $rk_sale_price = $rk_product_id > 0 ? (float) get_post_meta($rk_product_id, '_rk
 $rk_sku = $rk_product_id > 0 ? (string) get_post_meta($rk_product_id, '_rk_sku', true) : '';
 $rk_stock_status = $rk_product_id > 0 ? (string) get_post_meta($rk_product_id, '_rk_stock_status', true) : 'instock';
 $rk_featured_image_id = $rk_product_id > 0 ? (int) get_post_thumbnail_id($rk_product_id) : 0;
-$rk_featured_image_url = $rk_featured_image_id > 0 ? (string) wp_get_attachment_image_url($rk_featured_image_id, 'full') : '';
-
-$rk_description_for_schema = trim(wp_strip_all_tags($rk_excerpt !== '' ? $rk_excerpt : (string) get_post_field('post_content', $rk_product_id)));
-$rk_description_for_schema = (string) preg_replace('/\s+/', ' ', $rk_description_for_schema);
-
-$rk_price_for_schema = $rk_sale_price > 0 ? $rk_sale_price : $rk_price;
-$rk_availability_map = [
-    'instock'    => 'https://schema.org/InStock',
-    'outofstock' => 'https://schema.org/OutOfStock',
-    'onorder'    => 'https://schema.org/PreOrder',
-];
-
-$rk_schema = null;
-if ($rk_product_id > 0 && $rk_title !== '') {
-    $rk_schema = [
-        '@context'    => 'https://schema.org',
-        '@type'       => 'Product',
-        'name'        => $rk_title,
-        'description' => $rk_description_for_schema,
-        'sku'         => $rk_sku !== '' ? $rk_sku : null,
-        'image'       => $rk_featured_image_url !== '' ? [$rk_featured_image_url] : null,
-        'url'         => (string) get_permalink($rk_product_id),
-        'brand'       => [
-            '@type' => 'Brand',
-            'name'  => (string) get_bloginfo('name'),
-        ],
-    ];
-
-    if ($rk_price_for_schema > 0) {
-        $rk_schema['offers'] = [
-            '@type'         => 'Offer',
-            'priceCurrency' => 'EUR',
-            'price'         => number_format((float) $rk_price_for_schema, 2, '.', ''),
-            'availability'  => $rk_availability_map[$rk_stock_status] ?? 'https://schema.org/InStock',
-            'url'           => (string) get_permalink($rk_product_id),
-        ];
-    }
-}
 
 // Relay-driven product page content.
 $rk_post = $rk_product_id > 0 ? get_post($rk_product_id) : null;
@@ -294,11 +256,6 @@ $rk_page_html = $rk_relay->render('renderkit/product-page', $rk_page_props);
     <meta charset="<?php bloginfo('charset'); ?>">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <?php wp_head(); ?>
-    <?php if (is_array($rk_schema)) : ?>
-        <script type="application/ld+json">
-            <?php echo wp_json_encode(array_filter($rk_schema), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>
-        </script>
-    <?php endif; ?>
 </head>
 <body <?php body_class('rk-product-template'); ?>>
 <?php wp_body_open(); ?>

@@ -91,6 +91,7 @@ const blocks: BlockRegistration[] = [
 
 // Plugins
 import './plugins/product-ai';
+import './plugins/page-builder-ai';
 
 blocks.forEach(({ meta, edit, save, icon }) => {
     const { name, ...settings } = meta;

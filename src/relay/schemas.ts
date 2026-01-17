@@ -148,7 +148,8 @@ const footerAttributesSchema = z
     })
     .strip();
 
-const productPageImageSchema = z
+// Shared image schema for product pages and archives
+const productImageSchema = z
     .object({
         id: z.coerce.number().int().catch(0),
         src: z.string().optional().default(''),
@@ -192,8 +193,8 @@ const productPageAttributesSchema = z
                 salePrice: z.coerce.number().optional().default(0),
                 priceFormatted: z.string().optional().default(''),
                 salePriceFormatted: z.string().optional().default(''),
-                featuredImage: productPageImageSchema.nullable().optional().default(null),
-                gallery: z.array(productPageImageSchema).catch([]),
+                featuredImage: productImageSchema.nullable().optional().default(null),
+                gallery: z.array(productImageSchema).catch([]),
                 hasRenderkitBlocks: z.boolean().optional().default(false),
             })
             .strip(),
@@ -327,19 +328,7 @@ const cartAttributesSchema = z
     })
     .strip();
 
-const productArchiveImageSchema = z
-    .object({
-        id: z.coerce.number().int().catch(0),
-        src: z.string().optional().default(''),
-        fullSrc: z.string().optional(),
-        alt: z.string().optional().default(''),
-        width: z.coerce.number().optional(),
-        height: z.coerce.number().optional(),
-        srcSet: z.string().optional(),
-        sizes: z.string().optional(),
-    })
-    .strip()
-    .nullable();
+// Reuse shared productImageSchema for archive (nullable variant)
 
 const productArchiveAttributesSchema = z
     .object({
@@ -364,7 +353,7 @@ const productArchiveAttributesSchema = z
                         title: z.string().optional().default(''),
                         excerpt: z.string().optional().default(''),
                         url: z.string().optional().default(''),
-                        image: productArchiveImageSchema.optional().default(null),
+                        image: productImageSchema.nullable().optional().default(null),
                         price: z.coerce.number().optional().default(0),
                         salePrice: z.coerce.number().optional().default(0),
                         priceFormatted: z.string().optional().default(''),

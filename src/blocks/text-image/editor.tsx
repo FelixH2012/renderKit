@@ -90,18 +90,17 @@ export function Edit({ attributes, setAttributes }: EditProps): JSX.Element {
                                                 width: '100%',
                                                 height: 'auto',
                                                 marginBottom: '0.5rem',
-                                                borderRadius: '4px',
+                                                borderRadius: '8px',
                                             }}
                                         />
-                                        <Button
-                                            onClick={onRemoveImage}
-                                            variant="secondary"
-                                        >
-                                            Remove
-                                        </Button>
-                                        <Button onClick={open} variant="secondary">
-                                            Replace
-                                        </Button>
+                                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                            <Button onClick={onRemoveImage} variant="secondary" isDestructive>
+                                                Remove
+                                            </Button>
+                                            <Button onClick={open} variant="secondary">
+                                                Replace
+                                            </Button>
+                                        </div>
                                     </>
                                 ) : (
                                     <Button onClick={open} variant="primary">
@@ -158,17 +157,31 @@ export function Edit({ attributes, setAttributes }: EditProps): JSX.Element {
                 <div className="rk-text-image__inner">
                     <div className="rk-text-image__grid">
                         <div className="rk-text-image__content">
-                            <div className="rk-text-image__bar" aria-hidden="true" />
                             <h2 className="rk-text-image__heading">{heading || 'Heading'}</h2>
                             <p className="rk-text-image__description">
                                 {description || 'Description text...'}
                             </p>
-                            {buttonText ? (
+                            {buttonText && (
                                 <span className="rk-text-image__cta">
-                                    <span>{buttonText}</span>
-                                    <i className="rk-text-image__cta-icon fa-solid fa-arrow-right" aria-hidden="true"></i>
+                                    <span className="rk-text-image__cta-text">{buttonText}</span>
+                                    <svg
+                                        className="rk-text-image__cta-arrow"
+                                        width="16"
+                                        height="16"
+                                        viewBox="0 0 16 16"
+                                        fill="none"
+                                        aria-hidden="true"
+                                    >
+                                        <path
+                                            d="M3.5 8H12.5M12.5 8L8.5 4M12.5 8L8.5 12"
+                                            stroke="currentColor"
+                                            strokeWidth="1.5"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                        />
+                                    </svg>
                                 </span>
-                            ) : null}
+                            )}
                         </div>
                         <div className="rk-text-image__media">
                             {imageUrl ? (

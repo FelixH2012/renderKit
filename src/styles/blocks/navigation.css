@@ -1,268 +1,400 @@
-/* Navigation Block */
-.renderkit-nav {
+/* ─────────────────────────────────────────────────────────────────────────────
+   Premium Navigation Block
+   Inspired by Airbnb & Raycast - Silk-smooth animations, glass morphism, 
+   perfect proportions
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Design Tokens
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.rk-nav {
+    /* Dimensions - Refined proportions */
+    --nav-height: 80px;
+    --nav-height-scrolled: 72px;
+    --nav-inset: 16px;
+    --nav-inset-scrolled: 10px;
+    --nav-radius: 100px;
+    --nav-radius-scrolled: 100px;
+    --nav-max-width: 1200px;
+
+    /* Colors - Light Theme (default) */
+    --nav-bg: transparent;
+    --nav-bg-scrolled: rgba(255, 255, 255, 0.72);
+    --nav-text: #ffffff;
+    --nav-text-scrolled: #0f0f0f;
+    --nav-text-muted: rgba(15, 15, 15, 0.5);
+    --nav-accent: #0f0f0f;
+    --nav-hover-bg: rgba(0, 0, 0, 0.05);
+    --nav-active-bg: rgba(0, 0, 0, 0.08);
+    --nav-border: rgba(0, 0, 0, 0.04);
+    --nav-shadow:
+        0 0 0 1px rgba(0, 0, 0, 0.03),
+        0 2px 4px -1px rgba(0, 0, 0, 0.06),
+        0 8px 20px -4px rgba(0, 0, 0, 0.08);
+
+    /* Animation - Silk-smooth Apple-quality spring physics */
+    --nav-ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+    --nav-ease-out: cubic-bezier(0.0, 0, 0.2, 1);
+    --nav-ease-in-out: cubic-bezier(0.4, 0, 0, 1);
+    --nav-ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.1);
+    --nav-ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+    /* Timing - Carefully tuned for premium feel */
+    --nav-duration: 500ms;
+    --nav-duration-medium: 300ms;
+    --nav-duration-fast: 200ms;
+    --nav-duration-instant: 120ms;
+
+    /* Layout */
+    position: relative;
     width: 100%;
-    background-color: transparent;
-    transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
-    --rk-nav-height: 72px;
-    padding: 0;
+    z-index: 9999;
 }
 
-.renderkit-nav.is-sticky {
+/* Theme: Light */
+.rk-nav[data-theme="light"] {
+    --nav-text: rgba(0, 0, 0, 0.9);
+    --nav-bg-scrolled: rgba(255, 255, 255, 0.82);
+}
+
+/* Theme: Dark */
+.rk-nav[data-theme="dark"] {
+    --nav-text: #ffffff;
+    --nav-bg-scrolled: rgba(22, 22, 24, 0.78);
+    --nav-text-scrolled: #f5f5f7;
+    --nav-text-muted: rgba(255, 255, 255, 0.45);
+    --nav-accent: #f5f5f7;
+    --nav-hover-bg: rgba(255, 255, 255, 0.06);
+    --nav-active-bg: rgba(255, 255, 255, 0.1);
+    --nav-border: rgba(255, 255, 255, 0.06);
+    --nav-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.04),
+        0 2px 4px -1px rgba(0, 0, 0, 0.15),
+        0 8px 20px -4px rgba(0, 0, 0, 0.35);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Sticky Wrapper
+   Creates the floating effect with padding around the navigation
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.rk-nav[data-sticky] {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
-    z-index: 50;
-    opacity: 1;
-    transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
-        opacity 0.4s ease,
-        all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+    padding: var(--nav-inset);
+    transition: padding var(--nav-duration) var(--nav-ease-out);
+    will-change: padding, transform;
 }
 
-/* Hide navbar when scrolling down */
-.renderkit-nav.is-sticky.is-hidden {
-    transform: translateY(-100%);
+/* Keep navigation bar above mobile menu */
+.rk-nav[data-menu-open] .rk-nav__container {
+    position: relative;
+    z-index: 10001;
+    background: var(--nav-bg-scrolled);
+    box-shadow: var(--nav-shadow);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
 }
 
+.rk-nav[data-sticky][data-scrolled] {
+    padding: var(--nav-inset-scrolled);
+}
 
-.renderkit-nav__shell {
-    width: 100%;
-    max-width: 100%;
-    margin: 0 auto;
-    border-radius: 0;
-    padding: 0 1.5rem;
-    background-color: transparent;
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-    border: none;
-    /* Smoother, longer transitions for elegant morphing */
+.rk-nav[data-sticky][data-hidden] {
+    transform: translateY(calc(-100% - var(--nav-inset) - 20px));
+    pointer-events: none;
     transition:
-        width 1s cubic-bezier(0.22, 1, 0.36, 1),
-        margin 1s cubic-bezier(0.22, 1, 0.36, 1),
-        border-radius 1s cubic-bezier(0.22, 1, 0.36, 1),
-        padding 1s cubic-bezier(0.22, 1, 0.36, 1),
-        background-color 0.8s cubic-bezier(0.22, 1, 0.36, 1),
-        backdrop-filter 0.8s cubic-bezier(0.22, 1, 0.36, 1),
-        box-shadow 0.8s cubic-bezier(0.22, 1, 0.36, 1);
-    will-change: width, margin, border-radius;
+        transform 350ms var(--nav-ease-out),
+        padding var(--nav-duration) var(--nav-ease-out);
 }
 
-/* Semi-transparent dark background when at top (not scrolled) for black hero */
-.renderkit-nav:not(.is-scrolled) .renderkit-nav__shell {
-    background-color: rgba(0, 0, 0, 0.6) !important;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-}
+/* ─────────────────────────────────────────────────────────────────────────────
+   Container - The actual visible navigation bar
+   ───────────────────────────────────────────────────────────────────────────── */
 
-
-/* Scrolled State - Transitions to Pill */
-.renderkit-nav.is-scrolled .renderkit-nav__shell {
-    width: calc(100% - 3rem);
-    max-width: 1600px;
-    margin: 1rem auto;
-    border-radius: 999px;
-    padding: 0 1rem;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.renderkit-nav.is-scrolled:not(.renderkit-nav--transparent).renderkit-nav--light .renderkit-nav__shell {
-    background-color: rgba(255, 254, 249, 0.9);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.03);
-}
-
-.renderkit-nav.is-scrolled:not(.renderkit-nav--transparent).renderkit-nav--dark .renderkit-nav__shell {
-    background-color: rgba(30, 28, 26, 0.92);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.15);
-}
-
-.renderkit-nav.is-scrolled.renderkit-nav--transparent.renderkit-nav--light .renderkit-nav__shell {
-    background-color: rgba(255, 254, 249, 0.95);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-}
-
-.renderkit-nav.is-scrolled.renderkit-nav--transparent.renderkit-nav--dark .renderkit-nav__shell {
-    background-color: rgba(0, 0, 0, 0.92);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-}
-
-.renderkit-nav__inner {
-    max-width: 1600px;
-    margin: 0 auto;
-    padding: 0 2rem;
+.rk-nav__container {
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    min-height: var(--rk-nav-height);
-    transition: min-height 0.4s ease;
+    max-width: var(--nav-max-width);
+    height: var(--nav-height);
+    margin: 0 auto;
+    padding: 0 10px 0 24px;
+    background: var(--nav-bg);
+    border-radius: var(--nav-radius);
+    will-change: height, background, box-shadow;
+    transition:
+        height var(--nav-duration) var(--nav-ease-out),
+        padding var(--nav-duration) var(--nav-ease-out),
+        background var(--nav-duration) var(--nav-ease-out),
+        box-shadow var(--nav-duration) var(--nav-ease-out);
 }
 
-.renderkit-nav.is-scrolled .renderkit-nav__inner {
-    min-height: 64px;
+.rk-nav[data-scrolled] .rk-nav__container {
+    height: var(--nav-height-scrolled);
+    padding: 0 8px 0 24px;
+    background: var(--nav-bg-scrolled);
+    box-shadow: var(--nav-shadow);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
 }
 
-.renderkit-nav__logo {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    text-decoration: none;
-}
-
-.renderkit-nav__logo-img {
-    height: 2rem;
-    width: auto;
-}
-
-.renderkit-nav__logo-text {
-    line-height: 1;
-    display: block;
-    font-size: 0.875rem;
-    letter-spacing: 0.3em;
-    text-transform: uppercase;
-    font-weight: 500;
-}
-
-.renderkit-nav__link {
-    position: relative;
-    line-height: 1;
-    display: inline-flex;
-    align-items: center;
-    padding: 0.5rem 0;
-    font-size: 0.875rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    text-transform: uppercase;
-    text-decoration: none;
-    transition: color 0.3s ease, transform 0.3s ease;
-}
-
-.renderkit-nav__link:hover {
-    transform: translateY(-1px);
-}
-
-.renderkit-nav__link::after {
+/* Clean border highlight - no gradient slop */
+.rk-nav__container::after {
     content: '';
     position: absolute;
-    left: 50%;
-    bottom: -4px;
-    width: 0;
-    height: 2px;
-    background: var(--rk-gold);
-    transition: width 0.4s cubic-bezier(0.22, 1, 0.36, 1);
-    transform: translateX(-50%);
-    border-radius: 2px;
-}
-
-.renderkit-nav__link:hover::after {
-    width: 24px;
-}
-
-.renderkit-nav__link--active {
-    color: var(--rk-gold) !important;
-}
-
-.renderkit-nav__link--active::after {
-    width: 24px;
-}
-
-.renderkit-nav__menu {
-    display: none;
-    align-items: center;
-    gap: 3rem;
-}
-
-.renderkit-nav__actions {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
-
-.renderkit-nav__icon-button {
-    position: relative;
-    background: none;
-    border: none;
-    cursor: pointer;
-    line-height: 0;
-    align-self: center;
-    display: grid;
-    place-items: center;
-    width: 2.5rem;
-    height: 2.5rem;
-    padding: 0;
-}
-
-.renderkit-nav__icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.25rem;
-    line-height: 1;
-    vertical-align: middle;
-}
-
-.renderkit-nav__icon--lg {
-    font-size: 1.5rem;
-}
-
-.renderkit-nav__dot {
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 0.5rem;
-    height: 0.5rem;
-    background: var(--rk-gold);
-    border-radius: 50%;
+    inset: 0;
+    border-radius: inherit;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+    pointer-events: none;
     opacity: 0;
-    transition: opacity 0.3s ease;
+    transition: opacity var(--nav-duration) var(--nav-ease-out);
 }
 
-.renderkit-nav__icon-button:hover .renderkit-nav__dot {
+.rk-nav[data-scrolled] .rk-nav__container::after {
     opacity: 1;
 }
 
-/* Cart Button & Badge */
-.renderkit-nav__cart {
-    position: relative;
-    text-decoration: none;
+.rk-nav[data-theme="dark"] .rk-nav__container::after {
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
 }
 
-.renderkit-nav__cart-count {
-    position: absolute;
-    top: -2px;
-    right: -2px;
-    min-width: 18px;
-    height: 18px;
-    padding: 0 5px;
-    background: var(--rk-gold);
-    color: var(--rk-cream);
-    font-size: 0.625rem;
+@media (min-width: 768px) {
+    .rk-nav__container {
+        padding: 0 36px;
+    }
+
+    .rk-nav[data-scrolled] .rk-nav__container {
+        padding: 0 32px;
+    }
+}
+
+@media (min-width: 1024px) {
+    .rk-nav[data-sticky] {
+        --nav-inset: 32px;
+        --nav-inset-scrolled: 20px;
+    }
+
+    .rk-nav__container {
+        padding: 0 44px;
+    }
+
+    .rk-nav[data-scrolled] .rk-nav__container {
+        padding: 0 40px;
+    }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Logo
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.rk-nav__logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    position: relative;
+    padding: 10px 16px;
+    margin: -10px -16px;
+    text-decoration: none;
+    color: var(--nav-text);
+    border-radius: 100px;
+    transition:
+        color var(--nav-duration-medium) var(--nav-ease-out),
+        background var(--nav-duration-fast) var(--nav-ease-smooth),
+        transform var(--nav-duration-instant) var(--nav-ease-out);
+}
+
+.rk-nav[data-scrolled] .rk-nav__logo {
+    color: var(--nav-text-scrolled);
+}
+
+.rk-nav__logo:hover {
+    background: var(--nav-hover-bg);
+}
+
+.rk-nav__logo:active {
+    transform: scale(0.97);
+    transition-duration: 50ms;
+}
+
+.rk-nav__logo-img {
+    height: 26px;
+    width: auto;
+    object-fit: contain;
+    transition: filter var(--nav-duration) var(--nav-ease-out);
+}
+
+/* Invert logo colors for dark backgrounds */
+.rk-nav[data-theme="dark"]:not([data-scrolled]) .rk-nav__logo-img {
+    filter: brightness(0) invert(1);
+}
+
+.rk-nav__logo-text {
+    font-size: 15px;
     font-weight: 600;
-    border-radius: 9px;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Desktop Menu - Pill-style hover effects
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.rk-nav__menu {
+    display: none;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    gap: 2px;
+}
+
+@media (min-width: 1024px) {
+    .rk-nav__menu {
+        display: flex;
+    }
+}
+
+.rk-nav__menu li {
+    margin: 0;
+    padding: 0;
+}
+
+.rk-nav__link {
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
+    height: 38px;
+    padding: 0 16px;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: -0.006em;
+    text-decoration: none;
+    color: var(--nav-text);
+    border-radius: 100px;
+    white-space: nowrap;
+    transition:
+        color var(--nav-duration-medium) var(--nav-ease-out),
+        background var(--nav-duration-fast) var(--nav-ease-smooth),
+        transform var(--nav-duration-instant) var(--nav-ease-out);
+}
+
+.rk-nav[data-scrolled] .rk-nav__link {
+    color: var(--nav-text-scrolled);
+}
+
+.rk-nav__link:hover {
+    background: var(--nav-hover-bg);
+}
+
+.rk-nav__link:active {
+    transform: scale(0.97);
+    transition-duration: 50ms;
+}
+
+.rk-nav__link[data-active] {
+    color: var(--nav-accent);
+    background: var(--nav-active-bg);
+    font-weight: 600;
+}
+
+.rk-nav[data-scrolled] .rk-nav__link[data-active] {
+    color: var(--nav-accent);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Actions Area (Cart, Toggle)
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.rk-nav__actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.rk-nav__action {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    color: var(--nav-text);
+    text-decoration: none;
+    border-radius: 100px;
+    transition:
+        color var(--nav-duration-medium) var(--nav-ease-out),
+        background var(--nav-duration-fast) var(--nav-ease-smooth),
+        transform var(--nav-duration-instant) var(--nav-ease-out);
+}
+
+.rk-nav[data-scrolled] .rk-nav__action {
+    color: var(--nav-text-scrolled);
+}
+
+.rk-nav__action:hover {
+    background: var(--nav-hover-bg);
+}
+
+.rk-nav__action:active {
+    transform: scale(0.94);
+    transition-duration: 50ms;
+}
+
+.rk-nav__icon {
+    width: 20px;
+    height: 20px;
+    stroke-width: 1.8;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Cart Badge - Animated counter with premium feel
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.rk-nav__badge {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    font-size: 10px;
+    font-weight: 600;
     line-height: 1;
-    transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.3s ease;
+    text-align: center;
+    color: #fff;
+    background: #0f0f0f;
+    border-radius: 9px;
+    transform-origin: center;
+    transition:
+        transform var(--nav-duration-fast) var(--nav-ease-spring),
+        opacity var(--nav-duration-fast) var(--nav-ease-out);
 }
 
-.renderkit-nav__cart-count.is-empty {
-    opacity: 0;
+.rk-nav[data-theme="dark"] .rk-nav__badge {
+    background: #f5f5f7;
+    color: #0f0f0f;
+}
+
+.rk-nav__badge[data-empty] {
     transform: scale(0);
+    opacity: 0;
 }
 
-/* Animation for cart badge update */
-@keyframes rk-cart-bump {
+@keyframes rk-badge-pop {
     0% {
         transform: scale(1);
     }
 
-    50% {
-        transform: scale(1.3);
+    40% {
+        transform: scale(1.25);
     }
 
     100% {
@@ -270,202 +402,276 @@
     }
 }
 
-.renderkit-nav__cart-count.is-bumping {
-    animation: rk-cart-bump 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+.rk-nav__badge[data-bumping] {
+    animation: rk-badge-pop 250ms var(--nav-ease-bounce);
 }
 
-.renderkit-nav__mobile-details {
-    display: inline-flex;
-}
+/* ─────────────────────────────────────────────────────────────────────────────
+   Mobile Toggle - Premium hamburger with silk-smooth transform
+   ───────────────────────────────────────────────────────────────────────────── */
 
-.renderkit-nav__mobile-details>summary {
-    list-style: none;
-}
-
-.renderkit-nav__mobile-details>summary::-webkit-details-marker {
-    display: none;
-}
-
-.renderkit-nav__mobile-details .renderkit-nav__icon--close {
-    display: none;
-}
-
-.renderkit-nav__mobile-details[open] .renderkit-nav__icon--menu {
-    display: none;
-}
-
-.renderkit-nav__mobile-details[open] .renderkit-nav__icon--close {
-    display: block;
-}
-
-.renderkit-nav__mobile-toggle {
-    display: inline-flex;
-}
-
-.renderkit-nav__mobile {
-    position: fixed;
-    inset: 0;
-    height: 100dvh;
-    width: 100vw;
-    z-index: 60;
-    padding: 4.5rem 2rem 3rem;
-    transform: translateY(8%);
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-    transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1),
-        opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1),
-        visibility 0s linear 0.6s;
-    background: linear-gradient(180deg, rgba(255, 254, 249, 0.98) 0%, rgba(245, 244, 242, 0.98) 100%);
-    backdrop-filter: blur(18px);
-    overscroll-behavior: contain;
-}
-
-.renderkit-nav__mobile-details[open] .renderkit-nav__mobile {
-    transform: translateY(0);
-    opacity: 1;
-    visibility: visible;
-    pointer-events: auto;
-    transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1),
-        opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.renderkit-nav__mobile-links {
+.rk-nav__toggle {
     display: flex;
-    flex-direction: column;
-    gap: 1.75rem;
-    margin-top: 4rem;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    background: none;
+    border: none;
+    border-radius: 100px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition:
+        background var(--nav-duration-fast) var(--nav-ease-smooth),
+        transform var(--nav-duration-instant) var(--nav-ease-out);
 }
 
-.renderkit-nav__mobile-link {
-    font-size: 1.5rem;
-    font-weight: 300;
-    text-decoration: none;
-    letter-spacing: 0.06em;
-    opacity: 0;
-    transform: translateY(12px);
-    transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1),
-        opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+.rk-nav__toggle:hover {
+    background: var(--nav-hover-bg);
 }
 
-.renderkit-nav__mobile-details[open] .renderkit-nav__mobile-link {
-    opacity: 1;
-    transform: translateY(0);
-}
-
-.renderkit-nav__mobile-links .renderkit-nav__mobile-link:nth-child(1) {
-    transition-delay: 0.08s;
-}
-
-.renderkit-nav__mobile-links .renderkit-nav__mobile-link:nth-child(2) {
-    transition-delay: 0.12s;
-}
-
-.renderkit-nav__mobile-links .renderkit-nav__mobile-link:nth-child(3) {
-    transition-delay: 0.16s;
-}
-
-.renderkit-nav__mobile-links .renderkit-nav__mobile-link:nth-child(4) {
-    transition-delay: 0.2s;
-}
-
-.renderkit-nav__mobile-links .renderkit-nav__mobile-link:nth-child(5) {
-    transition-delay: 0.24s;
-}
-
-.renderkit-nav__mobile-link--active {
-    color: var(--rk-gold);
-}
-
-.renderkit-nav__mobile-rule {
-    margin-top: 2rem;
-    width: 4rem;
-    height: 1px;
-    background: var(--rk-gold);
-}
-
-/* NOT Scrolled State - White Text on Dark Semi-Transparent Background */
-.renderkit-nav:not(.is-scrolled) .renderkit-nav__logo-text,
-.renderkit-nav:not(.is-scrolled) .renderkit-nav__icon-button,
-.renderkit-nav:not(.is-scrolled) .renderkit-nav__link {
-    color: #ffffff !important;
-    text-shadow: none;
-}
-
-.renderkit-nav:not(.is-scrolled) .renderkit-nav__link:hover {
-    color: rgba(255, 255, 255, 0.8) !important;
-}
-
-.renderkit-nav:not(.is-scrolled) .renderkit-nav__logo-img {
-    filter: brightness(0) invert(1);
-}
-
-/* Scrolled State Text Colors */
-.renderkit-nav.is-scrolled.renderkit-nav--light .renderkit-nav__logo-text,
-.renderkit-nav.is-scrolled.renderkit-nav--light .renderkit-nav__icon-button,
-.renderkit-nav.is-scrolled.renderkit-nav--light .renderkit-nav__mobile {
-    color: var(--rk-anthracite) !important;
-    text-shadow: none !important;
-}
-
-.renderkit-nav.is-scrolled.renderkit-nav--light .renderkit-nav__link {
-    color: var(--rk-anthracite) !important;
-    text-shadow: none !important;
-}
-
-.renderkit-nav.is-scrolled.renderkit-nav--light .renderkit-nav__link:hover {
-    color: var(--rk-black) !important;
-    opacity: 0.7;
-}
-
-.renderkit-nav.is-scrolled.renderkit-nav--dark .renderkit-nav__logo-text,
-.renderkit-nav.is-scrolled.renderkit-nav--dark .renderkit-nav__icon-button,
-.renderkit-nav.is-scrolled.renderkit-nav--dark .renderkit-nav__mobile {
-    color: var(--rk-cream) !important;
-}
-
-.renderkit-nav.is-scrolled.renderkit-nav--dark .renderkit-nav__link {
-    color: var(--rk-cream) !important;
-}
-
-.renderkit-nav.is-scrolled.renderkit-nav--dark .renderkit-nav__link:hover {
-    color: #ffffff !important;
-}
-
-.renderkit-nav.is-scrolled.renderkit-nav--light .renderkit-nav__logo-img {
-    filter: none;
-}
-
-/* Base states for mobile menu colors (when open) */
-.renderkit-nav--light .renderkit-nav__mobile {
-    color: var(--rk-anthracite);
-}
-
-.renderkit-nav--dark .renderkit-nav__mobile {
-    color: var(--rk-cream);
-    background: linear-gradient(180deg, rgba(0, 0, 0, 0.96) 0%, rgba(15, 13, 12, 0.96) 100%);
+.rk-nav__toggle:active {
+    transform: scale(0.94);
+    transition-duration: 50ms;
 }
 
 @media (min-width: 1024px) {
-    .renderkit-nav__inner {
-        padding-top: 2rem;
-        padding-bottom: 2rem;
-        min-height: var(--rk-nav-height);
-    }
-
-    .renderkit-nav__menu {
-        display: flex;
-        gap: 3rem;
-        flex: 1;
-        justify-content: center;
-    }
-
-    .renderkit-nav__mobile-details,
-    .renderkit-nav__mobile-toggle {
+    .rk-nav__toggle {
         display: none;
     }
+}
 
-    .renderkit-nav__mobile {
-        display: none;
+/* Toggle in open state - ensure visibility above mobile menu */
+.rk-nav[data-menu-open] .rk-nav__toggle {
+    position: relative;
+    z-index: 10000;
+}
+
+.rk-nav[data-menu-open] .rk-nav__hamburger span {
+    background: var(--nav-text-scrolled);
+}
+
+.rk-nav__hamburger {
+    position: relative;
+    width: 18px;
+    height: 12px;
+}
+
+.rk-nav__hamburger span {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: var(--nav-text);
+    border-radius: 2px;
+    transform-origin: center center;
+    will-change: transform, opacity;
+    transition:
+        top 300ms var(--nav-ease-out),
+        bottom 300ms var(--nav-ease-out),
+        transform 300ms var(--nav-ease-out),
+        opacity 200ms var(--nav-ease),
+        background 300ms var(--nav-ease-out);
+}
+
+.rk-nav[data-scrolled] .rk-nav__hamburger span {
+    background: var(--nav-text-scrolled);
+}
+
+.rk-nav__hamburger span:nth-child(1) {
+    top: 0;
+}
+
+.rk-nav__hamburger span:nth-child(2) {
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.rk-nav__hamburger span:nth-child(3) {
+    top: auto;
+    bottom: 0;
+}
+
+/* Open state - X transformation with silk-smooth animation */
+.rk-nav[data-menu-open] .rk-nav__hamburger span:nth-child(1) {
+    top: 50%;
+    transform: translateY(-50%) rotate(45deg);
+}
+
+.rk-nav[data-menu-open] .rk-nav__hamburger span:nth-child(2) {
+    opacity: 0;
+    transform: translateY(-50%) scaleX(0.3);
+}
+
+.rk-nav[data-menu-open] .rk-nav__hamburger span:nth-child(3) {
+    top: 50%;
+    bottom: auto;
+    transform: translateY(-50%) rotate(-45deg);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Mobile Menu - Full-screen with staggered animations
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.rk-nav__mobile {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 9998;
+    display: flex;
+    flex-direction: column;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(32px) saturate(180%);
+    -webkit-backdrop-filter: blur(32px) saturate(180%);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition:
+        opacity 400ms var(--nav-ease-out),
+        visibility 0s linear 400ms;
+}
+
+.rk-nav[data-theme="dark"] .rk-nav__mobile {
+    background: rgba(22, 22, 24, 0.95);
+}
+
+.rk-nav[data-menu-open] .rk-nav__mobile {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transition:
+        opacity 400ms var(--nav-ease-out),
+        visibility 0s linear 0s;
+}
+
+@media (min-width: 1024px) {
+    .rk-nav__mobile {
+        display: none !important;
     }
+}
+
+.rk-nav__mobile-inner {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    flex: 1;
+    padding: 24px;
+    padding-top: 120px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+}
+
+.rk-nav__mobile-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.rk-nav__mobile-list li {
+    margin: 0;
+    padding: 0;
+}
+
+.rk-nav__mobile-link {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 18px 20px;
+    font-size: 18px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    text-decoration: none;
+    color: var(--nav-text-scrolled);
+    background: transparent;
+    border-radius: 14px;
+    opacity: 0;
+    transform: translateY(12px);
+    will-change: opacity, transform;
+    transition:
+        opacity 350ms var(--nav-ease-out),
+        transform 350ms var(--nav-ease-out),
+        background 150ms ease,
+        color 150ms ease;
+    transition-delay: var(--delay, 0ms);
+}
+
+.rk-nav[data-menu-open] .rk-nav__mobile-link {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Reset delay on close for clean exit */
+.rk-nav:not([data-menu-open]) .rk-nav__mobile-link {
+    transition-delay: 0ms;
+}
+
+.rk-nav__mobile-link:hover,
+.rk-nav__mobile-link:focus-visible {
+    background: var(--nav-hover-bg);
+}
+
+.rk-nav__mobile-link:active {
+    transform: scale(0.98) !important;
+    transition: transform 50ms ease;
+}
+
+.rk-nav__mobile-link[data-active] {
+    color: var(--nav-accent);
+    font-weight: 600;
+    background: var(--nav-hover-bg);
+}
+
+/* Active indicator dot */
+.rk-nav__mobile-link[data-active]::before {
+    content: '';
+    display: block;
+    width: 6px;
+    height: 6px;
+    background: var(--nav-accent);
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Focus States - Accessible keyboard navigation
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.rk-nav__link:focus-visible,
+.rk-nav__logo:focus-visible,
+.rk-nav__action:focus-visible,
+.rk-nav__toggle:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--nav-bg-scrolled),
+        0 0 0 4px var(--nav-accent);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Reduced Motion - Respect user preferences
+   ───────────────────────────────────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+
+    .rk-nav,
+    .rk-nav *,
+    .rk-nav *::before,
+    .rk-nav *::after {
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+    }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Body Lock - Prevent scroll when mobile menu is open
+   ───────────────────────────────────────────────────────────────────────────── */
+
+body:has(.rk-nav[data-menu-open]) {
+    overflow: hidden;
 }

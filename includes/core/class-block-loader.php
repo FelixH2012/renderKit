@@ -184,6 +184,8 @@ class BlockLoader {
             return '';
         }
 
+        $this->collect_schema_for_block($block_name, $prepared_attributes, $content, $block);
+
         $block_key = $this->block_key_from_name($block_name);
         $wrapper_attributes = get_block_wrapper_attributes([
             'data-renderkit-block' => $block_key,
@@ -219,6 +221,17 @@ class BlockLoader {
             default:
                 return $attributes;
         }
+    }
+
+    /**
+     * @param array<string, mixed> $attributes
+     */
+    private function collect_schema_for_block(string $block_name, array $attributes, string $content, \WP_Block $block): void {
+        if (!class_exists(__NAMESPACE__ . '\\SchemaJsonLd')) {
+            return;
+        }
+
+        SchemaJsonLd::get_instance()->collect_block_schema($block_name, $attributes, $content, $block);
     }
 
     /**

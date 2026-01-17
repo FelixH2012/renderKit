@@ -7,7 +7,37 @@
 
 document.documentElement.classList.add('rk-js');
 
-function onReady(callback: () => void) {
+// ─────────────────────────────────────────────────────────────────────────────
+// Constants
+// ─────────────────────────────────────────────────────────────────────────────
+
+const MS_PER_DAY = 86_400_000; // 24 * 60 * 60 * 1000
+const COOKIE_DEFAULT_DAYS = 180;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Shared Utilities
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Read a cookie value by name.
+ */
+function getCookie(name: string): string {
+    const match = document.cookie.match(new RegExp(`(^| )${name}=([^;]+)`));
+    return match ? decodeURIComponent(match[2]) : '';
+}
+
+/**
+ * Set a cookie with expiration in days.
+ */
+function setCookie(name: string, value: string, days: number = COOKIE_DEFAULT_DAYS): void {
+    const expires = new Date(Date.now() + days * MS_PER_DAY).toUTCString();
+    document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/; SameSite=Lax`;
+}
+
+/**
+ * Execute callback when DOM is ready.
+ */
+function onReady(callback: () => void): void {
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', callback, { once: true });
     } else {
@@ -15,8 +45,12 @@ function onReady(callback: () => void) {
     }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Enhancement Functions
+// ─────────────────────────────────────────────────────────────────────────────
+
 function enhanceStickyNavigation() {
-    const navs = Array.from(document.querySelectorAll<HTMLElement>('.renderkit-nav.is-sticky'));
+    const navs = Array.from(document.querySelectorAll<HTMLElement>('[data-rk-nav][data-sticky]'));
     if (navs.length === 0) return;
 
     let lastScrollY = window.scrollY;
@@ -29,22 +63,24 @@ function enhanceStickyNavigation() {
         const scrollingUp = scrollY < lastScrollY;
 
         navs.forEach((nav) => {
-            // Add 'is-scrolled' class when scrolled past 20px (pill transformation)
-            nav.classList.toggle('is-scrolled', scrollY > 20);
+            // Set data-scrolled when scrolled past 20px (pill transformation)
+            if (scrollY > 20) {
+                nav.dataset.scrolled = '';
+            } else {
+                delete nav.dataset.scrolled;
+            }
 
-            const mobileMenuOpen = Boolean(nav.querySelector('.renderkit-nav__mobile-details[open]'));
+            const mobileMenuOpen = nav.hasAttribute('data-menu-open');
 
             // Hide/show based on scroll direction
             if (scrollY > 100 && !mobileMenuOpen) {
-                // Only apply hide/show logic when scrolled past 100px
                 if (scrollingDown) {
-                    nav.classList.add('is-hidden');
+                    nav.dataset.hidden = '';
                 } else if (scrollingUp) {
-                    nav.classList.remove('is-hidden');
+                    delete nav.dataset.hidden;
                 }
             } else {
-                // Always show navbar when near the top
-                nav.classList.remove('is-hidden');
+                delete nav.dataset.hidden;
             }
         });
 
@@ -62,25 +98,69 @@ function enhanceStickyNavigation() {
     update();
 }
 
-function enhanceNavMobileDetails() {
-    const detailsList = Array.from(document.querySelectorAll<HTMLDetailsElement>('.renderkit-nav__mobile-details'));
-    if (detailsList.length === 0) return;
+function enhanceNavMobileMenu() {
+    const navs = Array.from(document.querySelectorAll<HTMLElement>('[data-rk-nav]'));
+    if (navs.length === 0) return;
 
-    detailsList.forEach((details) => {
-        details.addEventListener('click', (event) => {
-            const target = event.target as HTMLElement | null;
-            if (!target) return;
+    navs.forEach((nav) => {
+        const toggle = nav.querySelector<HTMLButtonElement>('[data-rk-menu-toggle]');
+        const menu = nav.querySelector<HTMLElement>('[data-rk-mobile-menu]');
+        const links = nav.querySelectorAll<HTMLAnchorElement>('[data-rk-mobile-link]');
 
-            const link = target.closest<HTMLAnchorElement>('.renderkit-nav__mobile-link');
-            if (!link) return;
+        if (!toggle || !menu) return;
 
-            details.open = false;
+        const open = () => {
+            nav.dataset.menuOpen = '';
+            toggle.setAttribute('aria-expanded', 'true');
+            toggle.setAttribute('aria-label', 'Menü schließen');
+            menu.setAttribute('aria-hidden', 'false');
+            document.body.style.overflow = 'hidden';
+        };
+
+        const close = () => {
+            delete nav.dataset.menuOpen;
+            toggle.setAttribute('aria-expanded', 'false');
+            toggle.setAttribute('aria-label', 'Menü öffnen');
+            menu.setAttribute('aria-hidden', 'true');
+            document.body.style.overflow = '';
+        };
+
+        const isOpen = () => nav.hasAttribute('data-menu-open');
+
+        toggle.addEventListener('click', () => {
+            if (isOpen()) {
+                close();
+            } else {
+                open();
+            }
+        });
+
+        // Close when clicking a link
+        links.forEach((link) => {
+            link.addEventListener('click', () => {
+                close();
+            });
         });
     });
 
+    // Close on Escape key
     window.addEventListener('keydown', (event) => {
         if (event.key !== 'Escape') return;
-        detailsList.forEach((details) => (details.open = false));
+        navs.forEach((nav) => {
+            if (nav.hasAttribute('data-menu-open')) {
+                delete nav.dataset.menuOpen;
+                const toggle = nav.querySelector<HTMLButtonElement>('[data-rk-menu-toggle]');
+                const menu = nav.querySelector<HTMLElement>('[data-rk-mobile-menu]');
+                if (toggle) {
+                    toggle.setAttribute('aria-expanded', 'false');
+                    toggle.setAttribute('aria-label', 'Menü öffnen');
+                }
+                if (menu) {
+                    menu.setAttribute('aria-hidden', 'true');
+                }
+                document.body.style.overflow = '';
+            }
+        });
     });
 }
 
@@ -739,16 +819,6 @@ function enhanceCookieBanner() {
     const banners = Array.from(document.querySelectorAll<HTMLElement>('[data-rk-cookie-banner="1"]'));
     if (banners.length === 0) return;
 
-    const setCookie = (name: string, value: string, days = 180) => {
-        const expires = new Date(Date.now() + days * 864e5).toUTCString();
-        document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/; SameSite=Lax`;
-    };
-
-    const getCookie = (name: string) => {
-        const match = document.cookie.match(new RegExp(`(^| )${name}=([^;]+)`));
-        return match ? decodeURIComponent(match[2]) : '';
-    };
-
     const applyConsent = (version: string, prefs: Record<string, boolean>, timestamp: number) => {
         document.documentElement.dataset.rkConsentVersion = version;
         Object.entries(prefs).forEach(([key, value]) => {
@@ -895,10 +965,7 @@ function enhanceCookieGates() {
     const gates = Array.from(document.querySelectorAll<HTMLElement>('[data-rk-cookie-gate="1"]'));
     if (gates.length === 0) return;
 
-    const getCookie = (name: string) => {
-        const match = document.cookie.match(new RegExp(`(^| )${name}=([^;]+)`));
-        return match ? decodeURIComponent(match[2]) : '';
-    };
+    // Uses shared getCookie utility
 
     gates.forEach((gate) => {
         const version = gate.dataset.rkCookieVersion || '1';
@@ -1112,11 +1179,16 @@ function enhanceCart() {
         const badges = document.querySelectorAll<HTMLElement>('[data-rk-cart-count]');
         badges.forEach((badge) => {
             badge.textContent = String(cartState.count);
-            badge.classList.toggle('is-empty', cartState.count === 0);
+            // Use data-attributes for state
+            if (cartState.count === 0) {
+                badge.dataset.empty = '';
+            } else {
+                delete badge.dataset.empty;
+            }
             // Bump animation
-            badge.classList.remove('is-bumping');
+            delete badge.dataset.bumping;
             void badge.offsetHeight; // Force reflow
-            badge.classList.add('is-bumping');
+            badge.dataset.bumping = '';
         });
     };
 
@@ -1325,7 +1397,7 @@ function enhanceCart() {
 
 onReady(() => {
     enhanceStickyNavigation();
-    enhanceNavMobileDetails();
+    enhanceNavMobileMenu();
     enhanceHeroScrollAnimations();
     enhanceSwipers();
     enhanceProductGridBento();

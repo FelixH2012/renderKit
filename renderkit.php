@@ -35,6 +35,7 @@ require_once RENDERKIT_PLUGIN_DIR . 'includes/core/class-renderkit.php';
 require_once RENDERKIT_PLUGIN_DIR . 'includes/core/class-block-loader.php';
 require_once RENDERKIT_PLUGIN_DIR . 'includes/core/class-relay-client.php';
 require_once RENDERKIT_PLUGIN_DIR . 'includes/content/class-products.php';
+require_once RENDERKIT_PLUGIN_DIR . 'includes/seo/class-schema-jsonld.php';
 require_once RENDERKIT_PLUGIN_DIR . 'includes/services/class-image-optimizer.php';
 require_once RENDERKIT_PLUGIN_DIR . 'includes/integrations/class-contact-form.php';
 require_once RENDERKIT_PLUGIN_DIR . 'includes/admin/class-maintenance.php';
@@ -48,6 +49,9 @@ require_once RENDERKIT_PLUGIN_DIR . 'includes/services/class-cart.php';
 function init(): void {
     $plugin = new RenderKit();
     $plugin->init();
+
+    $schema = SchemaJsonLd::get_instance();
+    $schema->init();
 
     // Relay settings UI (admin)
     if (is_admin()) {
@@ -87,6 +91,11 @@ function init(): void {
     require_once RENDERKIT_PLUGIN_DIR . 'includes/services/class-ai-service.php';
     $ai_service = new AIService();
     $ai_service->init();
+
+    // Initialize AI Page Builder
+    require_once RENDERKIT_PLUGIN_DIR . 'includes/services/class-page-builder.php';
+    $page_builder = new PageBuilder();
+    $page_builder->init();
 }
 
 add_action('plugins_loaded', __NAMESPACE__ . '\\init');

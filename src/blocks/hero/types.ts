@@ -6,11 +6,6 @@ export interface HeroAttributes {
     description: string;
     buttonText: string;
     buttonUrl: string;
-    stat1Label: string;
-    stat1Value: string;
-    stat2Label: string;
-    stat2Value: string;
     theme: HeroTheme;
     variant: HeroVariant;
-    enableAnimations: boolean;
 }

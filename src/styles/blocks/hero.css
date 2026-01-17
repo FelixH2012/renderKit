@@ -1,76 +1,409 @@
-.renderkit-hero--dark {
-    background-color: var(--rk-black);
-    color: var(--rk-cream);
-    --rk-hero-muted: rgba(255, 254, 249, 0.6);
-    --rk-hero-border: rgba(255, 254, 249, 0.08);
-}
-
-.renderkit-hero--light {
-    background-color: var(--rk-cream);
-    color: var(--rk-anthracite);
-    --rk-hero-muted: rgba(26, 24, 22, 0.6);
-    --rk-hero-border: rgba(26, 24, 22, 0.08);
-}
+/* ==========================================================================
+   Hero Block - Final Polish with Background & Navigation Sync
+   ========================================================================== */
 
 .renderkit-hero {
     position: relative;
+    width: 100%;
+}
+
+/* --------------------------------------------------------------------------
+   Theme Variants
+   -------------------------------------------------------------------------- */
+
+/* Dark theme */
+.renderkit-hero--dark {
+    background-color: #0a0a0a;
+    color: #fafafa;
+    --rk-hero-muted: rgba(250, 250, 250, 0.6);
+    --rk-hero-cta-bg: #fafafa;
+    --rk-hero-cta-text: #0a0a0a;
+    --rk-hero-cta-hover: #e5e5e5;
+    --rk-hero-pattern: rgba(255, 255, 255, 0.03);
+}
+
+/* Light theme */
+.renderkit-hero--light {
+    background-color: #fafafa;
+    color: #171717;
+    --rk-hero-muted: rgba(23, 23, 23, 0.55);
+    --rk-hero-cta-bg: #171717;
+    --rk-hero-cta-text: #fafafa;
+    --rk-hero-cta-hover: #262626;
+    --rk-hero-pattern: rgba(0, 0, 0, 0.025);
+}
+
+/* --------------------------------------------------------------------------
+   Background Texture (subtle, not slop)
+   -------------------------------------------------------------------------- */
+
+.rk-hero__bg {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
     overflow: hidden;
 }
 
+/* Subtle noise texture via CSS gradient */
+.rk-hero__bg::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+        radial-gradient(circle at 20% 80%, var(--rk-hero-pattern) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, var(--rk-hero-pattern) 0%, transparent 50%);
+    opacity: 1;
+}
+
+/* Subtle vignette for depth */
+.rk-hero__bg::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at center, transparent 0%, rgba(0, 0, 0, 0.03) 100%);
+}
+
+.renderkit-hero--light .rk-hero__bg::after {
+    background: radial-gradient(ellipse at center, transparent 0%, rgba(0, 0, 0, 0.02) 100%);
+}
+
+/* --------------------------------------------------------------------------
+   Layout Variants
+   -------------------------------------------------------------------------- */
+
+/* Full variant - landing pages */
+.renderkit-hero--full {
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    align-items: center;
+    padding: 6rem 0;
+}
+
+/* Minimal variant - subpages */
 .renderkit-hero--minimal {
-    border-bottom: 1px solid var(--rk-hero-border, rgba(0, 0, 0, 0.08));
+    padding-top: 8rem;
+    padding-bottom: 4rem;
 }
 
-.rk-hero__cta-icon {
-    font-size: 1.25rem;
-    line-height: 1;
+@media (min-width: 768px) {
+    .renderkit-hero--minimal {
+        padding-top: 10rem;
+        padding-bottom: 5rem;
+    }
+}
+
+/* --------------------------------------------------------------------------
+   Content Container
+   Padding aligned with navigation for consistent X-axis alignment
+   -------------------------------------------------------------------------- */
+
+.rk-hero__content {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    /* Match nav padding: 24px mobile */
+    padding: 0 calc(16px + 24px);
+    /* nav-inset + nav-padding */
+}
+
+@media (min-width: 768px) {
+    .rk-hero__content {
+        /* Match nav: 36px */
+        padding: 0 calc(16px + 36px);
+    }
+}
+
+@media (min-width: 1024px) {
+    .rk-hero__content {
+        /* Match nav: 32px inset + 44px padding */
+        padding: 0 calc(32px + 44px);
+    }
+}
+
+/* Inner wrapper */
+.rk-hero__inner {
+    max-width: 580px;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+@media (min-width: 768px) {
+    .rk-hero__inner {
+        gap: 1.5rem;
+    }
+}
+
+/* --------------------------------------------------------------------------
+   Typography
+   -------------------------------------------------------------------------- */
+
+.renderkit-hero .rk-heading-display {
+    font-weight: 400;
+    letter-spacing: -0.025em;
+    line-height: 1.08;
+    margin: 0;
+}
+
+.renderkit-hero .rk-heading-page {
+    font-weight: 400;
+    margin: 0;
+}
+
+/* Description */
+.rk-hero__description {
+    font-size: 1rem;
+    line-height: 1.7;
+    color: var(--rk-hero-muted);
+    margin: 0;
+    max-width: 460px;
+}
+
+@media (min-width: 768px) {
+    .rk-hero__description {
+        font-size: 1.0625rem;
+        line-height: 1.75;
+    }
+}
+
+/* --------------------------------------------------------------------------
+   CTA Button - Refined Glassmorphism with Shimmer
+   Premium frosted glass with animated border highlight
+   -------------------------------------------------------------------------- */
+
+.rk-hero__cta {
+    position: relative;
     display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.875rem 2rem;
+    font-family: inherit;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    text-decoration: none;
+    cursor: pointer;
+    border-radius: 9999px;
+    margin-top: 1rem;
+    width: fit-content;
+    overflow: hidden;
+    isolation: isolate;
+
+    /* Glassmorphism base */
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    color: inherit;
+
+    /* Clean border */
+    border: 1px solid rgba(255, 255, 255, 0.18);
+
+    /* Layered shadow for depth */
+    box-shadow:
+        inset 0 0.5px 0 rgba(255, 255, 255, 0.15),
+        0 2px 4px rgba(0, 0, 0, 0.08),
+        0 8px 24px -8px rgba(0, 0, 0, 0.12);
+
+    /* Silky smooth spring transition */
+    transition:
+        background 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+        border-color 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+        box-shadow 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+        transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-@keyframes rk-hero-fade-in {
+/* Shimmer overlay - subtle traveling highlight */
+.rk-hero__cta::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg,
+            transparent 0%,
+            rgba(255, 255, 255, 0.08) 50%,
+            transparent 100%);
+    transition: left 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+    pointer-events: none;
+}
+
+/* Glow ring on hover - ::after pseudo */
+.rk-hero__cta::after {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    background: transparent;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+    z-index: -1;
+}
+
+/* Light theme adjustments */
+.renderkit-hero--light .rk-hero__cta {
+    background: rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow:
+        inset 0 0.5px 0 rgba(255, 255, 255, 0.6),
+        0 2px 4px rgba(0, 0, 0, 0.04),
+        0 8px 24px -8px rgba(0, 0, 0, 0.08);
+}
+
+.renderkit-hero--light .rk-hero__cta::before {
+    background: linear-gradient(90deg,
+            transparent 0%,
+            rgba(255, 255, 255, 0.4) 50%,
+            transparent 100%);
+}
+
+/* Hover state - spring up with enhanced glow */
+.rk-hero__cta:hover {
+    background: rgba(255, 255, 255, 0.16);
+    border-color: rgba(255, 255, 255, 0.28);
+    box-shadow:
+        inset 0 0.5px 0 rgba(255, 255, 255, 0.2),
+        0 4px 8px rgba(0, 0, 0, 0.1),
+        0 16px 40px -12px rgba(0, 0, 0, 0.2);
+    transform: translateY(-3px);
+}
+
+.rk-hero__cta:hover::before {
+    left: 100%;
+}
+
+.rk-hero__cta:hover::after {
+    opacity: 1;
+    background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.06) 0%, transparent 70%);
+}
+
+.renderkit-hero--light .rk-hero__cta:hover {
+    background: rgba(0, 0, 0, 0.08);
+    border-color: rgba(0, 0, 0, 0.12);
+    box-shadow:
+        inset 0 0.5px 0 rgba(255, 255, 255, 0.7),
+        0 4px 8px rgba(0, 0, 0, 0.06),
+        0 16px 40px -12px rgba(0, 0, 0, 0.12);
+}
+
+.renderkit-hero--light .rk-hero__cta:hover::after {
+    background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.03) 0%, transparent 70%);
+}
+
+/* Active state - quick snap back */
+.rk-hero__cta:active {
+    transform: translateY(-1px) scale(0.98);
+    transition-duration: 0.1s;
+    box-shadow:
+        inset 0 0.5px 0 rgba(255, 255, 255, 0.1),
+        0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Focus state - accessible ring */
+.rk-hero__cta:focus-visible {
+    outline: none;
+    box-shadow:
+        inset 0 0.5px 0 rgba(255, 255, 255, 0.15),
+        0 0 0 2px rgba(255, 255, 255, 0.4),
+        0 8px 24px -8px rgba(0, 0, 0, 0.12);
+}
+
+.renderkit-hero--light .rk-hero__cta:focus-visible {
+    box-shadow:
+        inset 0 0.5px 0 rgba(255, 255, 255, 0.6),
+        0 0 0 2px rgba(0, 0, 0, 0.2),
+        0 8px 24px -8px rgba(0, 0, 0, 0.08);
+}
+
+/* CTA inner elements */
+.rk-hero__cta-text {
+    position: relative;
+    z-index: 1;
+}
+
+.rk-hero__cta-arrow {
+    position: relative;
+    z-index: 1;
+    flex-shrink: 0;
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.rk-hero__cta:hover .rk-hero__cta-arrow {
+    transform: translateX(4px);
+}
+
+/* --------------------------------------------------------------------------
+   Entrance Animation (subtle)
+   -------------------------------------------------------------------------- */
+
+@keyframes rk-hero-fade {
     from {
         opacity: 0;
+        transform: translateY(8px);
     }
 
     to {
         opacity: 1;
+        transform: translateY(0);
     }
 }
 
-@keyframes rk-hero-fade-in-up {
-    from {
-        opacity: 0;
-        transform: translate3d(0, 60px, 0);
-    }
-
-    to {
-        opacity: 1;
-        transform: translate3d(0, 0, 0);
-    }
+.renderkit-hero[data-rk-hero-render="view"] [data-rk-hero-anim] {
+    animation: rk-hero-fade 0.4s ease-out both;
 }
 
-/* Hero entrance animations (CSS-only; SSR-safe) */
-.renderkit-hero[data-rk-hero-render="view"][data-rk-hero-animations="1"] [data-rk-hero-anim="bar"] {
-    opacity: 0;
-    animation: rk-hero-fade-in 1s ease-out 0.3s both;
+.renderkit-hero[data-rk-hero-render="view"] [data-rk-hero-anim="heading"] {
+    animation-delay: 0s;
 }
 
-.renderkit-hero[data-rk-hero-render="view"][data-rk-hero-animations="1"] [data-rk-hero-anim="heading"] {
-    opacity: 0;
-    transform: translate3d(0, 60px, 0);
-    animation: rk-hero-fade-in-up 1.2s cubic-bezier(0.22, 1, 0.36, 1) 0.5s both;
+.renderkit-hero[data-rk-hero-render="view"] [data-rk-hero-anim="copy"] {
+    animation-delay: 0.1s;
 }
 
-.renderkit-hero[data-rk-hero-render="view"][data-rk-hero-animations="1"] [data-rk-hero-anim="copy"] {
-    opacity: 0;
-    transform: translate3d(0, 60px, 0);
-    animation: rk-hero-fade-in-up 1.2s cubic-bezier(0.22, 1, 0.36, 1) 0.8s both;
+/* --------------------------------------------------------------------------
+   Navigation Theme Sync
+   When hero is dark, navigation should use white text until scrolled
+   -------------------------------------------------------------------------- */
+
+/* Force navigation to use light text when over dark hero */
+.renderkit-hero--dark~.rk-nav:not([data-scrolled]),
+.renderkit-hero--dark+.rk-nav:not([data-scrolled]),
+body:has(.renderkit-hero--dark) .rk-nav:not([data-scrolled]) {
+    --nav-text: #ffffff;
 }
+
+/* Force navigation to use dark text when over light hero */
+.renderkit-hero--light~.rk-nav:not([data-scrolled]),
+.renderkit-hero--light+.rk-nav:not([data-scrolled]),
+body:has(.renderkit-hero--light) .rk-nav:not([data-scrolled]) {
+    --nav-text: rgba(0, 0, 0, 0.9);
+}
+
+/* --------------------------------------------------------------------------
+   Reduced Motion
+   -------------------------------------------------------------------------- */
 
 @media (prefers-reduced-motion: reduce) {
-    .renderkit-hero[data-rk-hero-render="view"][data-rk-hero-animations="1"] [data-rk-hero-anim] {
-        animation: none !important;
-        opacity: 1 !important;
-        transform: none !important;
+    .renderkit-hero[data-rk-hero-render="view"] [data-rk-hero-anim] {
+        animation: none;
+        opacity: 1;
+        transform: none;
     }
+
+    .rk-hero__cta {
+        transition: none;
+    }
+}
+
+/* --------------------------------------------------------------------------
+   Editor Styles
+   -------------------------------------------------------------------------- */
+
+.editor-styles-wrapper .renderkit-hero .rk-hero__cta {
+    pointer-events: none;
 }

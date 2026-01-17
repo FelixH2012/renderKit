@@ -24,7 +24,7 @@ export function View({ attributes, className }: ViewProps): JSX.Element {
         theme = 'light',
     } = attributes;
 
-    const hasButton = buttonText && buttonUrl && buttonUrl !== '#';
+    const hasButton = buttonText?.trim();
     const isImageLeft = imagePosition === 'left';
 
     const sectionClasses = [
@@ -42,15 +42,29 @@ export function View({ attributes, className }: ViewProps): JSX.Element {
             <div className="rk-text-image__inner">
                 <div className="rk-text-image__grid">
                     <div className="rk-text-image__content">
-                        <div className="rk-text-image__bar" aria-hidden="true" />
                         <h2 className="rk-text-image__heading">{heading}</h2>
                         <p className="rk-text-image__description">{description}</p>
-                        {hasButton ? (
-                            <a href={buttonUrl} className="rk-text-image__cta">
-                                <span>{buttonText}</span>
-                                <i className="rk-text-image__cta-icon fa-solid fa-arrow-right" aria-hidden="true"></i>
+                        {hasButton && (
+                            <a href={buttonUrl || '#'} className="rk-text-image__cta">
+                                <span className="rk-text-image__cta-text">{buttonText}</span>
+                                <svg
+                                    className="rk-text-image__cta-arrow"
+                                    width="16"
+                                    height="16"
+                                    viewBox="0 0 16 16"
+                                    fill="none"
+                                    aria-hidden="true"
+                                >
+                                    <path
+                                        d="M3.5 8H12.5M12.5 8L8.5 4M12.5 8L8.5 12"
+                                        stroke="currentColor"
+                                        strokeWidth="1.5"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                    />
+                                </svg>
                             </a>
-                        ) : null}
+                        )}
                     </div>
                     <div className="rk-text-image__media">
                         {imageUrl ? (

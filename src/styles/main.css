@@ -1,24 +1,26 @@
 @import './tokens.css';
 @import './base.css';
+@import './typography.css';
+@import './utilities.css';
+
+/* Block styles (alphabetical) */
+@import './blocks/cart.css';
+@import './blocks/contact-form.css';
+@import './blocks/cookie-banner.css';
+@import './blocks/cookie-gate.css';
+@import './blocks/faq.css';
+@import './blocks/footer.css';
 @import './blocks/hero.css';
 @import './blocks/navigation.css';
-@import './typography.css';
+@import './blocks/product-grid.css';
 @import './blocks/swiper.css';
 @import './blocks/text-block.css';
 @import './blocks/text-image.css';
-@import './blocks/contact-form.css';
-@import './blocks/faq.css';
-@import './blocks/cookie-banner.css';
-@import './blocks/cookie-gate.css';
-@import './blocks/footer.css';
-@import './pages/product-page.css';
+
+/* Page styles */
 @import './pages/product-archive.css';
-@import './utilities.css';
-@import './blocks/product-grid.css';
-@import './blocks/cart.css';
+@import './pages/product-page.css';
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* trigger rebuild */

@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "title": "RenderKit Hero",
     "category": "renderkit",
-    "description": "A stunning hero section with scroll-based animations",
+    "description": "A clean hero section for landing pages",
     "keywords": [
         "hero",
         "header",
@@ -22,7 +22,7 @@
     "attributes": {
         "heading": {
             "type": "string",
-            "default": "Handgemachte\nKerzen &\nGeschenkideen"
+            "default": "Handgemachte Kerzen & Geschenkideen"
         },
         "description": {
             "type": "string",
@@ -36,22 +36,6 @@
             "type": "string",
             "default": "#"
         },
-        "stat1Label": {
-            "type": "string",
-            "default": "Handarbeit"
-        },
-        "stat1Value": {
-            "type": "string",
-            "default": "100%"
-        },
-        "stat2Label": {
-            "type": "string",
-            "default": "Made in"
-        },
-        "stat2Value": {
-            "type": "string",
-            "default": "DE"
-        },
         "theme": {
             "type": "string",
             "default": "dark"
@@ -63,10 +47,6 @@
                 "full",
                 "minimal"
             ]
-        },
-        "enableAnimations": {
-            "type": "boolean",
-            "default": true
         }
     }
 }

@@ -1,7 +1,7 @@
 /**
  * Navigation Block - Frontend View Component
- * 
- * Premium rounded navigation with sticky option
+ *
+ * Modern, minimal navigation with sticky behavior and mobile menu.
  */
 
 import React from 'react';
@@ -26,7 +26,8 @@ export function View({ attributes, className }: ViewProps): JSX.Element {
         cartUrl = '/warenkorb/',
     } = attributes;
 
-    const normalizePath = (url: string) => {
+    // Normalize URL path for comparison
+    const normalizePath = (url: string): string => {
         try {
             const parsed = new URL(url, 'http://placeholder.local');
             return parsed.pathname.replace(/\/+$/, '') || '/';
@@ -37,99 +38,131 @@ export function View({ attributes, className }: ViewProps): JSX.Element {
 
     const currentPath = currentUrl ? normalizePath(currentUrl) : '';
 
-    const navClasses = [
-        'renderkit-block',
-        'renderkit-nav',
-        `renderkit-nav--${theme}`,
-        sticky && 'is-sticky',
-        className,
-    ].filter(Boolean).join(' ');
-
     return (
-        <nav className={navClasses} data-rk-nav-sticky={sticky ? '1' : '0'}>
-            <div className="renderkit-nav__shell">
-                <div className="renderkit-nav__inner">
-                    {showLogo && (
-                        <a href="/" className="renderkit-nav__logo">
-                            {logoUrl ? (
-                                <img src={logoUrl} alt={siteName} className="renderkit-nav__logo-img" />
-                            ) : null}
-                            <span className="renderkit-nav__logo-text">{siteName}</span>
-                        </a>
-                    )}
+        <nav
+            className={['rk-nav', className].filter(Boolean).join(' ')}
+            data-rk-nav
+            data-sticky={sticky || undefined}
+            data-theme={theme}
+        >
+            <div className="rk-nav__container">
+                {/* Logo */}
+                {showLogo && (
+                    <a href="/" className="rk-nav__logo">
+                        {logoUrl && (
+                            <img
+                                src={logoUrl}
+                                alt={siteName}
+                                className="rk-nav__logo-img"
+                                loading="eager"
+                            />
+                        )}
+                        <span className="rk-nav__logo-text">{siteName}</span>
+                    </a>
+                )}
 
-                    <div className="renderkit-nav__menu">
-                        {menuItems.map((item) => {
-                            const itemPath = normalizePath(item.url);
-                            const isActive = currentPath !== '' && currentPath === itemPath;
-                            return (
+                {/* Desktop Menu */}
+                <ul className="rk-nav__menu" role="menubar">
+                    {menuItems.map((item) => {
+                        const itemPath = normalizePath(item.url);
+                        const isActive = currentPath !== '' && currentPath === itemPath;
+                        return (
+                            <li key={item.id} role="none">
                                 <a
-                                    key={item.id}
                                     href={item.url}
-                                    className={[
-                                        'renderkit-nav__link',
-                                        isActive && 'renderkit-nav__link--active',
-                                    ]
-                                        .filter(Boolean)
-                                        .join(' ')}
+                                    className="rk-nav__link"
+                                    role="menuitem"
                                     aria-current={isActive ? 'page' : undefined}
+                                    data-active={isActive || undefined}
                                 >
                                     {item.title}
                                 </a>
+                            </li>
+                        );
+                    })}
+                </ul>
+
+                {/* Actions */}
+                <div className="rk-nav__actions">
+                    {/* Cart */}
+                    {showCart && (
+                        <a
+                            href={cartUrl}
+                            className="rk-nav__action"
+                            aria-label={`Warenkorb${cartCount > 0 ? ` (${cartCount} Artikel)` : ''}`}
+                        >
+                            <svg
+                                className="rk-nav__icon"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="1.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                aria-hidden="true"
+                            >
+                                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+                                <line x1="3" y1="6" x2="21" y2="6" />
+                                <path d="M16 10a4 4 0 0 1-8 0" />
+                            </svg>
+                            <span
+                                className="rk-nav__badge"
+                                data-rk-cart-count
+                                data-empty={cartCount === 0 || undefined}
+                            >
+                                {cartCount}
+                            </span>
+                        </a>
+                    )}
+
+                    {/* Mobile Menu Toggle */}
+                    <button
+                        type="button"
+                        className="rk-nav__toggle"
+                        data-rk-menu-toggle
+                        aria-label="Menü öffnen"
+                        aria-expanded="false"
+                        aria-controls="rk-mobile-menu"
+                    >
+                        <span className="rk-nav__hamburger">
+                            <span />
+                            <span />
+                            <span />
+                        </span>
+                    </button>
+                </div>
+            </div>
+
+            {/* Mobile Menu */}
+            <div
+                className="rk-nav__mobile"
+                id="rk-mobile-menu"
+                data-rk-mobile-menu
+                aria-hidden="true"
+            >
+                <div className="rk-nav__mobile-inner">
+                    <ul className="rk-nav__mobile-list">
+                        {menuItems.map((item, index) => {
+                            const itemPath = normalizePath(item.url);
+                            const isActive = currentPath !== '' && currentPath === itemPath;
+                            return (
+                                <li
+                                    key={item.id}
+                                    style={{ '--delay': `${index * 50}ms` } as React.CSSProperties}
+                                >
+                                    <a
+                                        href={item.url}
+                                        className="rk-nav__mobile-link"
+                                        data-rk-mobile-link
+                                        aria-current={isActive ? 'page' : undefined}
+                                        data-active={isActive || undefined}
+                                    >
+                                        {item.title}
+                                    </a>
+                                </li>
                             );
                         })}
-                    </div>
-
-                    <div className="renderkit-nav__actions">
-                        {showCart && (
-                            <a
-                                href={cartUrl}
-                                className="renderkit-nav__icon-button renderkit-nav__cart"
-                                aria-label={`Warenkorb${cartCount > 0 ? ` (${cartCount} Artikel)` : ''}`}
-                                data-rk-cart-trigger
-                            >
-                                <i className="renderkit-nav__icon fa-solid fa-bag-shopping" aria-hidden="true"></i>
-                                <span
-                                    className={`renderkit-nav__cart-count${cartCount === 0 ? ' is-empty' : ''}`}
-                                    data-rk-cart-count
-                                >
-                                    {cartCount}
-                                </span>
-                            </a>
-                        )}
-
-                        <details className="renderkit-nav__mobile-details">
-                            <summary className="renderkit-nav__icon-button renderkit-nav__mobile-toggle" aria-label="Menü" role="button">
-                                <i className="renderkit-nav__icon renderkit-nav__icon--menu fa-solid fa-bars" aria-hidden="true"></i>
-                                <i className="renderkit-nav__icon renderkit-nav__icon--close fa-solid fa-xmark" aria-hidden="true"></i>
-                            </summary>
-
-                            <div className={`renderkit-nav__mobile renderkit-nav--${theme}`}>
-                                <div className="renderkit-nav__mobile-links">
-                                    {menuItems.map((item) => {
-                                        const itemPath = normalizePath(item.url);
-                                        const isActive = currentPath !== '' && currentPath === itemPath;
-                                        return (
-                                            <a
-                                                key={item.id}
-                                                href={item.url}
-                                                className={[
-                                                    'renderkit-nav__mobile-link',
-                                                    isActive && 'renderkit-nav__mobile-link--active',
-                                                ]
-                                                    .filter(Boolean)
-                                                    .join(' ')}
-                                                aria-current={isActive ? 'page' : undefined}
-                                            >
-                                                {item.title}
-                                            </a>
-                                        );
-                                    })}
-                                </div>
-                                <div className="renderkit-nav__mobile-rule" />
-                            </div>
-                        </details>
-                    </div>
+                    </ul>
                 </div>
             </div>
         </nav>
