@@ -44,15 +44,14 @@ final class RelayClient {
     private array $memo = [];
 
     /**
-     * Circuit Breaker State (Per-Request + Time-based)
+     * Circuit Breaker State (shared via transients)
      *
-     * In a real persistent scenario we would use transients.
-     * For now, this is static per process, but improved with timestamps.
+     * Failures are tracked in a short rolling window and shared across PHP workers.
      */
-    private static int $failures = 0;
-    private static int $open_until = 0;
     private const MAX_FAILURES = 3;
     private const OPEN_DURATION = 30; // Seconds to keep circuit open
+    private const FAILURE_WINDOW = 60; // Seconds to keep failure count
+    private const TRANSIENT_CIRCUIT = 'rk_relay_circuit';
 
     /**
      * @param array{url:string, secret:string, timeout?:float} $config
@@ -407,35 +406,77 @@ final class RelayClient {
      * Check if circuit is open
      */
     private function is_circuit_open(): bool {
-        if (self::$open_until > time()) {
+        $now = time();
+        $state = $this->get_circuit_state();
+        $open_until = $state['open_until'];
+
+        if ($open_until > $now) {
             return true;
         }
-        
-        // Half-open: If time passed, allow 1 request through (effectively standard state until failure)
-        // Reset state if we passed the window
-        if (self::$open_until > 0) {
-            self::$open_until = 0;
-            self::$failures = 0; // Reset failures on probe attempt
+
+        // Half-open: if the window elapsed, allow one probe and reset state.
+        if ($open_until > 0) {
+            $this->reset_circuit_state();
+            return false;
         }
-        
-        return self::$failures >= self::MAX_FAILURES;
+
+        return false;
     }
 
     /**
      * Record a system failure
      */
     private function record_failure(): void {
-        self::$failures++;
-        if (self::$failures >= self::MAX_FAILURES) {
-            self::$open_until = time() + self::OPEN_DURATION;
+        $state = $this->get_circuit_state();
+        $failures = $state['failures'] + 1;
+        $open_until = $state['open_until'];
+
+        if ($failures >= self::MAX_FAILURES) {
+            $open_until = time() + self::OPEN_DURATION;
         }
+
+        $this->set_circuit_state($failures, $open_until);
     }
 
     /**
      * Record a success
      */
     private function record_success(): void {
-        self::$failures = 0;
-        self::$open_until = 0;
+        $this->reset_circuit_state();
+    }
+
+    /**
+     * Fetch circuit breaker state from transient storage.
+     *
+     * @return array{failures:int,open_until:int}
+     */
+    private function get_circuit_state(): array {
+        $state = get_transient(self::TRANSIENT_CIRCUIT);
+        if (!is_array($state)) {
+            return ['failures' => 0, 'open_until' => 0];
+        }
+
+        return [
+            'failures' => isset($state['failures']) ? (int) $state['failures'] : 0,
+            'open_until' => isset($state['open_until']) ? (int) $state['open_until'] : 0,
+        ];
+    }
+
+    /**
+     * Persist circuit breaker state for a short rolling window.
+     */
+    private function set_circuit_state(int $failures, int $open_until): void {
+        set_transient(
+            self::TRANSIENT_CIRCUIT,
+            ['failures' => $failures, 'open_until' => $open_until],
+            max(self::FAILURE_WINDOW, self::OPEN_DURATION)
+        );
+    }
+
+    /**
+     * Clear circuit breaker state.
+     */
+    private function reset_circuit_state(): void {
+        delete_transient(self::TRANSIENT_CIRCUIT);
     }
 }
