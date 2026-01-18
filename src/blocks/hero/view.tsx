@@ -6,19 +6,15 @@
 
 import React, { Fragment, useMemo } from 'react';
 import type { HeroAttributes } from './types';
+import { htmlToPlainText } from '../../utils/html';
 
 interface ViewProps {
     attributes: HeroAttributes;
     className?: string;
 }
 
-function toPlainTextWithNewlines(value: string): string {
-    const withNewlines = value.replace(/<br\s*\/?>/gi, '\n');
-    return withNewlines.replace(/<\/?[^>]+>/g, '');
-}
-
 function splitLines(value: string): string[] {
-    const normalized = toPlainTextWithNewlines(value).replace(/\r\n?/g, '\n');
+    const normalized = htmlToPlainText(value).replace(/\r\n?/g, '\n');
     return normalized.split('\n');
 }
 

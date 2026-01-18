@@ -7,16 +7,12 @@
 
 import React from 'react';
 import type { FooterViewAttributes } from './types';
+import { hasNonEmptyHtmlText } from '../../utils/html';
 
 interface ViewProps {
     attributes: FooterViewAttributes;
     content?: string;
     className?: string;
-}
-
-function isNonEmptyHtml(value: string): boolean {
-    const stripped = value.replace(/<[^>]*>/g, '').replace(/\s+/g, '').trim();
-    return stripped.length > 0;
 }
 
 export function View({ attributes, content = '', className }: ViewProps): JSX.Element {
@@ -30,7 +26,7 @@ export function View({ attributes, content = '', className }: ViewProps): JSX.El
     } = attributes as any;
 
     const year = new Date().getFullYear();
-    const hasExtra = isNonEmptyHtml(content);
+    const hasExtra = hasNonEmptyHtmlText(content);
     const hasMenu = Array.isArray(menuItems) && menuItems.length > 0;
 
     const footerClasses = [
