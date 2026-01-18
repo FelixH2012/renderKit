@@ -164,10 +164,51 @@ final class RelayClient {
         // Ensure numerical indexing and safe array
         $safe_items = array_values($items);
 
-        // Check memoization first (dedup) - Skipped for now, result memoization below covers it partially
+        $results = [];
+        $unique_items = [];
+        $unique_keys = [];
+        $indices_by_key = [];
 
-        $payload = ['blocks' => $safe_items];
+        foreach ($safe_items as $index => $item) {
+            $item_body = wp_json_encode($item);
+            if (!is_string($item_body) || $item_body === '') {
+                $results[$index] = $this->render_fallback($item['block'], $item['props']);
+                continue;
+            }
+
+            $cache_key = $item['block'] . ':' . md5($item_body);
+            if (isset($this->memo[$cache_key])) {
+                $results[$index] = $this->memo[$cache_key];
+                continue;
+            }
+
+            if (!isset($indices_by_key[$cache_key])) {
+                $indices_by_key[$cache_key] = [];
+                $unique_items[] = $item;
+                $unique_keys[] = $cache_key;
+            }
+
+            $indices_by_key[$cache_key][] = $index;
+        }
+
+        if (empty($unique_items)) {
+            ksort($results);
+            return $results;
+        }
+
+        $payload = ['blocks' => $unique_items];
         $body = wp_json_encode($payload);
+        if (!is_string($body) || $body === '') {
+            foreach ($unique_items as $unique_index => $item) {
+                $cache_key = $unique_keys[$unique_index];
+                $html = $this->render_fallback($item['block'], $item['props']);
+                foreach ($indices_by_key[$cache_key] as $index) {
+                    $results[$index] = $html;
+                }
+            }
+            ksort($results);
+            return $results;
+        }
         
         $timestamp = (string) time();
         $signature = hash_hmac('sha256', $timestamp . '.' . $body, $this->secret);
@@ -187,7 +228,15 @@ final class RelayClient {
 
         if (is_wp_error($response)) {
             $this->record_failure();
-            return array_map(fn($item) => $this->render_fallback($item['block'], $item['props']), $items);
+            foreach ($unique_items as $unique_index => $item) {
+                $cache_key = $unique_keys[$unique_index];
+                $html = $this->render_fallback($item['block'], $item['props']);
+                foreach ($indices_by_key[$cache_key] as $index) {
+                    $results[$index] = $html;
+                }
+            }
+            ksort($results);
+            return $results;
         }
 
         $status = (int) wp_remote_retrieve_response_code($response);
@@ -197,41 +246,66 @@ final class RelayClient {
              $json = json_decode(wp_remote_retrieve_body($response), true);
              if (!is_array($json) || empty($json['ok']) || !isset($json['results']) || !is_array($json['results'])) {
                  $this->record_failure();
-                 return array_map(fn($item) => $this->render_fallback($item['block'], $item['props']), $items);
+                 foreach ($unique_items as $unique_index => $item) {
+                     $cache_key = $unique_keys[$unique_index];
+                     $html = $this->render_fallback($item['block'], $item['props']);
+                     foreach ($indices_by_key[$cache_key] as $index) {
+                         $results[$index] = $html;
+                     }
+                 }
+                 ksort($results);
+                 return $results;
              }
 
              $this->record_success();
              
-             $results = [];
-             foreach ($safe_items as $index => $item) {
-                 $res = $json['results'][$index] ?? null;
+             foreach ($unique_items as $unique_index => $item) {
+                 $res = $json['results'][$unique_index] ?? null;
                  $html = '';
      
                  if ($res && !empty($res['ok']) && isset($res['html']) && is_string($res['html'])) {
                      $html = $res['html'];
                      // Memoize this individual result
-                     $item_body = wp_json_encode($item); 
-                     if ($item_body) {
-                        $cache_key = $item['block'] . ':' . md5($item_body);
-                        $this->memo[$cache_key] = $html;
-                     }
+                     $cache_key = $unique_keys[$unique_index];
+                     $this->memo[$cache_key] = $html;
                      $this->store_snapshot($item['block'], $item['props'], $html);
                  } else {
                      $html = $this->render_fallback($item['block'], $item['props']);
                  }
-                 $results[$index] = $html;
+
+                 $cache_key = $unique_keys[$unique_index];
+                 foreach ($indices_by_key[$cache_key] as $index) {
+                     $results[$index] = $html;
+                 }
              }
+             ksort($results);
              return $results;
         }
 
         // Client Error (4xx) - Fallback without breaker
         if ($status >= 400 && $status < 500) {
-            return array_map(fn($item) => $this->render_fallback($item['block'], $item['props']), $items);
+            foreach ($unique_items as $unique_index => $item) {
+                $cache_key = $unique_keys[$unique_index];
+                $html = $this->render_fallback($item['block'], $item['props']);
+                foreach ($indices_by_key[$cache_key] as $index) {
+                    $results[$index] = $html;
+                }
+            }
+            ksort($results);
+            return $results;
         }
 
         // System Failure (5xx / 3xx)
         $this->record_failure();
-        return array_map(fn($item) => $this->render_fallback($item['block'], $item['props']), $items);
+        foreach ($unique_items as $unique_index => $item) {
+            $cache_key = $unique_keys[$unique_index];
+            $html = $this->render_fallback($item['block'], $item['props']);
+            foreach ($indices_by_key[$cache_key] as $index) {
+                $results[$index] = $html;
+            }
+        }
+        ksort($results);
+        return $results;
     }
 
     /**
