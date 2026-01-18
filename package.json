@@ -21,7 +21,7 @@
         "@wordpress/i18n": "^5.0.0",
         "autoprefixer": "^10.4.20",
         "chokidar": "^4.0.0",
-        "esbuild": "^0.24.0",
+        "esbuild": "^0.25.12",
         "esbuild-postcss": "^0.0.4",
         "postcss": "^8.4.49",
         "postcss-import": "^16.1.0",
