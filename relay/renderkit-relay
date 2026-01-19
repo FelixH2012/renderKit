@@ -76,6 +76,40 @@ require_env() {
     load_env
 }
 
+check_required_vars() {
+    local missing=()
+    
+    if [[ -z "${RENDERKIT_RELAY_SECRET:-}" ]]; then
+        missing+=("RENDERKIT_RELAY_SECRET")
+    fi
+    
+    if (( ${#missing[@]} > 0 )); then
+        echo "" >&2
+        echo "ERROR: Missing required environment variables" >&2
+        echo "" >&2
+        for var in "${missing[@]}"; do
+            echo "  - $var" >&2
+        done
+        echo "" >&2
+        echo "To fix, add these to: $ENV_FILE" >&2
+        echo "Or run 'make relay-init' to generate a fresh config." >&2
+        exit 1
+    fi
+}
+
+check_monitoring_vars() {
+    if [[ -z "${GRAFANA_PASSWORD:-}" ]]; then
+        echo "" >&2
+        echo "ERROR: Missing Grafana configuration" >&2
+        echo "" >&2
+        echo "  - GRAFANA_PASSWORD is not set" >&2
+        echo "" >&2
+        echo "Add to $ENV_FILE:" >&2
+        echo "  GRAFANA_PASSWORD=your-secure-password" >&2
+        exit 1
+    fi
+}
+
 print_wp_config() {
     require_env
     local port="${RENDERKIT_RELAY_PORT:-$DEFAULT_PORT}"
@@ -93,14 +127,7 @@ shift || true
 
 case "$cmd" in
     init)
-        if [[ -f "$ENV_FILE" ]]; then
-            echo "renderKit-Relay: $ENV_FILE already exists"
-            echo
-            echo "wp-config.php:"
-            print_wp_config
-            exit 0
-        fi
-
+        force=false
         port="$DEFAULT_PORT"
         while [[ $# -gt 0 ]]; do
             case "$1" in
@@ -109,11 +136,23 @@ case "$cmd" in
                     port="$2"
                     shift 2
                     ;;
+                --force|-f)
+                    force=true
+                    shift
+                    ;;
                 *)
                     die "unknown arg for init: $1"
                     ;;
             esac
         done
+
+        if [[ -f "$ENV_FILE" ]] && [[ "$force" == "false" ]]; then
+            echo "renderKit-Relay: $ENV_FILE already exists (use --force to regenerate)"
+            echo
+            echo "wp-config.php:"
+            print_wp_config
+            exit 0
+        fi
 
         [[ "$port" =~ ^[0-9]+$ ]] || die "invalid port: $port"
         (( port >= 1 && port <= 65535 )) || die "invalid port: $port"
@@ -145,6 +184,7 @@ ENV
 
     up|start)
         require_env
+        check_required_vars
         compose up -d renderkit-relay
         ;;
 
@@ -154,6 +194,7 @@ ENV
 
     restart)
         require_env
+        check_required_vars
         compose down --remove-orphans
         compose up -d renderkit-relay
         ;;
@@ -201,7 +242,7 @@ ENV
 renderKit-Relay helper
 
 Usage:
-  $0 init [--port 8787]
+  $0 init [--port 8787] [--force]
   $0 up|start
   $0 down|stop
   $0 restart
