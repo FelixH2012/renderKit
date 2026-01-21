@@ -26,6 +26,7 @@ export function View({ attributes, className }: ViewProps): JSX.Element {
         buttonUrl,
         theme: colorTheme,
         variant = 'full',
+        blockId,
     } = attributes as any;
 
     const headingLines = useMemo(() => splitLines(heading), [heading]);
@@ -42,6 +43,7 @@ export function View({ attributes, className }: ViewProps): JSX.Element {
 
     return (
         <section
+            id={blockId || undefined}
             className={sectionClasses}
             data-rk-hero-render="view"
             data-rk-hero-variant={variant}

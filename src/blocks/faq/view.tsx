@@ -13,7 +13,7 @@ interface ViewProps {
 }
 
 export function View({ attributes, className }: ViewProps): JSX.Element {
-    const { heading, intro, theme, openFirst, items } = attributes;
+    const { heading, intro, theme, openFirst, items, blockId } = attributes;
 
     const sectionClasses = [
         'renderkit-block',
@@ -23,7 +23,7 @@ export function View({ attributes, className }: ViewProps): JSX.Element {
     ].filter(Boolean).join(' ');
 
     return (
-        <section className={sectionClasses} data-rk-animate>
+        <section id={blockId || undefined} className={sectionClasses} data-rk-animate>
             <div className="rk-faq__inner">
                 <header className="rk-faq__header">
                     <h2 className="rk-faq__heading">{heading}</h2>

@@ -7,7 +7,9 @@
 import { __ } from '@wordpress/i18n';
 import { useBlockProps, InspectorControls, RichText } from '@wordpress/block-editor';
 import { PanelBody, TextControl, SelectControl } from '@wordpress/components';
+import { useEffect } from '@wordpress/element';
 import type { HeroAttributes, HeroTheme, HeroVariant } from './types';
+import { generateBlockId } from '../../utils/blockId';
 
 interface EditProps {
     attributes: HeroAttributes;
@@ -16,7 +18,14 @@ interface EditProps {
 }
 
 export function Edit({ attributes, setAttributes, className }: EditProps): JSX.Element {
-    const { heading, description, buttonText, buttonUrl, theme: colorTheme, variant = 'full' } = attributes as any;
+    const { heading, description, buttonText, buttonUrl, theme: colorTheme, variant = 'full', blockId } = attributes as any;
+
+    // Auto-generate blockId on first render if not set
+    useEffect(() => {
+        if (!blockId) {
+            setAttributes({ blockId: generateBlockId('hero') });
+        }
+    }, []);
 
     const blockProps = useBlockProps({
         className: `renderkit-block renderkit-hero renderkit-hero--${colorTheme} renderkit-hero--${variant} ${className || ''}`.trim(),

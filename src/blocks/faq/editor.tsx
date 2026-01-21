@@ -5,7 +5,9 @@
 import { __ } from '@wordpress/i18n';
 import { useBlockProps, InspectorControls, RichText } from '@wordpress/block-editor';
 import { PanelBody, SelectControl, ToggleControl, Button, TextareaControl } from '@wordpress/components';
+import { useEffect } from '@wordpress/element';
 import type { FaqAttributes, FaqItem } from './types';
+import { generateBlockId } from '../../utils/blockId';
 
 interface EditProps {
     attributes: FaqAttributes;
@@ -14,7 +16,14 @@ interface EditProps {
 }
 
 export function Edit({ attributes, setAttributes, className }: EditProps): JSX.Element {
-    const { heading, intro, theme, openFirst, items } = attributes;
+    const { heading, intro, theme, openFirst, items, blockId } = attributes;
+
+    // Auto-generate blockId on first render if not set
+    useEffect(() => {
+        if (!blockId) {
+            setAttributes({ blockId: generateBlockId('faq') });
+        }
+    }, []);
 
     const blockProps = useBlockProps({
         className: `renderkit-block renderkit-faq renderkit-faq--${theme} ${className || ''}`.trim(),

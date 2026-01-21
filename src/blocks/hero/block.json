@@ -20,6 +20,10 @@
         ]
     },
     "attributes": {
+        "blockId": {
+            "type": "string",
+            "default": ""
+        },
         "heading": {
             "type": "string",
             "default": "Handgemachte Kerzen & Geschenkideen"

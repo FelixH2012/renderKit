@@ -21,6 +21,10 @@
         ]
     },
     "attributes": {
+        "blockId": {
+            "type": "string",
+            "default": ""
+        },
         "heading": {
             "type": "string",
             "default": "Haeufige Fragen"

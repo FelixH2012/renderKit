@@ -4,6 +4,7 @@ export interface FaqItem {
 }
 
 export interface FaqAttributes {
+    blockId?: string;
     heading: string;
     intro: string;
     theme: 'light' | 'dark';
