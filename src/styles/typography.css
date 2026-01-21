@@ -2,17 +2,19 @@
 .rk-heading-display {
     font-family: var(--rk-font-display);
     font-size: clamp(2.5rem, 8vw, 6rem);
-    font-weight: 300;
-    line-height: 0.95;
-    letter-spacing: -0.03em;
+    font-weight: 400;
+    line-height: 1.08;
+    letter-spacing: -0.025em;
+    margin: 0;
 }
 
 .rk-heading-page {
     font-family: var(--rk-font-display);
     font-size: clamp(2.125rem, 6vw, 3.75rem);
-    font-weight: 300;
+    font-weight: 400;
     line-height: 1.02;
     letter-spacing: -0.03em;
+    margin: 0;
 }
 
 

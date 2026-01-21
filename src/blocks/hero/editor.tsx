@@ -27,8 +27,17 @@ export function Edit({ attributes, setAttributes, className }: EditProps): JSX.E
         }
     }, []);
 
+    const resolvedTheme = colorTheme === 'light' ? 'light' : 'dark';
+    const shellClasses = 'rk-hero-shell';
+
     const blockProps = useBlockProps({
-        className: `renderkit-block renderkit-hero renderkit-hero--${colorTheme} renderkit-hero--${variant} ${className || ''}`.trim(),
+        className: [
+            'renderkit-block',
+            'renderkit-hero',
+            `renderkit-hero--${resolvedTheme}`,
+            `renderkit-hero--${variant}`,
+            className,
+        ].filter(Boolean).join(' '),
     });
 
     return (
@@ -70,46 +79,48 @@ export function Edit({ attributes, setAttributes, className }: EditProps): JSX.E
             </InspectorControls>
 
             <div {...blockProps}>
-                <div className="rk-hero__bg" aria-hidden="true" />
-                <div className="rk-hero__content">
-                    <div className="rk-hero__inner">
-                        <RichText
-                            tagName="h1"
-                            className={variant === 'minimal' ? 'rk-heading-page' : 'rk-heading-display'}
-                            value={heading}
-                            onChange={(v: string) => setAttributes({ heading: v })}
-                            placeholder={__('Your headline here...', 'renderkit')}
-                        />
+                <div className={shellClasses}>
+                    <div className="rk-hero__bg" aria-hidden="true" data-rk-hero-bg />
+                    <div className="rk-hero__content rk-container-wide">
+                        <div className="rk-hero__inner">
+                            <RichText
+                                tagName="h1"
+                                className={variant === 'minimal' ? 'rk-heading-page' : 'rk-heading-display'}
+                                value={heading}
+                                onChange={(v: string) => setAttributes({ heading: v })}
+                                placeholder={__('Your headline here...', 'renderkit')}
+                            />
 
-                        <RichText
-                            tagName="p"
-                            className="rk-hero__description"
-                            value={description}
-                            onChange={(v: string) => setAttributes({ description: v })}
-                            placeholder={__('A brief, compelling description...', 'renderkit')}
-                        />
+                            <RichText
+                                tagName="p"
+                                className="rk-hero__description"
+                                value={description}
+                                onChange={(v: string) => setAttributes({ description: v })}
+                                placeholder={__('A brief, compelling description...', 'renderkit')}
+                            />
 
-                        <span className="rk-hero__cta">
-                            <span className="rk-hero__cta-text">
-                                {buttonText || __('Entdecken', 'renderkit')}
+                            <span className="rk-hero__cta rk-cta rk-cta--hero rk-cta--glow rk-cta--disabled">
+                                <span className="rk-hero__cta-text rk-cta__text">
+                                    {buttonText || __('Entdecken', 'renderkit')}
+                                </span>
+                                <svg
+                                    className="rk-hero__cta-arrow rk-cta__arrow"
+                                    width="16"
+                                    height="16"
+                                    viewBox="0 0 16 16"
+                                    fill="none"
+                                    aria-hidden="true"
+                                >
+                                    <path
+                                        d="M3.5 8H12.5M12.5 8L8.5 4M12.5 8L8.5 12"
+                                        stroke="currentColor"
+                                        strokeWidth="1.5"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                    />
+                                </svg>
                             </span>
-                            <svg
-                                className="rk-hero__cta-arrow"
-                                width="16"
-                                height="16"
-                                viewBox="0 0 16 16"
-                                fill="none"
-                                aria-hidden="true"
-                            >
-                                <path
-                                    d="M3.5 8H12.5M12.5 8L8.5 4M12.5 8L8.5 12"
-                                    stroke="currentColor"
-                                    strokeWidth="1.5"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                />
-                            </svg>
-                        </span>
+                        </div>
                     </div>
                 </div>
             </div>

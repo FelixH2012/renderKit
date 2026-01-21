@@ -1,328 +1,153 @@
-/* ==========================================================================
-   Hero Block - Final Polish with Background & Navigation Sync
-   ========================================================================== */
+/*
+   Hero Block
+   Styling centralized with tokens and Tailwind component classes.
+*/
 
-.renderkit-hero {
-    position: relative;
-    width: 100%;
-}
-
-/* --------------------------------------------------------------------------
-   Theme Variants
-   -------------------------------------------------------------------------- */
-
-/* Dark theme */
-.renderkit-hero--dark {
-    background-color: #0a0a0a;
-    color: #fafafa;
-    --rk-hero-muted: rgba(250, 250, 250, 0.6);
-    --rk-hero-cta-bg: #fafafa;
-    --rk-hero-cta-text: #0a0a0a;
-    --rk-hero-cta-hover: #e5e5e5;
-    --rk-hero-pattern: rgba(255, 255, 255, 0.03);
-}
-
-/* Light theme */
-.renderkit-hero--light {
-    background-color: #fafafa;
-    color: #171717;
-    --rk-hero-muted: rgba(23, 23, 23, 0.55);
-    --rk-hero-cta-bg: #171717;
-    --rk-hero-cta-text: #fafafa;
-    --rk-hero-cta-hover: #262626;
-    --rk-hero-pattern: rgba(0, 0, 0, 0.025);
-}
-
-/* --------------------------------------------------------------------------
-   Background Texture (subtle, not slop)
-   -------------------------------------------------------------------------- */
-
-.rk-hero__bg {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    overflow: hidden;
-}
-
-/* Subtle noise texture via CSS gradient */
-.rk-hero__bg::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background-image:
-        radial-gradient(circle at 20% 80%, var(--rk-hero-pattern) 0%, transparent 50%),
-        radial-gradient(circle at 80% 20%, var(--rk-hero-pattern) 0%, transparent 50%);
-    opacity: 1;
-}
-
-/* Subtle vignette for depth */
-.rk-hero__bg::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(ellipse at center, transparent 0%, rgba(0, 0, 0, 0.03) 100%);
-}
-
-.renderkit-hero--light .rk-hero__bg::after {
-    background: radial-gradient(ellipse at center, transparent 0%, rgba(0, 0, 0, 0.02) 100%);
-}
-
-/* --------------------------------------------------------------------------
-   Layout Variants
-   -------------------------------------------------------------------------- */
-
-/* Full variant - landing pages */
-.renderkit-hero--full {
-    min-height: 100vh;
-    min-height: 100dvh;
-    display: flex;
-    align-items: center;
-    padding: var(--rk-section-padding-y-loose) 0;
-}
-
-/* Minimal variant - subpages */
-.renderkit-hero--minimal {
-    padding-top: calc(var(--rk-section-padding-y) + var(--rk-space-2xl));
-    padding-bottom: var(--rk-section-padding-y);
-}
-
-@media (min-width: 768px) {
-    .renderkit-hero--minimal {
-        padding-top: calc(var(--rk-section-padding-y) + var(--rk-space-3xl));
+@layer components {
+    .rk-hero-shell {
+        @apply relative w-full;
     }
-}
 
-/* --------------------------------------------------------------------------
-   Content Container
-   Shared container sizing and padding for consistent section alignment
-   -------------------------------------------------------------------------- */
+    .renderkit-hero--full .rk-hero-shell {
+        min-height: 100vh;
+        min-height: 100dvh;
+        display: flex;
+        align-items: center;
+        padding-block: var(--rk-section-padding-y-loose);
+    }
 
-.rk-hero__content {
-    position: relative;
-    z-index: 1;
-    width: 100%;
-    max-width: var(--rk-container-wide);
-    margin: 0 auto;
-    padding: 0 var(--rk-container-padding-x);
-}
+    .renderkit-hero--minimal .rk-hero-shell {
+        padding-top: calc(var(--rk-section-padding-y) + var(--rk-space-2xl));
+        padding-bottom: var(--rk-section-padding-y);
+    }
 
-/* Inner wrapper */
-.rk-hero__inner {
-    max-width: 580px;
-    display: flex;
-    flex-direction: column;
-    gap: var(--rk-space-md);
-}
+    @media (min-width: 768px) {
+        .renderkit-hero--minimal .rk-hero-shell {
+            padding-top: calc(var(--rk-section-padding-y) + var(--rk-space-3xl));
+        }
+    }
 
-@media (min-width: 768px) {
+    .renderkit-hero--dark .rk-hero-shell {
+        background-color: #0a0a0a;
+        color: #fafafa;
+        --rk-hero-muted: rgba(250, 250, 250, 0.6);
+        --rk-hero-pattern: rgba(255, 255, 255, 0.03);
+        --rk-hero-vignette: rgba(0, 0, 0, 0.03);
+        --rk-cta-bg: rgba(255, 255, 255, 0.1);
+        --rk-cta-border: rgba(255, 255, 255, 0.18);
+        --rk-cta-hover-bg: rgba(255, 255, 255, 0.16);
+        --rk-cta-shimmer: rgba(255, 255, 255, 0.08);
+        --rk-cta-shadow: inset 0 0.5px 0 rgba(255, 255, 255, 0.15),
+            0 2px 4px rgba(0, 0, 0, 0.08),
+            0 8px 24px -8px rgba(0, 0, 0, 0.12);
+        --rk-cta-shadow-hover: inset 0 0.5px 0 rgba(255, 255, 255, 0.2),
+            0 4px 8px rgba(0, 0, 0, 0.1),
+            0 16px 40px -12px rgba(0, 0, 0, 0.2);
+        --rk-cta-focus: inset 0 0.5px 0 rgba(255, 255, 255, 0.15),
+            0 0 0 2px rgba(255, 255, 255, 0.4),
+            0 8px 24px -8px rgba(0, 0, 0, 0.12);
+        --rk-cta-glow: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.06) 0%, transparent 70%);
+    }
+
+    .renderkit-hero--light .rk-hero-shell {
+        background-color: #fafafa;
+        color: #171717;
+        --rk-hero-muted: rgba(23, 23, 23, 0.55);
+        --rk-hero-pattern: rgba(0, 0, 0, 0.025);
+        --rk-hero-vignette: rgba(0, 0, 0, 0.02);
+        --rk-cta-bg: rgba(0, 0, 0, 0.05);
+        --rk-cta-border: rgba(0, 0, 0, 0.08);
+        --rk-cta-hover-bg: rgba(0, 0, 0, 0.08);
+        --rk-cta-shimmer: rgba(255, 255, 255, 0.4);
+        --rk-cta-shadow: inset 0 0.5px 0 rgba(255, 255, 255, 0.6),
+            0 2px 4px rgba(0, 0, 0, 0.04),
+            0 8px 24px -8px rgba(0, 0, 0, 0.08);
+        --rk-cta-shadow-hover: inset 0 0.5px 0 rgba(255, 255, 255, 0.7),
+            0 4px 8px rgba(0, 0, 0, 0.06),
+            0 16px 40px -12px rgba(0, 0, 0, 0.12);
+        --rk-cta-focus: inset 0 0.5px 0 rgba(255, 255, 255, 0.6),
+            0 0 0 2px rgba(0, 0, 0, 0.2),
+            0 8px 24px -8px rgba(0, 0, 0, 0.08);
+        --rk-cta-glow: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.03) 0%, transparent 70%);
+    }
+
+    .rk-hero__bg {
+        @apply absolute inset-0 pointer-events-none overflow-hidden;
+    }
+
+    .rk-hero__bg::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background-image:
+            radial-gradient(circle at 20% 80%, var(--rk-hero-pattern) 0%, transparent 50%),
+            radial-gradient(circle at 80% 20%, var(--rk-hero-pattern) 0%, transparent 50%);
+    }
+
+    .rk-hero__bg::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(ellipse at center, transparent 0%, var(--rk-hero-vignette) 100%);
+    }
+
+    .rk-hero__content {
+        @apply relative z-[1];
+    }
+
     .rk-hero__inner {
-        gap: var(--rk-space-lg);
+        max-width: var(--rk-hero-inner-max);
+        display: flex;
+        flex-direction: column;
+        gap: var(--rk-space-md);
     }
-}
 
-/* --------------------------------------------------------------------------
-   Typography
-   -------------------------------------------------------------------------- */
+    @media (min-width: 768px) {
+        .rk-hero__inner {
+            gap: var(--rk-space-lg);
+        }
+    }
 
-.renderkit-hero .rk-heading-display {
-    font-weight: 400;
-    letter-spacing: -0.025em;
-    line-height: 1.08;
-    margin: 0;
-}
-
-.renderkit-hero .rk-heading-page {
-    font-weight: 400;
-    margin: 0;
-}
-
-/* Description */
-.rk-hero__description {
-    font-size: var(--rk-text-base);
-    line-height: 1.7;
-    color: var(--rk-hero-muted);
-    margin: 0;
-    max-width: 460px;
-}
-
-@media (min-width: 768px) {
     .rk-hero__description {
-        font-size: var(--rk-text-lg);
-        line-height: 1.75;
+        font-size: var(--rk-text-base);
+        line-height: 1.7;
+        color: var(--rk-hero-muted);
+        margin: 0;
+        max-width: var(--rk-hero-description-max);
+    }
+
+    .rk-hero__cta {
+        margin-top: var(--rk-space-md);
+        width: fit-content;
+    }
+
+    @media (min-width: 768px) {
+        .rk-hero__description {
+            font-size: var(--rk-text-lg);
+            line-height: 1.75;
+        }
+    }
+
+    .renderkit-hero[data-rk-hero-render="view"] [data-rk-hero-anim] {
+        animation: rk-hero-fade 0.4s ease-out both;
+    }
+
+    .renderkit-hero[data-rk-hero-render="view"] [data-rk-hero-anim="heading"] {
+        animation-delay: 0s;
+    }
+
+    .renderkit-hero[data-rk-hero-render="view"] [data-rk-hero-anim="copy"] {
+        animation-delay: 0.1s;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .renderkit-hero[data-rk-hero-render="view"] [data-rk-hero-anim] {
+            animation: none;
+            opacity: 1;
+            transform: none;
+        }
     }
 }
-
-/* --------------------------------------------------------------------------
-   CTA Button - Refined Glassmorphism with Shimmer
-   Premium frosted glass with animated border highlight
-   -------------------------------------------------------------------------- */
-
-.rk-hero__cta {
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    padding: 0.875rem 2rem;
-    font-family: inherit;
-    font-size: var(--rk-text-sm);
-    font-weight: 500;
-    letter-spacing: 0.01em;
-    text-decoration: none;
-    cursor: pointer;
-    border-radius: 9999px;
-    margin-top: var(--rk-space-md);
-    width: fit-content;
-    overflow: hidden;
-    isolation: isolate;
-
-    /* Glassmorphism base */
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
-    color: inherit;
-
-    /* Clean border */
-    border: 1px solid rgba(255, 255, 255, 0.18);
-
-    /* Layered shadow for depth */
-    box-shadow:
-        inset 0 0.5px 0 rgba(255, 255, 255, 0.15),
-        0 2px 4px rgba(0, 0, 0, 0.08),
-        0 8px 24px -8px rgba(0, 0, 0, 0.12);
-
-    /* Silky smooth spring transition */
-    transition:
-        background 0.4s cubic-bezier(0.22, 1, 0.36, 1),
-        border-color 0.4s cubic-bezier(0.22, 1, 0.36, 1),
-        box-shadow 0.4s cubic-bezier(0.22, 1, 0.36, 1),
-        transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-/* Shimmer overlay - subtle traveling highlight */
-.rk-hero__cta::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg,
-            transparent 0%,
-            rgba(255, 255, 255, 0.08) 50%,
-            transparent 100%);
-    transition: left 0.6s cubic-bezier(0.22, 1, 0.36, 1);
-    pointer-events: none;
-}
-
-/* Glow ring on hover - ::after pseudo */
-.rk-hero__cta::after {
-    content: '';
-    position: absolute;
-    inset: -1px;
-    border-radius: inherit;
-    background: transparent;
-    opacity: 0;
-    transition: opacity 0.4s ease;
-    pointer-events: none;
-    z-index: -1;
-}
-
-/* Light theme adjustments */
-.renderkit-hero--light .rk-hero__cta {
-    background: rgba(0, 0, 0, 0.05);
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    box-shadow:
-        inset 0 0.5px 0 rgba(255, 255, 255, 0.6),
-        0 2px 4px rgba(0, 0, 0, 0.04),
-        0 8px 24px -8px rgba(0, 0, 0, 0.08);
-}
-
-.renderkit-hero--light .rk-hero__cta::before {
-    background: linear-gradient(90deg,
-            transparent 0%,
-            rgba(255, 255, 255, 0.4) 50%,
-            transparent 100%);
-}
-
-/* Hover state - spring up with enhanced glow */
-.rk-hero__cta:hover {
-    background: rgba(255, 255, 255, 0.16);
-    border-color: rgba(255, 255, 255, 0.28);
-    box-shadow:
-        inset 0 0.5px 0 rgba(255, 255, 255, 0.2),
-        0 4px 8px rgba(0, 0, 0, 0.1),
-        0 16px 40px -12px rgba(0, 0, 0, 0.2);
-    transform: translateY(-3px);
-}
-
-.rk-hero__cta:hover::before {
-    left: 100%;
-}
-
-.rk-hero__cta:hover::after {
-    opacity: 1;
-    background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.06) 0%, transparent 70%);
-}
-
-.renderkit-hero--light .rk-hero__cta:hover {
-    background: rgba(0, 0, 0, 0.08);
-    border-color: rgba(0, 0, 0, 0.12);
-    box-shadow:
-        inset 0 0.5px 0 rgba(255, 255, 255, 0.7),
-        0 4px 8px rgba(0, 0, 0, 0.06),
-        0 16px 40px -12px rgba(0, 0, 0, 0.12);
-}
-
-.renderkit-hero--light .rk-hero__cta:hover::after {
-    background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.03) 0%, transparent 70%);
-}
-
-/* Active state - quick snap back */
-.rk-hero__cta:active {
-    transform: translateY(-1px) scale(0.98);
-    transition-duration: 0.1s;
-    box-shadow:
-        inset 0 0.5px 0 rgba(255, 255, 255, 0.1),
-        0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-/* Focus state - accessible ring */
-.rk-hero__cta:focus-visible {
-    outline: none;
-    box-shadow:
-        inset 0 0.5px 0 rgba(255, 255, 255, 0.15),
-        0 0 0 2px rgba(255, 255, 255, 0.4),
-        0 8px 24px -8px rgba(0, 0, 0, 0.12);
-}
-
-.renderkit-hero--light .rk-hero__cta:focus-visible {
-    box-shadow:
-        inset 0 0.5px 0 rgba(255, 255, 255, 0.6),
-        0 0 0 2px rgba(0, 0, 0, 0.2),
-        0 8px 24px -8px rgba(0, 0, 0, 0.08);
-}
-
-/* CTA inner elements */
-.rk-hero__cta-text {
-    position: relative;
-    z-index: 1;
-}
-
-.rk-hero__cta-arrow {
-    position: relative;
-    z-index: 1;
-    flex-shrink: 0;
-    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-.rk-hero__cta:hover .rk-hero__cta-arrow {
-    transform: translateX(4px);
-}
-
-/* --------------------------------------------------------------------------
-   Entrance Animation (subtle)
-   -------------------------------------------------------------------------- */
 
 @keyframes rk-hero-fade {
     from {
@@ -336,23 +161,6 @@
     }
 }
 
-.renderkit-hero[data-rk-hero-render="view"] [data-rk-hero-anim] {
-    animation: rk-hero-fade 0.4s ease-out both;
-}
-
-.renderkit-hero[data-rk-hero-render="view"] [data-rk-hero-anim="heading"] {
-    animation-delay: 0s;
-}
-
-.renderkit-hero[data-rk-hero-render="view"] [data-rk-hero-anim="copy"] {
-    animation-delay: 0.1s;
-}
-
-/* --------------------------------------------------------------------------
-   Navigation Theme Sync
-   When hero is dark, navigation should use white text until scrolled
-   -------------------------------------------------------------------------- */
-
 /* Force navigation to use light text when over dark hero */
 .renderkit-hero--dark~.rk-nav:not([data-scrolled]),
 .renderkit-hero--dark+.rk-nav:not([data-scrolled]),
@@ -365,28 +173,4 @@ body:has(.renderkit-hero--dark) .rk-nav:not([data-scrolled]) {
 .renderkit-hero--light+.rk-nav:not([data-scrolled]),
 body:has(.renderkit-hero--light) .rk-nav:not([data-scrolled]) {
     --nav-text: rgba(0, 0, 0, 0.9);
-}
-
-/* --------------------------------------------------------------------------
-   Reduced Motion
-   -------------------------------------------------------------------------- */
-
-@media (prefers-reduced-motion: reduce) {
-    .renderkit-hero[data-rk-hero-render="view"] [data-rk-hero-anim] {
-        animation: none;
-        opacity: 1;
-        transform: none;
-    }
-
-    .rk-hero__cta {
-        transition: none;
-    }
-}
-
-/* --------------------------------------------------------------------------
-   Editor Styles
-   -------------------------------------------------------------------------- */
-
-.editor-styles-wrapper .renderkit-hero .rk-hero__cta {
-    pointer-events: none;
 }

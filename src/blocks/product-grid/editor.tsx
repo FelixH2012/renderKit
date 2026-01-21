@@ -63,8 +63,22 @@ export function Edit({ attributes, setAttributes, className }: EditProps): JSX.E
     ];
 
     const blockProps = useBlockProps({
-        className: `renderkit-block renderkit-product-grid ${className || ''}`,
+        className: [
+            'renderkit-block',
+            'renderkit-product-grid',
+            className,
+        ].filter(Boolean).join(' '),
     });
+
+    const colSpanClasses: Record<number, string> = {
+        7: 'col-span-7',
+        5: 'col-span-5',
+        4: 'col-span-4',
+    };
+    const rowSpanClasses: Record<number, string> = {
+        2: 'row-span-2',
+        1: 'row-span-1',
+    };
 
     // Placeholder products
     const placeholders = Array.from({ length: Math.min(count, 6) }, (_, i) => ({
@@ -111,110 +125,76 @@ export function Edit({ attributes, setAttributes, className }: EditProps): JSX.E
                 </PanelBody>
             </InspectorControls>
 
-            <div {...blockProps} style={{ background: 'linear-gradient(180deg, #FFFEF9 0%, #F5F4F2 100%)', padding: '3rem 2rem' }}>
-                {/* Header */}
-                <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-                    <div style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '0.5rem',
-                        color: '#B8975A',
-                        fontSize: '0.75rem',
-                        letterSpacing: '0.3em',
-                        textTransform: 'uppercase',
-                    }}>
-                        <Sparkles style={{ width: '1rem', height: '1rem' }} />
-                        Unsere Kollektion
+            <div {...blockProps}>
+                <div className="rk-product-grid__editor-shell">
+                    {/* Header */}
+                    <div className="rk-product-grid__editor-header">
+                        <div className="rk-product-grid__editor-kicker">
+                            <Sparkles className="h-4 w-4" />
+                            Unsere Kollektion
+                        </div>
                     </div>
-                </div>
 
-                {/* Bento Grid */}
-                <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(12, 1fr)',
-                    gap: '1rem',
-                    gridAutoRows: 'minmax(200px, auto)',
-                }}>
-                    {placeholders.map((product) => (
-                        <div
-                            key={product.id}
-                            style={{
-                                gridColumn: `span ${product.span.col}`,
-                                gridRow: `span ${product.span.row}`,
-                                position: 'relative',
-                                overflow: 'hidden',
-                                borderRadius: 0,
-                                minHeight: product.span.featured ? '400px' : '200px',
-                                background: 'linear-gradient(135deg, #E8E3DB 0%, #D4CEC4 100%)',
-                            }}
-                        >
-                            {/* Emoji placeholder */}
-                            <div style={{
-                                position: 'absolute',
-                                inset: 0,
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                fontSize: product.span.featured ? '4rem' : '2.5rem',
-                                opacity: 0.5,
-                            }}>
-                                🕯️
-                            </div>
+                    {/* Bento Grid */}
+                    <div className="rk-product-grid__editor-grid">
+                        {placeholders.map((product) => (
+                            <div
+                                key={product.id}
+                                className={[
+                                    colSpanClasses[product.span.col] || 'col-span-4',
+                                    rowSpanClasses[product.span.row] || 'row-span-1',
+                                    'relative',
+                                    'overflow-hidden',
+                                    'min-h-[200px]',
+                                    product.span.featured ? 'min-h-[400px]' : '',
+                                    'bg-[linear-gradient(135deg,#E8E3DB_0%,#D4CEC4_100%)]',
+                                ].filter(Boolean).join(' ')}
+                            >
+                                {/* Emoji placeholder */}
+                                <div
+                                    className={[
+                                        'absolute',
+                                        'inset-0',
+                                        'flex',
+                                        'items-center',
+                                        'justify-center',
+                                        'opacity-50',
+                                        product.span.featured ? 'text-[4rem]' : 'text-[2.5rem]',
+                                    ].join(' ')}
+                                >
+                                    🕯️
+                                </div>
 
-                            {/* Gradient overlay */}
-                            <div style={{
-                                position: 'absolute',
-                                inset: 0,
-                                background: 'linear-gradient(180deg, transparent 30%, rgba(26, 24, 22, 0.8) 100%)',
-                            }} />
+                                {/* Gradient overlay */}
+                                <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent_30%,rgba(26,24,22,0.8)_100%)]" />
 
                             {/* Content */}
-                            <div style={{
-                                position: 'absolute',
-                                bottom: 0,
-                                left: 0,
-                                right: 0,
-                                padding: '1.5rem',
-                            }}>
-                                <p style={{
-                                    fontSize: '0.625rem',
-                                    letterSpacing: '0.2em',
-                                    textTransform: 'uppercase',
-                                    color: '#B8975A',
-                                    marginBottom: '0.25rem',
-                                }}>
+                            <div className="rk-product-grid__editor-card-content absolute bottom-0 left-0 right-0">
+                                <p className="rk-product-grid__editor-excerpt">
                                     {product.excerpt}
                                 </p>
-                                <h3 style={{
-                                    fontSize: product.span.featured ? '1.25rem' : '0.875rem',
-                                    fontWeight: 300,
-                                    color: '#FFFEF9',
-                                    margin: 0,
-                                }}>
+                                <h3
+                                    className={[
+                                        product.span.featured ? 'text-[1.25rem]' : 'text-[0.875rem]',
+                                            'font-light',
+                                            'text-cream',
+                                            'm-0',
+                                        ].join(' ')}
+                                >
                                     {product.title}
                                 </h3>
                                 {showPrice && (
-                                    <p style={{
-                                        fontSize: '0.75rem',
-                                        color: 'rgba(255,254,249,0.6)',
-                                        marginTop: '0.25rem'
-                                    }}>
+                                    <p className="rk-product-grid__editor-price">
                                         ab €{product.price.toFixed(2)}
                                     </p>
                                 )}
                             </div>
 
-                            {/* Gold line */}
-                            <div style={{
-                                position: 'absolute',
-                                bottom: 0,
-                                left: 0,
-                                width: '30%',
-                                height: '2px',
-                                background: 'linear-gradient(90deg, #B8975A, transparent)',
-                            }} />
-                        </div>
-                    ))}
+                                {/* Gold line */}
+                                <div className="absolute bottom-0 left-0 h-[2px] w-[30%] bg-[linear-gradient(90deg,#B8975A,transparent)]" />
+                            </div>
+                        ))}
+                    </div>
                 </div>
             </div>
         </>

@@ -36,6 +36,7 @@ export function Edit({ attributes, setAttributes }: EditProps): JSX.Element {
 
     const blockProps = useBlockProps({
         className: [
+            'renderkit-block',
             'renderkit-text-image',
             `renderkit-text-image--${theme}`,
             imagePosition === 'left' && 'renderkit-text-image--image-left',
@@ -43,6 +44,7 @@ export function Edit({ attributes, setAttributes }: EditProps): JSX.Element {
             .filter(Boolean)
             .join(' '),
     });
+    const shellClasses = 'rk-text-image__shell';
 
     const onSelectImage = (media: { url: string; alt: string; id: number }) => {
         setAttributes({
@@ -154,47 +156,49 @@ export function Edit({ attributes, setAttributes }: EditProps): JSX.Element {
                 </PanelBody>
             </InspectorControls>
             <div {...blockProps}>
-                <div className="rk-text-image__inner">
-                    <div className="rk-text-image__grid">
-                        <div className="rk-text-image__content">
-                            <h2 className="rk-text-image__heading">{heading || 'Heading'}</h2>
-                            <p className="rk-text-image__description">
-                                {description || 'Description text...'}
-                            </p>
-                            {buttonText && (
-                                <span className="rk-text-image__cta">
-                                    <span className="rk-text-image__cta-text">{buttonText}</span>
-                                    <svg
-                                        className="rk-text-image__cta-arrow"
-                                        width="16"
-                                        height="16"
-                                        viewBox="0 0 16 16"
-                                        fill="none"
-                                        aria-hidden="true"
-                                    >
-                                        <path
-                                            d="M3.5 8H12.5M12.5 8L8.5 4M12.5 8L8.5 12"
-                                            stroke="currentColor"
-                                            strokeWidth="1.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                        />
-                                    </svg>
-                                </span>
-                            )}
-                        </div>
-                        <div className="rk-text-image__media">
-                            {imageUrl ? (
-                                <img
-                                    className="rk-text-image__img"
-                                    src={imageUrl}
-                                    alt={imageAlt || ''}
-                                />
-                            ) : (
-                                <div className="rk-text-image__placeholder">
-                                    <span>Select an image</span>
-                                </div>
-                            )}
+                <div className={shellClasses}>
+                    <div className="rk-text-image__inner rk-container-wide">
+                        <div className="rk-text-image__grid">
+                            <div className="rk-text-image__content">
+                                <h2 className="rk-text-image__heading rk-heading-section">{heading || 'Heading'}</h2>
+                                <p className="rk-text-image__description">
+                                    {description || 'Description text...'}
+                                </p>
+                                {buttonText && (
+                                    <span className="rk-text-image__cta rk-cta rk-cta--responsive rk-cta--disabled">
+                                        <span className="rk-text-image__cta-text rk-cta__text">{buttonText}</span>
+                                        <svg
+                                            className="rk-text-image__cta-arrow rk-cta__arrow"
+                                            width="16"
+                                            height="16"
+                                            viewBox="0 0 16 16"
+                                            fill="none"
+                                            aria-hidden="true"
+                                        >
+                                            <path
+                                                d="M3.5 8H12.5M12.5 8L8.5 4M12.5 8L8.5 12"
+                                                stroke="currentColor"
+                                                strokeWidth="1.5"
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                            />
+                                        </svg>
+                                    </span>
+                                )}
+                            </div>
+                            <div className="rk-text-image__media">
+                                {imageUrl ? (
+                                    <img
+                                        className="rk-text-image__img"
+                                        src={imageUrl}
+                                        alt={imageAlt || ''}
+                                    />
+                                ) : (
+                                    <div className="rk-text-image__placeholder">
+                                        <span>Select an image</span>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>

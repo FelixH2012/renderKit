@@ -1,6 +1,7 @@
 @import './tokens.css';
 @import './base.css';
 @import './typography.css';
+@import './components.css';
 @import './utilities.css';
 
 /* Block styles (alphabetical) */

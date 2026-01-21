@@ -1,1 +1,46 @@
 /* Editor-specific overrides (intentionally minimal). */
+
+.rk-product-grid__editor-shell {
+    background: linear-gradient(180deg, #FFFEF9 0%, #F5F4F2 100%);
+    padding: var(--rk-space-2xl) var(--rk-space-xl);
+}
+
+.rk-product-grid__editor-header {
+    text-align: center;
+    margin-bottom: var(--rk-space-2xl);
+}
+
+.rk-product-grid__editor-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--rk-space-xs);
+    color: var(--rk-color-gold);
+    font-size: var(--rk-text-xs);
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+}
+
+.rk-product-grid__editor-grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: var(--rk-space-md);
+    grid-auto-rows: minmax(200px, auto);
+}
+
+.rk-product-grid__editor-card-content {
+    padding: var(--rk-space-lg);
+}
+
+.rk-product-grid__editor-excerpt {
+    font-size: var(--rk-text-2xs);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--rk-color-gold);
+    margin-bottom: var(--rk-space-2xs);
+}
+
+.rk-product-grid__editor-price {
+    font-size: var(--rk-text-xs);
+    color: rgba(255, 254, 249, 0.6);
+    margin-top: var(--rk-space-2xs);
+}

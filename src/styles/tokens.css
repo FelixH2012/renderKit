@@ -54,12 +54,17 @@
     --rk-space-2xs: 0.25rem;
     --rk-space-xs: 0.5rem;
     --rk-space-sm: 0.75rem;
+    --rk-space-sm-plus: 0.625rem;
     --rk-space-md: 1rem;
+    --rk-space-md-plus: 1.25rem;
     --rk-space-lg: 1.5rem;
+    --rk-space-lg-plus: 1.75rem;
     --rk-space-xl: 2rem;
+    --rk-space-xl-plus: 2.5rem;
     --rk-space-2xl: 3rem;
     --rk-space-3xl: 4rem;
     --rk-space-4xl: 6rem;
+    --rk-space-grid-lg: clamp(3rem, 6vw, 5rem);
 
     /* Radii */
     --rk-radius-sm: 0.5rem;
@@ -79,4 +84,20 @@
     --rk-duration-fast: 150ms;
     --rk-duration-medium: 300ms;
     --rk-duration-slow: 600ms;
+
+    /* Component sizing */
+    --rk-cta-pad-y: var(--rk-space-sm);
+    --rk-cta-pad-x: var(--rk-space-lg);
+    --rk-cta-pad-y-lg: 0.875rem;
+    --rk-cta-pad-x-lg: var(--rk-space-lg-plus);
+    --rk-cta-pad-y-hero: var(--rk-cta-pad-y-lg);
+    --rk-cta-pad-x-hero: 2rem;
+    --rk-hero-inner-max: 580px;
+    --rk-hero-description-max: 460px;
+    --rk-card-pad-top: var(--rk-space-md-plus);
+    --rk-card-pad-x: var(--rk-space-lg);
+    --rk-card-pad-bottom: var(--rk-space-lg);
+    --rk-card-gap: var(--rk-space-sm-plus);
+    --rk-quick-add-size: 44px;
+    --rk-quick-add-offset: var(--rk-space-sm);
 }
