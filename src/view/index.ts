@@ -1395,12 +1395,259 @@ function enhanceCart() {
     updateCartBadges();
 }
 
+function enhanceProductGridScrollReveal() {
+    const products = Array.from(
+        document.querySelectorAll<HTMLElement>('.renderkit-product-grid[data-rk-scroll-reveal] [data-rk-reveal]')
+    );
+    if (products.length === 0) return;
+
+    if (!('IntersectionObserver' in window)) {
+        // Fallback: reveal all immediately
+        products.forEach((card) => {
+            card.setAttribute('data-rk-revealed', '');
+        });
+        return;
+    }
+
+    const observer = new IntersectionObserver(
+        (entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                    const target = entry.target as HTMLElement;
+                    target.setAttribute('data-rk-revealed', '');
+                    observer.unobserve(target);
+                }
+            });
+        },
+        { threshold: 0.15, rootMargin: '0px 0px -50px 0px' }
+    );
+
+    products.forEach((card) => observer.observe(card));
+}
+
+function enhance3DTiltCards() {
+    // Support both 3D cards and scatter cards
+    const cards = Array.from(
+        document.querySelectorAll<HTMLElement>('[data-rk-tilt-card], .rk-scatter-card')
+    );
+    if (cards.length === 0) return;
+
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReduced) return;
+
+    cards.forEach((card) => {
+        const isScatterCard = card.classList.contains('rk-scatter-card');
+        const link = isScatterCard ? card.querySelector<HTMLElement>('.rk-scatter-card__link') : null;
+        const inner = card.querySelector<HTMLElement>('.rk-3d-card__inner');
+        const glow = card.querySelector<HTMLElement>('.rk-3d-card__glow');
+
+        let bounds: DOMRect | null = null;
+        let isHovering = false;
+        let animationId = 0;
+
+        // Current and target values for spring physics
+        let currentTiltX = 0;
+        let currentTiltY = 0;
+        let currentLift = 0;
+        let targetTiltX = 0;
+        let targetTiltY = 0;
+        let targetLift = 0;
+
+        // Spring physics constants
+        const stiffness = 0.08; // How fast it moves toward target
+        const damping = 0.85;   // How much it slows down
+
+        let velocityX = 0;
+        let velocityY = 0;
+        let velocityLift = 0;
+
+        const animate = () => {
+            // Spring physics calculation
+            const forceX = (targetTiltX - currentTiltX) * stiffness;
+            const forceY = (targetTiltY - currentTiltY) * stiffness;
+            const forceLift = (targetLift - currentLift) * stiffness;
+
+            velocityX = velocityX * damping + forceX;
+            velocityY = velocityY * damping + forceY;
+            velocityLift = velocityLift * damping + forceLift;
+
+            currentTiltX += velocityX;
+            currentTiltY += velocityY;
+            currentLift += velocityLift;
+
+            // Apply transform
+            if (isScatterCard && link) {
+                const shadowX = -currentTiltY * 2;
+                const shadowY = currentTiltX * 2;
+                link.style.transform = `perspective(1000px) rotateX(${currentTiltX}deg) rotateY(${currentTiltY}deg) translateZ(${currentLift}px)`;
+                link.style.boxShadow = `
+                    ${shadowX}px ${4 + shadowY}px 8px rgba(0, 0, 0, 0.04),
+                    ${shadowX * 2}px ${12 + shadowY * 2}px 32px rgba(0, 0, 0, 0.08),
+                    ${shadowX * 3}px ${24 + shadowY * 3}px 64px rgba(0, 0, 0, ${0.06 + currentLift * 0.002})
+                `;
+            } else if (inner) {
+                card.style.setProperty('--tilt-x', `${currentTiltX}deg`);
+                card.style.setProperty('--tilt-y', `${currentTiltY}deg`);
+            }
+
+            if (glow) {
+                const glowX = 50 + currentTiltY * 5;
+                const glowY = 50 - currentTiltX * 5;
+                glow.style.setProperty('--glow-x', `${glowX}%`);
+                glow.style.setProperty('--glow-y', `${glowY}%`);
+            }
+
+            // Continue animation if still moving
+            const isMoving = Math.abs(velocityX) > 0.001 || Math.abs(velocityY) > 0.001 || Math.abs(velocityLift) > 0.001;
+            if (isHovering || isMoving) {
+                animationId = requestAnimationFrame(animate);
+            } else {
+                animationId = 0;
+            }
+        };
+
+        const handleMouseMove = (e: MouseEvent) => {
+            if (!bounds) return;
+
+            const mouseX = e.clientX - bounds.left;
+            const mouseY = e.clientY - bounds.top;
+
+            const centerX = bounds.width / 2;
+            const centerY = bounds.height / 2;
+
+            const percentX = (mouseX - centerX) / centerX;
+            const percentY = (mouseY - centerY) / centerY;
+
+            // Subtle tilt - max 4 degrees
+            targetTiltX = percentY * 4;
+            targetTiltY = -percentX * 4;
+            targetLift = 16;
+        };
+
+        const handleMouseEnter = () => {
+            bounds = card.getBoundingClientRect();
+            isHovering = true;
+            if (isScatterCard) {
+                card.setAttribute('data-grabbed', '');
+            }
+            if (!animationId) {
+                animationId = requestAnimationFrame(animate);
+            }
+        };
+
+        const handleMouseLeave = () => {
+            isHovering = false;
+            bounds = null;
+            targetTiltX = 0;
+            targetTiltY = 0;
+            targetLift = 0;
+
+            if (isScatterCard) {
+                card.removeAttribute('data-grabbed');
+            } else if (inner) {
+                card.removeAttribute('data-tilt-active');
+            }
+        };
+
+        card.addEventListener('mouseenter', handleMouseEnter);
+        card.addEventListener('mousemove', handleMouseMove);
+        card.addEventListener('mouseleave', handleMouseLeave);
+    });
+
+    // Mobile gyroscope support - auto-enabled on page load
+    const isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    if (isMobile && cards.length > 0) {
+        const handleOrientation = (e: DeviceOrientationEvent) => {
+            // beta = front-to-back tilt (-180 to 180), gamma = left-to-right (-90 to 90)
+            const beta = e.beta ?? 0;
+            const gamma = e.gamma ?? 0;
+
+            // Normalize to subtle tilt (max 4 degrees)
+            const tiltX = Math.max(-4, Math.min(4, (beta - 30) * 0.1));
+            const tiltY = Math.max(-4, Math.min(4, gamma * 0.1));
+
+            cards.forEach((card) => {
+                const isScatterCard = card.classList.contains('rk-scatter-card');
+                const link = isScatterCard ? card.querySelector<HTMLElement>('.rk-scatter-card__link') : null;
+
+                if (isScatterCard && link) {
+                    link.style.transform = `perspective(1000px) rotateX(${tiltX}deg) rotateY(${tiltY}deg)`;
+                }
+            });
+        };
+
+        // Try to enable gyroscope
+        const enableGyro = () => {
+            // iOS 13+ requires permission
+            if (typeof (DeviceOrientationEvent as any).requestPermission === 'function') {
+                (DeviceOrientationEvent as any).requestPermission()
+                    .then((permission: string) => {
+                        if (permission === 'granted') {
+                            window.addEventListener('deviceorientation', handleOrientation);
+                        }
+                    })
+                    .catch(() => {
+                        // Silently fail if permission denied
+                    });
+            } else {
+                // Android and older iOS - just add listener
+                window.addEventListener('deviceorientation', handleOrientation);
+            }
+        };
+
+        // Try immediately, and also on first touch for iOS permission
+        enableGyro();
+        document.addEventListener('touchstart', enableGyro, { once: true });
+    }
+
+    // Magnetic buttons
+    const magneticBtns = Array.from(
+        document.querySelectorAll<HTMLElement>('[data-rk-magnetic]')
+    );
+
+    magneticBtns.forEach((btn) => {
+        let rafId = 0;
+
+        const handleMove = (e: MouseEvent) => {
+            if (rafId) return;
+            rafId = requestAnimationFrame(() => {
+                rafId = 0;
+                const bounds = btn.getBoundingClientRect();
+                const centerX = bounds.left + bounds.width / 2;
+                const centerY = bounds.top + bounds.height / 2;
+
+                const deltaX = (e.clientX - centerX) * 0.15;
+                const deltaY = (e.clientY - centerY) * 0.15;
+
+                btn.style.setProperty('--magnetic-x', `${deltaX}px`);
+                btn.style.setProperty('--magnetic-y', `${deltaY}px`);
+                btn.setAttribute('data-magnetic-active', '');
+            });
+        };
+
+        const handleLeave = () => {
+            if (rafId) {
+                cancelAnimationFrame(rafId);
+                rafId = 0;
+            }
+            btn.style.setProperty('--magnetic-x', '0');
+            btn.style.setProperty('--magnetic-y', '0');
+            btn.removeAttribute('data-magnetic-active');
+        };
+
+        btn.addEventListener('mousemove', handleMove);
+        btn.addEventListener('mouseleave', handleLeave);
+    });
+}
+
 onReady(() => {
     enhanceStickyNavigation();
     enhanceNavMobileMenu();
     enhanceHeroScrollAnimations();
     enhanceSwipers();
     enhanceProductGridBento();
+    enhanceProductGridScrollReveal();
+    enhance3DTiltCards();
     enhanceProductViewTransitions();
     enhanceRecaptcha();
     enhanceCookieBanner();

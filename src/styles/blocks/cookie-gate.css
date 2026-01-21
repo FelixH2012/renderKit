@@ -27,7 +27,7 @@
 }
 
 .rk-cookie-gate__fallback {
-    padding: 1.5rem;
+    padding: var(--rk-space-lg);
     border: 1px dashed rgba(26, 24, 22, 0.2);
     border-radius: var(--rk-radius-md);
     color: var(--rk-anthracite);
@@ -41,8 +41,8 @@
     border: 1px solid currentColor;
     background: transparent;
     color: inherit;
-    font-size: 0.7rem;
-    letter-spacing: 0.2em;
+    font-size: var(--rk-text-xs);
+    letter-spacing: var(--rk-tracking-wide);
     text-transform: uppercase;
     font-weight: 600;
     cursor: pointer;

@@ -26,9 +26,29 @@
     --rk-font-body: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 
     /* Type scale */
+    --rk-text-2xs: 0.625rem;
+    --rk-text-xs: 0.75rem;
     --rk-text-sm: 0.875rem;
     --rk-text-base: 1rem;
     --rk-text-lg: 1.125rem;
+    --rk-text-xl: 1.25rem;
+    --rk-text-2xl: 1.5rem;
+
+    /* Headings */
+    --rk-heading-section: clamp(2rem, 5vw, 3.5rem);
+    --rk-heading-section-sm: clamp(1.5rem, 3vw, 2.25rem);
+
+    /* Layout */
+    --rk-container-base: 1200px;
+    --rk-container-wide: 1400px;
+    --rk-container-narrow: 900px;
+    --rk-container-padding-x: clamp(1.5rem, 5vw, 4.75rem);
+    --rk-section-padding-y: clamp(3rem, 6vw, 5rem);
+    --rk-section-padding-y-tight: clamp(2.5rem, 5vw, 4rem);
+    --rk-section-padding-y-loose: clamp(4rem, 8vw, 6rem);
+
+    /* Letter-spacing */
+    --rk-tracking-wide: 0.2em;
 
     /* Spacing scale */
     --rk-space-2xs: 0.25rem;

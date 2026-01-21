@@ -1,5 +1,6 @@
 /* ==========================================================================
-   Product Grid Block - Premium Design v2
+   Product Grid Block - Scattered Artisan Layout
+   Cards at slight angles like handmade labels on a table
    ========================================================================== */
 
 /* --------------------------------------------------------------------------
@@ -8,705 +9,371 @@
 
 .renderkit-product-grid {
     width: 100%;
-    padding: 6rem 0;
-    background-color: #fafafa;
-    color: #171717;
+    padding: var(--rk-section-padding-y) 0;
+    background-color: var(--rk-color-cream);
+    color: var(--rk-color-anthracite);
 }
 
 .rk-product-grid__inner {
-    max-width: 1400px;
+    max-width: var(--rk-container-wide);
     margin: 0 auto;
-    padding: 0 calc(16px + 24px);
-}
-
-@media (min-width: 768px) {
-    .rk-product-grid__inner {
-        padding: 0 calc(16px + 36px);
-    }
-}
-
-@media (min-width: 1024px) {
-    .rk-product-grid__inner {
-        padding: 0 calc(32px + 44px);
-    }
+    padding: 0 var(--rk-container-padding-x);
 }
 
 /* --------------------------------------------------------------------------
-   Header - Clean, minimal
+   Header
    -------------------------------------------------------------------------- */
 
 .rk-product-grid__header {
-    margin-bottom: 3rem;
-}
-
-@media (min-width: 768px) {
-    .rk-product-grid__header {
-        margin-bottom: 4rem;
-    }
+    margin-bottom: var(--rk-space-3xl);
 }
 
 .rk-product-grid__title {
     margin: 0;
     font-family: var(--rk-font-display);
-    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-size: var(--rk-heading-section);
     font-weight: 400;
     line-height: 1.1;
     letter-spacing: -0.025em;
-    color: #171717;
 }
 
 /* --------------------------------------------------------------------------
-   Bento Grid - Airbnb-inspired layout
+   Scattered Grid
    -------------------------------------------------------------------------- */
 
-.rk-bento-grid {
+.rk-scatter-grid {
     display: grid;
     grid-template-columns: 1fr;
-    gap: 1rem;
+    gap: 3rem;
+    padding: 2rem 0;
 }
 
-@media (min-width: 640px) {
-    .rk-bento-grid {
+@media (min-width: 540px) {
+    .rk-scatter-grid {
         grid-template-columns: repeat(2, 1fr);
-        gap: 1.25rem;
+        gap: 2.5rem 2rem;
     }
 }
 
-@media (min-width: 1024px) {
-    .rk-bento-grid {
-        grid-template-columns: repeat(12, 1fr);
-        gap: 1.5rem;
+@media (min-width: 900px) {
+    .rk-scatter-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 3rem 2.5rem;
+    }
+}
+
+@media (min-width: 1200px) {
+    .rk-scatter-grid {
+        grid-template-columns: repeat(4, 1fr);
     }
 }
 
 /* --------------------------------------------------------------------------
-   Bento Card - Premium glassmorphism design
+   Scattered Card
    -------------------------------------------------------------------------- */
 
-.rk-bento-item {
+.rk-scatter-card {
     position: relative;
-    border-radius: 1.25rem;
-    overflow: visible;
-    cursor: pointer;
-    background: #e5e5e5;
-    aspect-ratio: 1/1.15;
-
-    /* Premium shadow */
-    box-shadow:
-        0 2px 8px rgba(0, 0, 0, 0.04),
-        0 8px 24px rgba(0, 0, 0, 0.06);
-
-    transition:
-        box-shadow 0.5s cubic-bezier(0.22, 1, 0.36, 1),
-        transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+    transform:
+        rotate(var(--scatter-rotate, 0deg)) translateY(var(--scatter-y, 0px));
+    transition: transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-@media (min-width: 640px) {
-    .rk-bento-item {
-        aspect-ratio: 3/4;
-    }
+/* On hover - gentle lift */
+.rk-scatter-card:hover {
+    transform:
+        rotate(calc(var(--scatter-rotate, 0deg) * 0.3)) translateY(calc(var(--scatter-y, 0px) - 8px));
+    z-index: 10;
 }
 
-@media (min-width: 1024px) {
-    .rk-bento-item {
-        aspect-ratio: auto;
-        min-height: 380px;
-    }
-
-    /* Featured - large left */
-    .rk-bento-item[data-rk-bento-index="0"] {
-        grid-column: span 7;
-        grid-row: span 2;
-        min-height: 600px;
-    }
-
-    /* Side stack */
-    .rk-bento-item[data-rk-bento-index="1"],
-    .rk-bento-item[data-rk-bento-index="2"] {
-        grid-column: span 5;
-    }
-
-    /* Bottom row */
-    .rk-bento-item[data-rk-bento-index="3"] {
-        grid-column: span 6;
-    }
-
-    .rk-bento-item[data-rk-bento-index="4"],
-    .rk-bento-item[data-rk-bento-index="5"] {
-        grid-column: span 3;
-    }
-}
-
-/* Hover lift - disabled when modal is open */
-.rk-bento-item:not([open]):hover {
-    box-shadow:
-        0 4px 16px rgba(0, 0, 0, 0.08),
-        0 16px 48px rgba(0, 0, 0, 0.12);
-    transform: translateY(-4px);
-}
-
-/* Reset transform when open to prevent flicker */
-.rk-bento-item[open] {
-    transform: none !important;
-    box-shadow: none !important;
-    z-index: 999;
-}
-
-/* --------------------------------------------------------------------------
-   Card Summary (clickable area)
-   -------------------------------------------------------------------------- */
-
-.rk-bento-summary {
-    list-style: none;
-    position: absolute;
-    inset: 0;
-    display: block;
-    cursor: pointer;
-    outline: none;
-    padding: 0;
-    margin: 0;
-    background: transparent;
-    border: 0;
-}
-
-.rk-bento-summary::-webkit-details-marker {
-    display: none;
-}
-
-.rk-bento-summary:focus-visible {
-    outline: 2px solid #171717;
-    outline-offset: 4px;
-    border-radius: 1.25rem;
-}
-
-.rk-bento-card {
-    position: absolute;
-    inset: 0;
-    border-radius: 1.25rem;
+.rk-scatter-card__link {
+    display: flex;
+    flex-direction: column;
+    text-decoration: none;
+    color: inherit;
+    background: #fff;
+    border-radius: 1rem;
     overflow: hidden;
-    opacity: 1;
-    transition: opacity 0.2s ease-out;
+    will-change: transform, box-shadow;
+
+    /* Resting shadow - subtle */
+    box-shadow:
+        0 1px 2px rgba(0, 0, 0, 0.04),
+        0 4px 12px rgba(0, 0, 0, 0.06),
+        0 12px 32px rgba(0, 0, 0, 0.08);
+
+    /* Smooth physics transition */
+    transition:
+        box-shadow 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+        transform 0.15s ease-out;
 }
 
-.rk-bento-item[open] .rk-bento-card {
-    opacity: 0;
-    pointer-events: none;
-    transition-delay: 0s;
+/* When grabbed - realistic physics shadow */
+.rk-scatter-card[data-grabbed] .rk-scatter-card__link {
+    box-shadow:
+        0 2px 4px rgba(0, 0, 0, 0.06),
+        0 12px 32px rgba(0, 0, 0, 0.12),
+        0 32px 64px rgba(0, 0, 0, 0.14),
+        0 64px 100px rgba(0, 0, 0, 0.08);
 }
 
 /* --------------------------------------------------------------------------
-   Card Image - Smooth zoom on hover
+   Card Media
    -------------------------------------------------------------------------- */
 
-.rk-bento-image {
-    position: absolute;
-    inset: 0;
-    transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+.rk-scatter-card__media {
+    position: relative;
+    aspect-ratio: 1/1;
+    overflow: hidden;
+    background: var(--rk-color-greige);
+    border-radius: 1rem 1rem 0 0;
 }
 
-.rk-bento-item:not([open]):hover .rk-bento-image {
-    transform: scale(1.06);
-}
-
-.rk-bento-img {
+.rk-scatter-card__img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.rk-bento-placeholder {
+.rk-scatter-card:hover .rk-scatter-card__img {
+    transform: scale(1.04);
+}
+
+.rk-scatter-card__placeholder {
     width: 100%;
     height: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 4rem;
-    background: linear-gradient(145deg, #f0f0f0 0%, #e0e0e0 100%);
+    font-size: 3rem;
 }
 
 /* --------------------------------------------------------------------------
-   Card Overlay - Subtle gradient for text readability
+   Card Content
    -------------------------------------------------------------------------- */
 
-.rk-bento-overlay {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(180deg,
-            transparent 0%,
-            transparent 40%,
-            rgba(0, 0, 0, 0.25) 70%,
-            rgba(0, 0, 0, 0.65) 100%);
-    transition: background 0.5s ease;
-}
-
-.rk-bento-item:hover .rk-bento-overlay {
-    background: linear-gradient(180deg,
-            rgba(0, 0, 0, 0.05) 0%,
-            rgba(0, 0, 0, 0.15) 40%,
-            rgba(0, 0, 0, 0.4) 70%,
-            rgba(0, 0, 0, 0.75) 100%);
-}
-
-/* --------------------------------------------------------------------------
-   Card Content - Clean typography
-   -------------------------------------------------------------------------- */
-
-.rk-bento-content {
-    position: absolute;
-    inset: 0;
-    padding: 1.25rem;
+.rk-scatter-card__content {
+    padding: 1.25rem 1.5rem 1.5rem;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    gap: 0.625rem;
 }
 
-@media (min-width: 768px) {
-    .rk-bento-content {
-        padding: 1.75rem;
-    }
-}
-
-/* Arrow button - Glassmorphism pill */
-.rk-bento-action {
-    display: flex;
-    justify-content: flex-end;
-}
-
-.rk-bento-arrow {
-    width: 2.75rem;
-    height: 2.75rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(255, 255, 255, 0.12);
-    backdrop-filter: blur(16px) saturate(180%);
-    -webkit-backdrop-filter: blur(16px) saturate(180%);
-    border-radius: 50%;
-    border: 1px solid rgba(255, 255, 255, 0.18);
-    color: #fff;
-
-    transition:
-        transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1),
-        background 0.4s ease,
-        border-color 0.4s ease;
-}
-
-@media (min-width: 768px) {
-    .rk-bento-arrow {
-        width: 3.25rem;
-        height: 3.25rem;
-    }
-}
-
-.rk-bento-item:hover .rk-bento-arrow {
-    transform: scale(1.1) rotate(0deg);
-    background: rgba(255, 255, 255, 0.2);
-    border-color: rgba(255, 255, 255, 0.3);
-}
-
-/* Text section */
-.rk-bento-text {
-    transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.rk-bento-item:hover .rk-bento-text {
-    transform: translateY(-8px);
-}
-
-.rk-bento-title {
-    margin: 0 0 0.375rem;
-    font-family: var(--rk-font-display);
-    font-size: clamp(1.25rem, 2.5vw, 1.625rem);
-    font-weight: 400;
-    color: #fff;
-    letter-spacing: -0.015em;
-    line-height: 1.2;
-    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
-}
-
-.rk-bento-item--featured .rk-bento-title,
-.rk-bento-item[data-rk-bento-index="0"] .rk-bento-title {
-    font-size: clamp(1.75rem, 4vw, 2.75rem);
-}
-
-.rk-bento-price {
+.rk-scatter-card__title {
     margin: 0;
-    font-size: 0.9375rem;
-    color: rgba(255, 255, 255, 0.85);
-    text-shadow: 0 1px 8px rgba(0, 0, 0, 0.25);
+    font-family: var(--rk-font-display);
+    font-size: var(--rk-text-lg);
+    font-weight: 400;
+    line-height: 1.35;
+    letter-spacing: -0.01em;
+    transition: color 0.3s ease;
+
+    /* Truncate long titles */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
 }
 
-.rk-bento-price--sale {
+.rk-scatter-card:hover .rk-scatter-card__title {
+    color: var(--rk-color-black);
+}
+
+.rk-scatter-card__price {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    font-size: var(--rk-text-base);
+}
+
+.rk-scatter-card__price-current {
     font-weight: 600;
-    color: #fff;
+    color: var(--rk-color-anthracite);
 }
 
-.rk-bento-price--was {
-    margin-left: 0.5rem;
+.rk-scatter-card__price-old {
+    font-size: var(--rk-text-sm);
     text-decoration: line-through;
+    color: var(--rk-color-taupe);
     opacity: 0.6;
 }
 
 /* --------------------------------------------------------------------------
-   Close Button (visible when open)
+   CTA Button - Glassmorphism (matching text-image)
    -------------------------------------------------------------------------- */
 
-.rk-bento-close {
-    display: none;
-}
-
-.rk-bento-sr-close {
-    display: none;
-}
-
-.rk-bento-item[open] .rk-bento-sr-open {
-    display: none;
-}
-
-.rk-bento-item[open] .rk-bento-sr-close {
-    display: inline;
-}
-
-.rk-bento-item[open]>summary {
-    position: fixed;
-    top: max(1.5rem, calc(env(safe-area-inset-top) + 1rem));
-    right: max(1.5rem, calc(env(safe-area-inset-right) + 1rem));
-    inset: auto;
-    z-index: 1001;
-    width: 52px;
-    height: 52px;
-    display: grid;
-    place-items: center;
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 50%;
-    transition:
-        transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
-        background 0.3s ease;
-    box-shadow:
-        0 8px 32px rgba(0, 0, 0, 0.4),
-        inset 0 0.5px 0 rgba(255, 255, 255, 0.1);
-}
-
-.rk-bento-item[open]>summary:hover {
-    transform: scale(1.08);
-    background: rgba(0, 0, 0, 0.65);
-}
-
-.rk-bento-item[open] .rk-bento-close {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 52px;
-    height: 52px;
-    color: #fff;
-}
-
-/* --------------------------------------------------------------------------
-   Modal
-   -------------------------------------------------------------------------- */
-
-.rk-bento-modal {
-    position: fixed;
-    inset: 0;
-    z-index: 1000;
-    visibility: hidden;
-    pointer-events: none;
-}
-
-.rk-bento-item[open] .rk-bento-modal {
-    visibility: visible;
-    pointer-events: auto;
-}
-
-/* Backdrop */
-.rk-bento-modal__backdrop {
-    position: absolute;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(12px) saturate(150%);
-    -webkit-backdrop-filter: blur(12px) saturate(150%);
-    opacity: 0;
-    transition: opacity 0.45s ease-out;
-}
-
-.rk-bento-item[open] .rk-bento-modal__backdrop {
-    opacity: 1;
-}
-
-/* Surface */
-.rk-bento-modal__surface {
-    position: absolute;
-    inset: 0;
-    overflow: hidden;
-    background: #0a0a0a;
-    opacity: 0;
-    transform: scale(0.95);
-    transition:
-        opacity 0.4s ease-out,
-        transform 0.5s cubic-bezier(0.32, 0.72, 0, 1);
-}
-
-.rk-bento-item[open] .rk-bento-modal__surface {
-    opacity: 1;
-    transform: none;
-}
-
-/* JS-enhanced */
-.rk-js .rk-bento-modal__surface,
-.rk-js .rk-bento-modal__backdrop {
-    transition: none;
-}
-
-.rk-js details.rk-bento-item[data-rk-bento-state="open"] .rk-bento-modal__surface {
-    opacity: 1;
-    transform: none;
-}
-
-.rk-js details.rk-bento-item[data-rk-bento-state="open"] .rk-bento-modal__backdrop {
-    opacity: 1;
-}
-
-/* Media */
-.rk-bento-modal__media {
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-    overflow: hidden;
-    background: #0a0a0a;
-}
-
-.rk-bento-modal__img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transform: translate3d(var(--rk-bento-img-x, 0px), var(--rk-bento-img-y, 0px), 0) scale(1.03);
-    transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-}
-
-.rk-bento-modal__placeholder {
-    width: 100%;
-    height: 100%;
-    display: grid;
-    place-items: center;
-    font-size: clamp(5rem, 12vw, 10rem);
-    background: linear-gradient(145deg, #f0f0f0 0%, #e0e0e0 100%);
-}
-
-.rk-bento-modal__scrim {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(180deg,
-            rgba(0, 0, 0, 0.25) 0%,
-            rgba(0, 0, 0, 0.15) 30%,
-            rgba(0, 0, 0, 0.5) 70%,
-            rgba(0, 0, 0, 0.8) 100%);
-    pointer-events: none;
-}
-
-/* --------------------------------------------------------------------------
-   Aside Panel - Premium glassmorphism
-   -------------------------------------------------------------------------- */
-
-.rk-bento-modal__aside {
-    position: absolute;
-    inset: 0 auto 0 0;
-    width: clamp(340px, 36vw, 520px);
-    z-index: 1;
-    background: rgba(255, 255, 255, 0.92);
-    backdrop-filter: blur(24px) saturate(180%);
-    -webkit-backdrop-filter: blur(24px) saturate(180%);
-    color: #171717;
-    padding: clamp(1.75rem, 4vw, 3rem);
-    display: flex;
-    border-right: 1px solid rgba(0, 0, 0, 0.06);
-
-    opacity: 0;
-    transform: translateX(-32px);
-    transition:
-        opacity 0.45s ease-out 0.1s,
-        transform 0.55s cubic-bezier(0.16, 1, 0.3, 1) 0.1s;
-}
-
-.rk-bento-item[open] .rk-bento-modal__aside {
-    opacity: 1;
-    transform: none;
-}
-
-.rk-js .rk-bento-modal__aside {
-    transition: none;
-}
-
-.rk-js details.rk-bento-item[data-rk-bento-state="open"] .rk-bento-modal__aside {
-    opacity: 1;
-    transform: none;
-}
-
-.rk-bento-modal__aside-inner {
-    width: 100%;
-    max-width: 42ch;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: 1.25rem;
-}
-
-.rk-bento-modal__title {
-    margin: 0;
-    font-family: var(--rk-font-display);
-    font-size: clamp(1.75rem, 3vw, 2.75rem);
-    font-weight: 400;
-    letter-spacing: -0.02em;
-    line-height: 1.1;
-    color: #171717;
-}
-
-.rk-bento-modal__price {
-    margin: 0;
-    font-size: 1.25rem;
-    color: rgba(23, 23, 23, 0.6);
-}
-
-.rk-bento-modal__price-sale {
-    font-weight: 600;
-    color: #171717;
-}
-
-.rk-bento-modal__price-was {
-    margin-left: 0.75rem;
-    text-decoration: line-through;
-    opacity: 0.5;
-}
-
-/* --------------------------------------------------------------------------
-   Modal Actions - Premium Glassmorphism Buttons
-   -------------------------------------------------------------------------- */
-
-.rk-bento-modal__actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.875rem;
-    margin-top: 0.75rem;
-}
-
-/* Primary CTA - Add to Cart */
-.rk-bento-modal__cart-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.625rem;
-    padding: 1rem 1.75rem;
-    background: #171717;
-    color: #fafafa;
-    border: none;
-    border-radius: 9999px;
-    font-family: inherit;
-    font-size: 0.9375rem;
-    font-weight: 500;
-    cursor: pointer;
-
-    box-shadow:
-        0 2px 8px rgba(0, 0, 0, 0.15),
-        0 8px 24px rgba(0, 0, 0, 0.1);
-
-    transition:
-        background 0.3s ease,
-        box-shadow 0.4s ease,
-        transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-.rk-bento-modal__cart-btn svg {
-    flex-shrink: 0;
-}
-
-.rk-bento-modal__cart-btn:hover {
-    background: #262626;
-    box-shadow:
-        0 4px 12px rgba(0, 0, 0, 0.2),
-        0 16px 40px rgba(0, 0, 0, 0.15);
-    transform: translateY(-3px);
-}
-
-.rk-bento-modal__cart-btn:active {
-    transform: translateY(-1px) scale(0.98);
-}
-
-.rk-bento-modal__cart-btn[data-rk-cart-adding] {
-    opacity: 0.7;
-    pointer-events: none;
-}
-
-.rk-bento-modal__cart-btn[data-rk-cart-added] {
-    background: #22c55e;
-}
-
-/* Secondary CTA - View Product */
-.rk-bento-modal__link {
+.rk-scatter-card__cta {
+    position: relative;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    padding: 1rem 1.75rem;
-    background: rgba(0, 0, 0, 0.04);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    color: #171717;
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    border-radius: 9999px;
+    padding: 0.75rem 1.5rem;
     font-family: inherit;
-    font-size: 0.9375rem;
+    font-size: var(--rk-text-sm);
     font-weight: 500;
+    letter-spacing: 0.01em;
     text-decoration: none;
     cursor: pointer;
+    border-radius: 9999px;
+    margin-top: 0.5rem;
+    width: fit-content;
+    overflow: hidden;
+    isolation: isolate;
+
+    /* Glassmorphism */
+    background: rgba(0, 0, 0, 0.05);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    color: inherit;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+
+    box-shadow:
+        inset 0 0.5px 0 rgba(255, 255, 255, 0.15),
+        0 2px 4px rgba(0, 0, 0, 0.04),
+        0 8px 24px -8px rgba(0, 0, 0, 0.08);
 
     transition:
-        background 0.3s ease,
-        border-color 0.3s ease,
-        transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        background 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+        border-color 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+        box-shadow 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+        transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-.rk-bento-modal__link svg {
+@media (min-width: 768px) {
+    .rk-scatter-card__cta {
+        padding: 0.875rem 1.75rem;
+        font-size: var(--rk-text-sm);
+    }
+}
+
+/* Shimmer overlay */
+.rk-scatter-card__cta::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg,
+            transparent 0%,
+            rgba(255, 255, 255, 0.4) 50%,
+            transparent 100%);
+    transition: left 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+    pointer-events: none;
+}
+
+/* Hover state */
+.rk-scatter-card:hover .rk-scatter-card__cta {
+    background: rgba(0, 0, 0, 0.08);
+    box-shadow:
+        inset 0 0.5px 0 rgba(255, 255, 255, 0.2),
+        0 4px 8px rgba(0, 0, 0, 0.06),
+        0 16px 40px -12px rgba(0, 0, 0, 0.12);
+    transform: translateY(-2px);
+}
+
+.rk-scatter-card:hover .rk-scatter-card__cta::before {
+    left: 100%;
+}
+
+/* Active state */
+.rk-scatter-card__cta:active {
+    transform: translateY(-1px) scale(0.98);
+    transition-duration: 0.1s;
+}
+
+.rk-scatter-card__cta-text {
+    position: relative;
+    z-index: 1;
+}
+
+.rk-scatter-card__cta-arrow {
+    position: relative;
+    z-index: 1;
     flex-shrink: 0;
     transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-.rk-bento-modal__link:hover {
-    background: rgba(0, 0, 0, 0.08);
-    border-color: rgba(0, 0, 0, 0.15);
-    transform: translateY(-3px);
-}
-
-.rk-bento-modal__link:hover svg {
+.rk-scatter-card:hover .rk-scatter-card__cta-arrow {
     transform: translateX(4px);
 }
 
 /* --------------------------------------------------------------------------
-   Responsive - Tablet & Mobile
+   Quick Add Button - Glassmorphism
    -------------------------------------------------------------------------- */
 
-@media (max-width: 1024px) {
-    .rk-bento-modal__aside {
-        inset: auto 0 0 0;
-        width: 100%;
-        max-height: 55vh;
-        border-right: 0;
-        border-top: 1px solid rgba(0, 0, 0, 0.08);
-        border-radius: 1.75rem 1.75rem 0 0;
-        transform: translateY(32px);
-        padding-bottom: env(safe-area-inset-bottom, 1.5rem);
-    }
+.rk-scatter-card__add {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    z-index: 5;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
 
-    .rk-bento-item[open] .rk-bento-modal__aside {
-        transform: none;
-    }
+    /* Glassmorphism matching text-image button */
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    color: var(--rk-color-anthracite);
+    border: 1px solid rgba(255, 255, 255, 0.5);
 
-    .rk-bento-modal__aside-inner {
-        max-width: none;
-        justify-content: flex-start;
-        padding-top: 0.75rem;
-    }
+    box-shadow:
+        inset 0 0.5px 0 rgba(255, 255, 255, 0.6),
+        0 2px 8px rgba(0, 0, 0, 0.08),
+        0 8px 24px rgba(0, 0, 0, 0.1);
+
+    opacity: 0;
+    transform: scale(0.8) translateY(4px);
+
+    transition:
+        opacity 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+        transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1),
+        background 0.3s ease,
+        box-shadow 0.3s ease,
+        border-color 0.3s ease;
+}
+
+.rk-scatter-card:hover .rk-scatter-card__add,
+.rk-scatter-card[data-grabbed] .rk-scatter-card__add {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+}
+
+.rk-scatter-card__add:hover {
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow:
+        inset 0 0.5px 0 rgba(255, 255, 255, 0.8),
+        0 4px 12px rgba(0, 0, 0, 0.12),
+        0 12px 32px rgba(0, 0, 0, 0.15);
+    transform: scale(1.08) translateY(0);
+}
+
+.rk-scatter-card__add:active {
+    transform: scale(0.95);
+    transition-duration: 0.1s;
+}
+
+/* Adding state */
+.rk-scatter-card__add[data-rk-cart-adding] {
+    pointer-events: none;
+    opacity: 0.5;
+}
+
+/* Added state - simple green */
+.rk-scatter-card__add[data-rk-cart-added] {
+    background: #22c55e;
+    color: white;
+    border-color: #22c55e;
+    opacity: 1;
 }
 
 /* --------------------------------------------------------------------------
@@ -715,25 +382,14 @@
 
 @media (prefers-reduced-motion: reduce) {
 
-    .rk-bento-item,
-    .rk-bento-modal,
-    .rk-bento-modal__backdrop,
-    .rk-bento-modal__surface,
-    .rk-bento-modal__aside,
-    .rk-bento-modal__cart-btn,
-    .rk-bento-modal__link,
-    .rk-bento-image,
-    .rk-bento-text,
-    .rk-bento-arrow,
-    .rk-bento-overlay {
+    .rk-scatter-card,
+    .rk-scatter-card__img,
+    .rk-scatter-card__cta,
+    .rk-scatter-card__add {
         transition: none !important;
     }
 
-    .rk-bento-modal__surface {
-        transform: none !important;
-    }
-
-    .rk-bento-item:hover {
+    .rk-scatter-card {
         transform: none !important;
     }
 }

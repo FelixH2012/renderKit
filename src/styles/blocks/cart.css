@@ -1,7 +1,7 @@
 /* Cart Block - Premium UI */
 .renderkit-cart {
-    padding: 4rem 0;
-    padding-top: calc(var(--rk-nav-height, 72px) + 4rem);
+    padding: var(--rk-section-padding-y-loose) 0;
+    padding-top: calc(var(--rk-nav-height, 72px) + var(--rk-section-padding-y-loose));
     min-height: 100vh;
 }
 
@@ -16,29 +16,29 @@
 }
 
 .rk-cart__container {
-    max-width: 1200px;
+    max-width: var(--rk-container-base);
     margin: 0 auto;
-    padding: 0 1.5rem;
+    padding: 0 var(--rk-container-padding-x);
 }
 
 /* Header with premium typography */
 .rk-cart__header {
-    margin-bottom: 3rem;
+    margin-bottom: var(--rk-space-2xl);
     text-align: center;
 }
 
 .rk-cart__eyebrow {
     color: var(--rk-gold);
-    font-size: 0.75rem;
-    letter-spacing: 0.5em;
+    font-size: var(--rk-text-xs);
+    letter-spacing: var(--rk-tracking-wide);
     text-transform: uppercase;
     font-weight: 600;
-    margin-bottom: 1rem;
+    margin-bottom: var(--rk-space-md);
 }
 
 .rk-cart__title {
     font-family: var(--rk-font-display);
-    font-size: clamp(2.5rem, 6vw, 4rem);
+    font-size: var(--rk-heading-section);
     font-weight: 200;
     letter-spacing: -0.04em;
     line-height: 1.1;
@@ -49,13 +49,13 @@
     width: 80px;
     height: 1px;
     background: linear-gradient(90deg, transparent, var(--rk-gold), transparent);
-    margin: 2rem auto 0;
+    margin: var(--rk-space-xl) auto 0;
 }
 
 /* Empty State - Premium */
 .rk-cart__empty {
     text-align: center;
-    padding: 6rem 2rem;
+    padding: var(--rk-section-padding-y-loose) var(--rk-space-xl);
     max-width: 500px;
     margin: 0 auto;
 }
@@ -64,15 +64,15 @@
     font-size: 5rem;
     color: var(--rk-gold);
     opacity: 0.3;
-    margin-bottom: 2rem;
+    margin-bottom: var(--rk-space-xl);
 }
 
 .rk-cart__empty-message {
     font-family: var(--rk-font-display);
-    font-size: 1.5rem;
+    font-size: var(--rk-text-2xl);
     font-weight: 300;
     opacity: 0.6;
-    margin-bottom: 2.5rem;
+    margin-bottom: calc(var(--rk-space-xl) + var(--rk-space-xs));
     line-height: 1.4;
 }
 
@@ -84,9 +84,9 @@
     background: var(--rk-gold);
     color: var(--rk-cream);
     text-decoration: none;
-    font-size: 0.8125rem;
+    font-size: var(--rk-text-sm);
     font-weight: 600;
-    letter-spacing: 0.2em;
+    letter-spacing: var(--rk-tracking-wide);
     text-transform: uppercase;
     border: none;
     transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
@@ -117,8 +117,8 @@
 .rk-cart__items {
     background: rgba(128, 128, 128, 0.03);
     border-radius: 16px;
-    padding: 2rem;
-    margin-bottom: 2rem;
+    padding: var(--rk-space-xl);
+    margin-bottom: var(--rk-space-xl);
 }
 
 .renderkit-cart--dark .rk-cart__items {
@@ -129,10 +129,10 @@
 /* Items Header (Desktop) */
 .rk-cart__items-header {
     display: none;
-    padding: 0 0 1.5rem;
+    padding: 0 0 var(--rk-space-lg);
     border-bottom: 1px solid rgba(128, 128, 128, 0.15);
-    font-size: 0.6875rem;
-    letter-spacing: 0.2em;
+    font-size: var(--rk-text-2xs);
+    letter-spacing: var(--rk-tracking-wide);
     text-transform: uppercase;
     font-weight: 700;
     opacity: 0.4;
@@ -216,7 +216,7 @@
 
 .rk-cart__item-title {
     font-family: var(--rk-font-display);
-    font-size: 1.25rem;
+    font-size: var(--rk-text-xl);
     font-weight: 400;
     text-decoration: none;
     color: inherit;
@@ -229,7 +229,7 @@
 }
 
 .rk-cart__item-price {
-    font-size: 0.9375rem;
+    font-size: var(--rk-text-base);
     opacity: 0.6;
     margin: 0;
 }
@@ -278,7 +278,7 @@
     cursor: pointer;
     display: grid;
     place-items: center;
-    font-size: 0.75rem;
+    font-size: var(--rk-text-xs);
     transition: all 0.2s ease;
     opacity: 0.6;
 }
@@ -293,14 +293,14 @@
     min-width: 2.5rem;
     text-align: center;
     font-weight: 600;
-    font-size: 0.9375rem;
+    font-size: var(--rk-text-base);
     transition: transform 0.15s ease;
 }
 
 /* Item Total */
 .rk-cart__item-total {
     font-weight: 600;
-    font-size: 1.0625rem;
+    font-size: var(--rk-text-lg);
     display: none;
     letter-spacing: -0.01em;
 }
@@ -338,7 +338,7 @@
 .rk-cart__footer {
     margin-top: 0;
     display: grid;
-    gap: 2rem;
+    gap: var(--rk-space-xl);
 }
 
 @media (min-width: 768px) {
@@ -352,7 +352,7 @@
     order: -1;
     background: rgba(128, 128, 128, 0.03);
     border-radius: 16px;
-    padding: 2rem;
+    padding: var(--rk-space-xl);
 }
 
 .renderkit-cart--dark .rk-cart__summary {
@@ -369,8 +369,8 @@
 .rk-cart__summary-row {
     display: flex;
     justify-content: space-between;
-    padding: 1rem 0;
-    font-size: 1rem;
+    padding: var(--rk-space-md) 0;
+    font-size: var(--rk-text-base);
     border-bottom: 1px solid rgba(128, 128, 128, 0.1);
 }
 
@@ -379,11 +379,11 @@
 }
 
 .rk-cart__summary-row--total {
-    font-size: 1.375rem;
+    font-size: var(--rk-text-2xl);
     font-weight: 600;
     border-bottom: none;
-    padding-top: 1.5rem;
-    margin-top: 0.5rem;
+    padding-top: var(--rk-space-lg);
+    margin-top: var(--rk-space-xs);
     border-top: 2px solid rgba(128, 128, 128, 0.15);
 }
 
@@ -395,7 +395,7 @@
 .rk-cart__actions {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: var(--rk-space-md);
 }
 
 @media (min-width: 768px) {
@@ -412,9 +412,9 @@
     justify-content: center;
     gap: 0.75rem;
     padding: 1rem 1.75rem;
-    font-size: 0.75rem;
+    font-size: var(--rk-text-xs);
     font-weight: 600;
-    letter-spacing: 0.15em;
+    letter-spacing: var(--rk-tracking-wide);
     text-transform: uppercase;
     text-decoration: none;
     border: 1px solid rgba(128, 128, 128, 0.2);
@@ -444,7 +444,7 @@
 
 /* Editor Preview */
 .rk-cart__editor-preview {
-    padding: 4rem;
+    padding: var(--rk-space-3xl);
     text-align: center;
     border: 2px dashed rgba(128, 128, 128, 0.2);
     border-radius: 16px;
@@ -455,19 +455,19 @@
     font-size: 4rem;
     color: var(--rk-gold);
     opacity: 0.5;
-    margin-bottom: 1.5rem;
+    margin-bottom: var(--rk-space-lg);
 }
 
 .rk-cart__editor-title {
     font-family: var(--rk-font-display);
-    font-size: 1.5rem;
+    font-size: var(--rk-text-2xl);
     font-weight: 400;
-    margin-bottom: 0.75rem;
+    margin-bottom: var(--rk-space-sm);
 }
 
 .rk-cart__editor-description {
     opacity: 0.5;
-    font-size: 0.9375rem;
+    font-size: var(--rk-text-base);
     max-width: 40ch;
     margin: 0 auto;
 }

@@ -4,7 +4,7 @@
 
 .renderkit-text-image {
     width: 100%;
-    padding: 6rem 0;
+    padding: var(--rk-section-padding-y) 0;
     overflow: hidden;
 }
 
@@ -29,25 +29,13 @@
 }
 
 /* --------------------------------------------------------------------------
-   Content Container - Aligned with navigation
+   Content Container - Shared container sizing
    -------------------------------------------------------------------------- */
 
 .rk-text-image__inner {
-    max-width: 1400px;
+    max-width: var(--rk-container-wide);
     margin: 0 auto;
-    padding: 0 calc(16px + 24px);
-}
-
-@media (min-width: 768px) {
-    .rk-text-image__inner {
-        padding: 0 calc(16px + 36px);
-    }
-}
-
-@media (min-width: 1024px) {
-    .rk-text-image__inner {
-        padding: 0 calc(32px + 44px);
-    }
+    padding: 0 var(--rk-container-padding-x);
 }
 
 /* --------------------------------------------------------------------------
@@ -104,7 +92,7 @@
 .rk-text-image__heading {
     margin: 0;
     font-family: var(--rk-font-display);
-    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-size: var(--rk-heading-section);
     font-weight: 400;
     line-height: 1.1;
     letter-spacing: -0.025em;
@@ -113,14 +101,14 @@
 .rk-text-image__description {
     margin: 0;
     color: var(--rk-text-image-muted);
-    font-size: 1rem;
+    font-size: var(--rk-text-base);
     line-height: 1.7;
     max-width: 42ch;
 }
 
 @media (min-width: 768px) {
     .rk-text-image__description {
-        font-size: 1.0625rem;
+        font-size: var(--rk-text-lg);
         line-height: 1.75;
     }
 }
@@ -137,7 +125,7 @@
     gap: 0.5rem;
     padding: 0.75rem 1.5rem;
     font-family: inherit;
-    font-size: 0.875rem;
+    font-size: var(--rk-text-sm);
     font-weight: 500;
     letter-spacing: 0.01em;
     text-decoration: none;
@@ -170,7 +158,7 @@
 @media (min-width: 768px) {
     .rk-text-image__cta {
         padding: 0.875rem 1.75rem;
-        font-size: 0.9375rem;
+        font-size: var(--rk-text-sm);
     }
 }
 
@@ -274,7 +262,7 @@
     align-items: center;
     justify-content: center;
     color: var(--rk-text-image-muted);
-    font-size: 0.875rem;
+    font-size: var(--rk-text-sm);
     border-radius: inherit;
 }
 

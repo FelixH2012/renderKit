@@ -77,50 +77,33 @@
     min-height: 100dvh;
     display: flex;
     align-items: center;
-    padding: 6rem 0;
+    padding: var(--rk-section-padding-y-loose) 0;
 }
 
 /* Minimal variant - subpages */
 .renderkit-hero--minimal {
-    padding-top: 8rem;
-    padding-bottom: 4rem;
+    padding-top: calc(var(--rk-section-padding-y) + var(--rk-space-2xl));
+    padding-bottom: var(--rk-section-padding-y);
 }
 
 @media (min-width: 768px) {
     .renderkit-hero--minimal {
-        padding-top: 10rem;
-        padding-bottom: 5rem;
+        padding-top: calc(var(--rk-section-padding-y) + var(--rk-space-3xl));
     }
 }
 
 /* --------------------------------------------------------------------------
    Content Container
-   Padding aligned with navigation for consistent X-axis alignment
+   Shared container sizing and padding for consistent section alignment
    -------------------------------------------------------------------------- */
 
 .rk-hero__content {
     position: relative;
     z-index: 1;
     width: 100%;
-    max-width: 1400px;
+    max-width: var(--rk-container-wide);
     margin: 0 auto;
-    /* Match nav padding: 24px mobile */
-    padding: 0 calc(16px + 24px);
-    /* nav-inset + nav-padding */
-}
-
-@media (min-width: 768px) {
-    .rk-hero__content {
-        /* Match nav: 36px */
-        padding: 0 calc(16px + 36px);
-    }
-}
-
-@media (min-width: 1024px) {
-    .rk-hero__content {
-        /* Match nav: 32px inset + 44px padding */
-        padding: 0 calc(32px + 44px);
-    }
+    padding: 0 var(--rk-container-padding-x);
 }
 
 /* Inner wrapper */
@@ -128,12 +111,12 @@
     max-width: 580px;
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: var(--rk-space-md);
 }
 
 @media (min-width: 768px) {
     .rk-hero__inner {
-        gap: 1.5rem;
+        gap: var(--rk-space-lg);
     }
 }
 
@@ -155,7 +138,7 @@
 
 /* Description */
 .rk-hero__description {
-    font-size: 1rem;
+    font-size: var(--rk-text-base);
     line-height: 1.7;
     color: var(--rk-hero-muted);
     margin: 0;
@@ -164,7 +147,7 @@
 
 @media (min-width: 768px) {
     .rk-hero__description {
-        font-size: 1.0625rem;
+        font-size: var(--rk-text-lg);
         line-height: 1.75;
     }
 }
@@ -182,13 +165,13 @@
     gap: 0.5rem;
     padding: 0.875rem 2rem;
     font-family: inherit;
-    font-size: 0.9375rem;
+    font-size: var(--rk-text-sm);
     font-weight: 500;
     letter-spacing: 0.01em;
     text-decoration: none;
     cursor: pointer;
     border-radius: 9999px;
-    margin-top: 1rem;
+    margin-top: var(--rk-space-md);
     width: fit-content;
     overflow: hidden;
     isolation: isolate;

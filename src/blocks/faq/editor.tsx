@@ -2,122 +2,128 @@
  * FAQ Block - Editor Component
  */
 
-import React from 'react';
-import { InspectorControls, useBlockProps } from '@wordpress/block-editor';
-import { PanelBody, TextControl, TextareaControl, ToggleControl, Button } from '@wordpress/components';
+import { __ } from '@wordpress/i18n';
+import { useBlockProps, InspectorControls, RichText } from '@wordpress/block-editor';
+import { PanelBody, SelectControl, ToggleControl, Button, TextareaControl } from '@wordpress/components';
 import type { FaqAttributes, FaqItem } from './types';
 
 interface EditProps {
     attributes: FaqAttributes;
     setAttributes: (attrs: Partial<FaqAttributes>) => void;
+    className?: string;
 }
 
-export function Edit({ attributes, setAttributes }: EditProps): JSX.Element {
-    const {
-        heading,
-        intro,
-        theme,
-        openFirst,
-        items,
-    } = attributes;
+export function Edit({ attributes, setAttributes, className }: EditProps): JSX.Element {
+    const { heading, intro, theme, openFirst, items } = attributes;
 
     const blockProps = useBlockProps({
-        className: [
-            'renderkit-faq',
-            `renderkit-faq--${theme}`,
-        ]
-            .filter(Boolean)
-            .join(' '),
+        className: `renderkit-block renderkit-faq renderkit-faq--${theme} ${className || ''}`.trim(),
     });
 
-    const updateItem = (index: number, patch: Partial<FaqItem>) => {
-        const next = items.map((item, idx) => (idx === index ? { ...item, ...patch } : item));
-        setAttributes({ items: next });
-    };
-
-    const removeItem = (index: number) => {
-        const next = items.filter((_, idx) => idx !== index);
-        setAttributes({ items: next });
+    const updateItem = (index: number, field: keyof FaqItem, value: string) => {
+        const newItems = [...items];
+        newItems[index] = { ...newItems[index], [field]: value };
+        setAttributes({ items: newItems });
     };
 
     const addItem = () => {
-        const next = [
-            ...items,
-            {
-                question: 'Neue Frage',
-                answer: 'Antwort hier eintragen.',
-            },
-        ];
-        setAttributes({ items: next });
+        setAttributes({
+            items: [...items, { question: 'Neue Frage', answer: 'Antwort hier eingeben...' }],
+        });
+    };
+
+    const removeItem = (index: number) => {
+        const newItems = items.filter((_, i) => i !== index);
+        setAttributes({ items: newItems });
     };
 
     return (
         <>
             <InspectorControls>
-                <PanelBody title="Content" initialOpen={true}>
-                    <TextControl
-                        label="Heading"
-                        value={heading}
-                        onChange={(value) => setAttributes({ heading: value })}
-                    />
-                    <TextareaControl
-                        label="Intro"
-                        value={intro}
-                        onChange={(value) => setAttributes({ intro: value })}
+                <PanelBody title={__('FAQ Settings', 'renderkit')} initialOpen>
+                    <SelectControl
+                        label={__('Theme', 'renderkit')}
+                        value={theme}
+                        options={[
+                            { label: 'Light', value: 'light' },
+                            { label: 'Dark', value: 'dark' },
+                        ]}
+                        onChange={(v) => setAttributes({ theme: v as 'light' | 'dark' })}
                     />
                     <ToggleControl
-                        label="Open first item"
-                        checked={Boolean(openFirst)}
-                        onChange={(value) => setAttributes({ openFirst: value })}
+                        label={__('Open first item by default', 'renderkit')}
+                        checked={openFirst}
+                        onChange={(v) => setAttributes({ openFirst: v })}
                     />
                 </PanelBody>
-                <PanelBody title="Items" initialOpen={false}>
+
+                <PanelBody title={__('FAQ Items', 'renderkit')} initialOpen={false}>
                     {items.map((item, index) => (
-                        <div key={`${item.question}-${index}`} style={{ marginBottom: '1rem' }}>
-                            <TextControl
-                                label="Question"
+                        <div key={index} style={{ marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: '1px solid #ddd' }}>
+                            <TextareaControl
+                                label={`${__('Question', 'renderkit')} ${index + 1}`}
                                 value={item.question}
-                                onChange={(value) => updateItem(index, { question: value })}
+                                onChange={(v) => updateItem(index, 'question', v)}
                             />
                             <TextareaControl
-                                label="Answer"
+                                label={__('Answer', 'renderkit')}
                                 value={item.answer}
-                                onChange={(value) => updateItem(index, { answer: value })}
+                                onChange={(v) => updateItem(index, 'answer', v)}
                             />
-                            <Button isDestructive onClick={() => removeItem(index)}>
-                                Remove item
+                            <Button
+                                isDestructive
+                                variant="secondary"
+                                onClick={() => removeItem(index)}
+                                style={{ marginTop: '0.5rem' }}
+                            >
+                                {__('Remove', 'renderkit')}
                             </Button>
                         </div>
                     ))}
-                    <Button variant="secondary" onClick={addItem}>
-                        Add item
+                    <Button variant="primary" onClick={addItem}>
+                        {__('Add FAQ Item', 'renderkit')}
                     </Button>
-                </PanelBody>
-                <PanelBody title="Appearance" initialOpen={false}>
-                    <TextControl
-                        label="Theme"
-                        value={theme}
-                        onChange={(value) => setAttributes({ theme: value as 'light' | 'dark' })}
-                        help="Use light or dark."
-                    />
                 </PanelBody>
             </InspectorControls>
 
             <div {...blockProps}>
                 <div className="rk-faq__inner">
-                    <div className="rk-faq__header">
-                        <div className="rk-faq__bar" aria-hidden="true" />
-                        <h2 className="rk-faq__heading">{heading || 'Haeufige Fragen'}</h2>
-                        {intro ? <p className="rk-faq__intro">{intro}</p> : null}
-                    </div>
+                    <header className="rk-faq__header">
+                        <RichText
+                            tagName="h2"
+                            className="rk-faq__heading"
+                            value={heading}
+                            onChange={(v: string) => setAttributes({ heading: v })}
+                            placeholder={__('FAQ Heading...', 'renderkit')}
+                        />
+                        <RichText
+                            tagName="p"
+                            className="rk-faq__intro"
+                            value={intro}
+                            onChange={(v: string) => setAttributes({ intro: v })}
+                            placeholder={__('Optional intro text...', 'renderkit')}
+                        />
+                    </header>
+
                     <div className="rk-faq__list">
                         {items.map((item, index) => (
-                            <details key={`${item.question}-${index}`} className="rk-faq__item" open={openFirst && index === 0}>
+                            <details key={index} className="rk-faq__item" open={index === 0}>
                                 <summary className="rk-faq__question">
-                                    <span>{item.question}</span>
-                                    <i className="rk-faq__icon fa-solid fa-plus" aria-hidden="true" />
+                                    <span className="rk-faq__question-text">{item.question}</span>
+                                    <span className="rk-faq__icon" aria-hidden="true">
+                                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                                            <line className="rk-faq__icon-h" x1="0" y1="7" x2="14" y2="7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                                            <line className="rk-faq__icon-v" x1="7" y1="0" x2="7" y2="14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                                        </svg>
+                                    </span>
                                 </summary>
-                                <div className="rk-faq__answer">{item.answer}</div>
+                                <div className="rk-faq__answer">
+                                    <div className="rk-faq__answer-inner">
+                                        <div className="rk-faq__answer-content">
+                                            {item.answer}
+                                        </div>
+                                    </div>
+                                </div>
                             </details>
                         ))}
                     </div>

@@ -1,7 +1,7 @@
 /* Text Block (InnerBlocks typography wrapper) */
 .renderkit-text-block {
     width: 100%;
-    padding: clamp(3rem, 6vw, 5rem) 0;
+    padding: var(--rk-section-padding-y) 0;
 }
 
 .renderkit-text-block--light {
@@ -19,21 +19,21 @@
 }
 
 .rk-text-block__inner {
-    max-width: 1100px;
+    max-width: var(--rk-container-base);
     margin: 0 auto;
-    padding: 0 1.5rem;
+    padding: 0 var(--rk-container-padding-x);
 }
 
 .renderkit-text-block--narrow .rk-text-block__inner {
-    max-width: 880px;
+    max-width: var(--rk-container-narrow);
 }
 
 .renderkit-text-block--wide .rk-text-block__inner {
-    max-width: 1300px;
+    max-width: var(--rk-container-wide);
 }
 
 .renderkit-text-block .rk-prose {
-    font-size: clamp(1rem, 1.2vw, 1.125rem);
+    font-size: clamp(var(--rk-text-base), 1.2vw, var(--rk-text-lg));
     line-height: 1.85;
     letter-spacing: -0.01em;
 }

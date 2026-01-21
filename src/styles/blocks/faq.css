@@ -1,91 +1,147 @@
+/* ==========================================================================
+   FAQ Block - Final Design
+   Pill radius, blur reveal, extend animation
+   ========================================================================== */
+
 .renderkit-faq {
-    padding: 8rem 0;
+    padding: var(--rk-section-padding-y) 0;
     width: 100%;
+    position: relative;
 }
 
+/* --------------------------------------------------------------------------
+   Theme Variants
+   -------------------------------------------------------------------------- */
+
 .renderkit-faq--light {
-    background: linear-gradient(180deg, var(--rk-cream) 0%, #F5F4F2 100%);
-    color: var(--rk-anthracite);
-    --rk-faq-muted: rgba(26, 24, 22, 0.66);
-    --rk-faq-border: rgba(26, 24, 22, 0.12);
+    background-color: var(--rk-color-cream);
+    color: var(--rk-color-anthracite);
+    --rk-faq-muted: rgba(26, 24, 22, 0.6);
+    --rk-faq-border: rgba(26, 24, 22, 0.08);
+    --rk-faq-item-bg: rgba(255, 255, 255, 0.6);
+    --rk-faq-item-bg-hover: rgba(255, 255, 255, 0.9);
+    --rk-faq-item-bg-open: rgba(255, 255, 255, 0.95);
+    --rk-faq-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    --rk-faq-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
+    --rk-faq-shadow-open: 0 8px 24px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04);
 }
 
 .renderkit-faq--dark {
-    background: var(--rk-black);
-    color: var(--rk-cream);
-    --rk-faq-muted: rgba(255, 254, 249, 0.7);
-    --rk-faq-border: rgba(255, 254, 249, 0.12);
+    background-color: var(--rk-color-black);
+    color: var(--rk-color-cream);
+    --rk-faq-muted: rgba(255, 254, 249, 0.6);
+    --rk-faq-border: rgba(255, 254, 249, 0.08);
+    --rk-faq-item-bg: rgba(255, 255, 255, 0.03);
+    --rk-faq-item-bg-hover: rgba(255, 255, 255, 0.05);
+    --rk-faq-item-bg-open: rgba(255, 255, 255, 0.06);
+    --rk-faq-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    --rk-faq-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.2);
+    --rk-faq-shadow-open: 0 8px 24px rgba(0, 0, 0, 0.4), 0 2px 6px rgba(0, 0, 0, 0.2);
 }
 
+/* --------------------------------------------------------------------------
+   Layout
+   -------------------------------------------------------------------------- */
+
 .rk-faq__inner {
-    max-width: 1600px;
+    max-width: var(--rk-container-wide);
     margin: 0 auto;
-    padding: 0 1.5rem;
+    padding: 0 var(--rk-container-padding-x);
     display: grid;
-    gap: clamp(2rem, 5vw, 5rem);
+    gap: clamp(2rem, 5vw, 4rem);
 }
+
+/* --------------------------------------------------------------------------
+   Header
+   -------------------------------------------------------------------------- */
 
 .rk-faq__header {
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
-}
-
-.rk-faq__bar {
-    width: 80px;
-    height: 1px;
-    background: linear-gradient(90deg, var(--rk-gold), transparent);
-    margin-bottom: 2rem;
+    gap: var(--rk-space-md);
+    max-width: 600px;
 }
 
 .rk-faq__heading {
     margin: 0;
     font-family: var(--rk-font-display);
-    font-size: clamp(2.5rem, 6vw, 5rem);
-    font-weight: 200;
-    letter-spacing: -0.04em;
-    line-height: 1;
+    font-size: var(--rk-heading-section);
+    font-weight: 300;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
 }
 
 .rk-faq__intro {
     margin: 0;
-    font-size: 1rem;
-    line-height: 1.8;
+    font-size: var(--rk-text-base);
+    line-height: 1.6;
     color: var(--rk-faq-muted);
     max-width: 48ch;
 }
 
+/* --------------------------------------------------------------------------
+   FAQ List
+   -------------------------------------------------------------------------- */
+
 .rk-faq__list {
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
+    gap: var(--rk-space-sm);
 }
+
+/* --------------------------------------------------------------------------
+   FAQ Item - Pill shaped with extend animation
+   -------------------------------------------------------------------------- */
 
 .rk-faq__item {
     border: 1px solid var(--rk-faq-border);
-    border-radius: var(--rk-radius-lg);
-    padding: 0.5rem 1.5rem;
-    background: rgba(255, 255, 255, 0.02);
-    transition: border-color 0.35s var(--rk-ease-out, cubic-bezier(0.22, 1, 0.36, 1)),
-        background 0.35s var(--rk-ease-out, cubic-bezier(0.22, 1, 0.36, 1));
+    border-radius: 100px;
+    padding: 6px 8px;
+    background: var(--rk-faq-item-bg);
+    box-shadow: var(--rk-faq-shadow);
+
+    transition:
+        border-color 0.5s cubic-bezier(0.34, 1.56, 0.64, 1),
+        background 0.5s cubic-bezier(0.34, 1.56, 0.64, 1),
+        box-shadow 0.5s cubic-bezier(0.34, 1.56, 0.64, 1),
+        transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1),
+        border-radius 0.5s cubic-bezier(0.34, 1.56, 0.64, 1),
+        padding 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-.rk-faq__item[open] {
-    border-color: var(--rk-gold);
-    background: rgba(184, 151, 90, 0.08);
+.rk-faq__item:hover {
+    background: var(--rk-faq-item-bg-hover);
+    box-shadow: var(--rk-faq-shadow-hover);
+    transform: translateY(-2px);
 }
+
+/* Open state - extend animation */
+.rk-faq__item[open] {
+    border-color: rgba(139, 127, 111, 0.15);
+    background: var(--rk-faq-item-bg-open);
+    box-shadow: var(--rk-faq-shadow-open);
+    border-radius: 24px;
+    padding: 6px 8px 4px;
+    transform: translateY(-1px) scale(1.01);
+}
+
+/* --------------------------------------------------------------------------
+   Question (Summary)
+   -------------------------------------------------------------------------- */
 
 .rk-faq__question {
     list-style: none;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 1rem;
+    gap: var(--rk-space-md);
     cursor: pointer;
-    padding: 0.85rem 0.25rem;
-    font-size: 1rem;
-    font-weight: 600;
+    padding: 14px 20px;
+    font-size: var(--rk-text-base);
+    font-weight: 500;
     letter-spacing: -0.01em;
+    user-select: none;
+    transition: color 0.2s ease;
 }
 
 .rk-faq__question::-webkit-details-marker {
@@ -97,54 +153,208 @@
 }
 
 .rk-faq__question:focus-visible {
-    outline: 2px solid var(--rk-gold);
+    outline: 2px solid var(--rk-color-taupe);
     outline-offset: 4px;
-    border-radius: var(--rk-radius-md);
+    border-radius: 100px;
 }
+
+.rk-faq__question-text {
+    flex: 1;
+}
+
+/* --------------------------------------------------------------------------
+   Icon - SVG morph animation (+ to -)
+   -------------------------------------------------------------------------- */
 
 .rk-faq__icon {
-    font-size: 1rem;
-    transition: transform 0.4s var(--rk-ease-out, cubic-bezier(0.22, 1, 0.36, 1));
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(139, 127, 111, 0.08);
+
+    transition:
+        transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1),
+        background 0.3s ease;
 }
 
-.rk-faq__item[open] .rk-faq__icon {
-    transform: rotate(45deg);
+.rk-faq__icon svg {
+    display: block;
 }
+
+.rk-faq__icon-h,
+.rk-faq__icon-v {
+    transform-origin: center;
+    transition:
+        transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
+        opacity 0.3s ease;
+}
+
+.rk-faq__item:hover .rk-faq__icon {
+    background: rgba(139, 127, 111, 0.12);
+}
+
+/* Open state - morph + to - (vertical line fades) */
+.rk-faq__item[open] .rk-faq__icon {
+    background: rgba(139, 127, 111, 0.16);
+    transform: rotate(180deg);
+}
+
+.rk-faq__item[open] .rk-faq__icon-v {
+    transform: scaleY(0);
+    opacity: 0;
+}
+
+/* --------------------------------------------------------------------------
+   Answer - Blur reveal animation
+   -------------------------------------------------------------------------- */
 
 .rk-faq__answer {
-    max-height: 0;
-    overflow: hidden;
-    opacity: 0;
-    transform: translateY(-6px);
-    padding: 0 0.25rem;
+    display: grid;
+    grid-template-rows: 0fr;
+    padding: 0 20px;
+
     transition:
-        max-height 0.6s var(--rk-ease-out, cubic-bezier(0.22, 1, 0.36, 1)),
-        opacity 0.35s ease,
-        transform 0.35s ease,
-        padding 0.35s ease;
-    font-size: 0.98rem;
+        grid-template-rows 0.6s cubic-bezier(0.34, 1.56, 0.64, 1),
+        padding 0.4s ease;
+}
+
+.rk-faq__answer-inner {
+    overflow: hidden;
+}
+
+.rk-faq__answer-content {
+    font-size: var(--rk-text-base);
     line-height: 1.7;
     color: var(--rk-faq-muted);
     white-space: pre-line;
+    padding-bottom: 16px;
+
+    /* Blur reveal effect */
+    opacity: 0;
+    filter: blur(8px);
+    transform: translateY(-12px);
+
+    transition:
+        opacity 0.4s ease 0.15s,
+        filter 0.5s ease 0.1s,
+        transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s;
 }
 
 .rk-faq__item[open] .rk-faq__answer {
-    max-height: 420px;
-    opacity: 1;
-    transform: translateY(0);
-    padding: 0 0.25rem 1rem;
+    grid-template-rows: 1fr;
+    padding: 0 20px 8px;
 }
 
-@media (prefers-reduced-motion: reduce) {
-    .rk-faq__item,
-    .rk-faq__icon,
-    .rk-faq__answer {
-        transition: none;
+.rk-faq__item[open] .rk-faq__answer-content {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0);
+}
+
+/* --------------------------------------------------------------------------
+   Entrance Animation
+   -------------------------------------------------------------------------- */
+
+@keyframes rk-faq-fade {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 }
 
+.renderkit-faq[data-rk-animate] .rk-faq__header {
+    animation: rk-faq-fade 0.5s ease-out both;
+}
+
+.renderkit-faq[data-rk-animate] .rk-faq__item {
+    animation: rk-faq-fade 0.5s ease-out both;
+}
+
+.renderkit-faq[data-rk-animate] .rk-faq__item:nth-child(1) {
+    animation-delay: 0.1s;
+}
+
+.renderkit-faq[data-rk-animate] .rk-faq__item:nth-child(2) {
+    animation-delay: 0.15s;
+}
+
+.renderkit-faq[data-rk-animate] .rk-faq__item:nth-child(3) {
+    animation-delay: 0.2s;
+}
+
+.renderkit-faq[data-rk-animate] .rk-faq__item:nth-child(4) {
+    animation-delay: 0.25s;
+}
+
+.renderkit-faq[data-rk-animate] .rk-faq__item:nth-child(5) {
+    animation-delay: 0.3s;
+}
+
+.renderkit-faq[data-rk-animate] .rk-faq__item:nth-child(6) {
+    animation-delay: 0.35s;
+}
+
+/* --------------------------------------------------------------------------
+   Reduced Motion
+   -------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+
+    .rk-faq__item,
+    .rk-faq__icon,
+    .rk-faq__answer,
+    .rk-faq__answer-content {
+        transition: none;
+        filter: none !important;
+    }
+
+    .renderkit-faq[data-rk-animate] .rk-faq__header,
+    .renderkit-faq[data-rk-animate] .rk-faq__item {
+        animation: none;
+        opacity: 1;
+        transform: none;
+    }
+}
+
+/* --------------------------------------------------------------------------
+   Mobile Adjustments
+   -------------------------------------------------------------------------- */
+
 @media (max-width: 768px) {
     .rk-faq__item {
-        padding: 0.35rem 1.1rem;
+        padding: 4px 6px;
+    }
+
+    .rk-faq__question {
+        padding: 12px 16px;
+    }
+
+    .rk-faq__item:hover {
+        transform: none;
+    }
+
+    .rk-faq__item[open] {
+        transform: none;
+    }
+
+    .rk-faq__answer {
+        padding: 0 16px;
+    }
+
+    .rk-faq__item[open] .rk-faq__answer {
+        padding: 0 16px 8px;
+    }
+
+    .rk-faq__answer-content {
+        filter: blur(4px);
     }
 }

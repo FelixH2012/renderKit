@@ -1,7 +1,7 @@
 /* Swiper Block (no-JS scroll-snap + JS controls) */
 .renderkit-swiper {
     width: 100%;
-    padding: clamp(3rem, 6vw, 5rem) 0;
+    padding: var(--rk-section-padding-y) 0;
 }
 
 .renderkit-swiper--light {
@@ -24,8 +24,8 @@
     overflow-x: auto;
     overflow-y: hidden;
     scroll-snap-type: x mandatory;
-    scroll-padding-left: 1.5rem;
-    padding: 0 1.5rem;
+    scroll-padding-left: var(--rk-container-padding-x);
+    padding: 0 var(--rk-container-padding-x);
     -webkit-overflow-scrolling: touch;
     overscroll-behavior-x: contain;
     scrollbar-width: none;
@@ -112,8 +112,8 @@
 
 .rk-swiper__eyebrow {
     margin: 0;
-    font-size: 0.625rem;
-    letter-spacing: 0.25em;
+    font-size: var(--rk-text-2xs);
+    letter-spacing: var(--rk-tracking-wide);
     text-transform: uppercase;
     font-weight: 600;
     color: var(--rk-gold);
@@ -122,7 +122,7 @@
 .rk-swiper__title {
     margin: 0;
     font-family: var(--rk-font-display);
-    font-size: clamp(1.5rem, 3vw, 2.25rem);
+    font-size: var(--rk-heading-section-sm);
     font-weight: 300;
     line-height: 1.05;
     letter-spacing: -0.02em;
@@ -131,7 +131,7 @@
 .rk-swiper__text {
     margin: 0;
     max-width: 55ch;
-    font-size: 1rem;
+    font-size: var(--rk-text-base);
     line-height: 1.7;
     color: rgba(26, 24, 22, 0.7);
 }
@@ -146,8 +146,8 @@
     gap: 0.75rem;
     text-decoration: none;
     margin-top: 0.5rem;
-    font-size: 0.75rem;
-    letter-spacing: 0.2em;
+    font-size: var(--rk-text-xs);
+    letter-spacing: var(--rk-tracking-wide);
     text-transform: uppercase;
     font-weight: 600;
     color: inherit;
@@ -169,7 +169,7 @@
 }
 
 .rk-swiper__link-icon {
-    font-size: 1rem;
+    font-size: var(--rk-text-base);
     line-height: 1;
     display: inline-flex;
 }
@@ -178,8 +178,8 @@
     display: none;
     align-items: center;
     justify-content: space-between;
-    gap: 1rem;
-    padding: 1rem 1.5rem 0;
+    gap: var(--rk-space-md);
+    padding: var(--rk-space-md) var(--rk-space-lg) 0;
 }
 
 .rk-js .renderkit-swiper .rk-swiper__controls {
@@ -188,7 +188,7 @@
 
 .rk-swiper__buttons {
     display: flex;
-    gap: 0.5rem;
+    gap: var(--rk-space-xs);
     align-items: center;
 }
 
@@ -217,7 +217,7 @@
 }
 
 .rk-swiper__button-icon {
-    font-size: 1rem;
+    font-size: var(--rk-text-base);
     line-height: 1;
     display: inline-flex;
 }
@@ -226,7 +226,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 10px;
+    gap: var(--rk-space-sm);
     min-height: 44px;
     flex: 1;
 }
@@ -248,15 +248,15 @@
 }
 
 .rk-swiper__empty {
-    padding: 3rem 1.5rem;
+    padding: var(--rk-space-2xl) var(--rk-space-lg);
     text-align: center;
     border: 1px dashed rgba(184, 151, 90, 0.35);
     border-radius: 1.25rem;
-    margin: 0 1.5rem;
+    margin: 0 var(--rk-space-lg);
 }
 
 .rk-swiper__empty-title {
-    font-size: 1.25rem;
+    font-size: var(--rk-text-xl);
     font-weight: 700;
     margin: 0 0 0.25rem;
 }
@@ -272,7 +272,7 @@
 
 /* Swiper editor UI (only appears in Gutenberg) */
 .rk-swiper__editor {
-    padding: 1.25rem;
+    padding: var(--rk-space-lg);
     border: 1px solid rgba(184, 151, 90, 0.25);
     border-radius: 1.25rem;
     background: rgba(255, 254, 249, 0.6);
@@ -293,7 +293,7 @@
 
 .rk-swiper__editor-title {
     margin: 0;
-    font-size: 1.125rem;
+    font-size: var(--rk-text-lg);
     font-weight: 800;
     letter-spacing: -0.02em;
 }
@@ -301,7 +301,7 @@
 .rk-swiper__editor-subtitle {
     margin: 0.25rem 0 0;
     color: rgba(26, 24, 22, 0.65);
-    font-size: 0.875rem;
+    font-size: var(--rk-text-sm);
 }
 
 .renderkit-swiper--dark .rk-swiper__editor-subtitle {
@@ -309,7 +309,7 @@
 }
 
 .rk-swiper__editor-empty {
-    padding: 1rem;
+    padding: var(--rk-space-md);
     border: 1px dashed rgba(184, 151, 90, 0.35);
     border-radius: 1rem;
 }
@@ -317,14 +317,14 @@
 .rk-swiper__editor-list {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: var(--rk-space-md);
 }
 
 .rk-swiper__editor-card {
     border-radius: 1rem;
     border: 1px solid rgba(184, 151, 90, 0.2);
     background: rgba(255, 255, 255, 0.75);
-    padding: 1rem;
+    padding: var(--rk-space-md);
 }
 
 .renderkit-swiper--dark .rk-swiper__editor-card {
@@ -335,8 +335,8 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 1rem;
-    margin-bottom: 0.75rem;
+    gap: var(--rk-space-md);
+    margin-bottom: var(--rk-space-sm);
 }
 
 .rk-swiper__editor-card-index {
@@ -349,25 +349,25 @@
     align-items: center;
     justify-content: center;
     font-weight: 800;
-    font-size: 0.875rem;
+    font-size: var(--rk-text-sm);
 }
 
 .rk-swiper__editor-card-actions {
     display: flex;
-    gap: 0.5rem;
+    gap: var(--rk-space-xs);
     align-items: center;
 }
 
 .rk-swiper__editor-grid {
     display: grid;
     grid-template-columns: 220px 1fr;
-    gap: 1rem;
+    gap: var(--rk-space-md);
 }
 
 .rk-swiper__editor-media {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: var(--rk-space-xs);
 }
 
 .rk-swiper__editor-thumb {
@@ -393,13 +393,13 @@
 
 .rk-swiper__editor-fields {
     display: grid;
-    gap: 0.75rem;
+    gap: var(--rk-space-sm);
 }
 
 .rk-swiper__editor-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 0.75rem;
+    gap: var(--rk-space-sm);
 }
 
 @media (max-width: 782px) {

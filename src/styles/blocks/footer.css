@@ -1,7 +1,7 @@
 /* Footer */
 .renderkit-footer {
     width: 100%;
-    padding: clamp(3rem, 6vw, 5rem) 0;
+    padding: var(--rk-section-padding-y) 0;
 }
 
 .renderkit-footer--light {
@@ -23,9 +23,9 @@
 }
 
 .rk-footer__inner {
-    max-width: 1600px;
+    max-width: var(--rk-container-wide);
     margin: 0 auto;
-    padding: 0 1.5rem;
+    padding: 0 var(--rk-container-padding-x);
 }
 
 .rk-footer__top {
@@ -54,7 +54,7 @@
 .rk-footer__brand {
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
+    gap: var(--rk-space-lg);
 }
 
 .rk-footer__logo {
@@ -72,8 +72,8 @@
 }
 
 .rk-footer__logo-text {
-    font-size: 0.875rem;
-    letter-spacing: 0.3em;
+    font-size: var(--rk-text-sm);
+    letter-spacing: var(--rk-tracking-wide);
     text-transform: uppercase;
     font-weight: 600;
     line-height: 1;
@@ -84,13 +84,13 @@
     color: var(--rk-footer-muted);
     max-width: 46ch;
     line-height: 1.75;
-    font-size: 1rem;
+    font-size: var(--rk-text-base);
 }
 
 .rk-footer__label {
     margin: 0 0 1rem;
-    font-size: 0.625rem;
-    letter-spacing: 0.25em;
+    font-size: var(--rk-text-2xs);
+    letter-spacing: var(--rk-tracking-wide);
     text-transform: uppercase;
     font-weight: 700;
     color: var(--rk-gold);
@@ -102,7 +102,7 @@
     margin: 0;
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
+    gap: var(--rk-space-sm);
 }
 
 .rk-footer__link {
@@ -110,7 +110,7 @@
     align-items: center;
     text-decoration: none;
     color: var(--rk-footer-muted);
-    font-size: 0.8125rem;
+    font-size: var(--rk-text-sm);
     letter-spacing: 0.12em;
     text-transform: uppercase;
     font-weight: 600;
@@ -133,15 +133,15 @@
 
 .rk-footer__fineprint {
     color: var(--rk-footer-muted);
-    font-size: 0.875rem;
+    font-size: var(--rk-text-sm);
 }
 
 .rk-footer__cookie {
     background: none;
     border: none;
     padding: 0;
-    font-size: 0.75rem;
-    letter-spacing: 0.2em;
+    font-size: var(--rk-text-xs);
+    letter-spacing: var(--rk-tracking-wide);
     text-transform: uppercase;
     color: var(--rk-footer-muted);
     cursor: pointer;
