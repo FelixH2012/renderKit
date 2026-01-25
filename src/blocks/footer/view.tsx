@@ -40,59 +40,46 @@ export function View({ attributes, content = '', className }: ViewProps): JSX.El
 
     return (
         <footer className={footerClasses} data-rk-footer="1">
-            <div className="rk-footer__inner">
-                <div className="rk-footer__top">
-                    <div className="rk-footer__bar" aria-hidden="true" />
-                </div>
+            <div className="rk-footer__shell">
+                <div className="rk-footer__inner rk-container-wide">
+                    <div className="rk-footer__content">
+                        <div className="rk-footer__brand">
+                            <a href="/" className="rk-footer__logo">
+                                {showLogo && logoUrl ? (
+                                    <img className="rk-footer__logo-img" src={logoUrl} alt={siteName} />
+                                ) : null}
+                                <span className="rk-footer__logo-text">{siteName}</span>
+                            </a>
+                            {tagline ? <p className="rk-footer__tagline">{tagline}</p> : null}
+                        </div>
 
-                <div
-                    className={[
-                        'rk-footer__grid',
-                        !hasMenu && 'rk-footer__grid--no-menu',
-                        !hasExtra && 'rk-footer__grid--no-extra',
-                    ]
-                        .filter(Boolean)
-                        .join(' ')}
-                >
-                    <div className="rk-footer__brand">
-                        <a href="/" className="rk-footer__logo">
-                            {showLogo && logoUrl ? (
-                                <img className="rk-footer__logo-img" src={logoUrl} alt={siteName} />
-                            ) : null}
-                            <span className="rk-footer__logo-text">{siteName}</span>
-                        </a>
-                        {tagline ? <p className="rk-footer__tagline">{tagline}</p> : null}
+                        {hasMenu ? (
+                            <nav className="rk-footer__nav" aria-label="Footer Navigation">
+                                <ul className="rk-footer__nav-list">
+                                    {menuItems.map((item) => (
+                                        <li key={item.id}>
+                                            <a className="rk-footer__nav-link" href={item.url}>
+                                                {item.title}
+                                            </a>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </nav>
+                        ) : null}
+
+                        {hasExtra ? (
+                            <div className="rk-footer__extra">
+                                <div className="rk-prose" dangerouslySetInnerHTML={{ __html: content }} />
+                            </div>
+                        ) : null}
                     </div>
 
-                    {hasMenu ? (
-                        <nav className="rk-footer__nav" aria-label="Footer">
-                            <p className="rk-footer__label">Links</p>
-                            <ul className="rk-footer__list">
-                                {menuItems.map((item) => (
-                                    <li key={item.id} className="rk-footer__item">
-                                        <a className="rk-footer__link" href={item.url}>
-                                            {item.title}
-                                        </a>
-                                    </li>
-                                ))}
-                            </ul>
-                        </nav>
-                    ) : null}
-
-                    {hasExtra ? (
-                        <div className="rk-footer__extra">
-                            <div className="rk-prose" dangerouslySetInnerHTML={{ __html: content }} />
-                        </div>
-                    ) : null}
-                </div>
-
-                <div className="rk-footer__bottom">
-                    <span className="rk-footer__fineprint">
-                        © {year} {siteName}
-                    </span>
-                    <button type="button" className="rk-footer__cookie" data-rk-cookie-open>
-                        Cookie-Einstellungen
-                    </button>
+                    <div className="rk-footer__bottom">
+                        <span className="rk-footer__copyright">© {year} {siteName}</span>
+                        <button type="button" className="rk-footer__cookie-btn" data-rk-cookie-open>
+                            Cookie-Einstellungen
+                        </button>
+                    </div>
                 </div>
             </div>
         </footer>

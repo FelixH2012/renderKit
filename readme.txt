@@ -3,7 +3,7 @@ Contributors: felix
 Tags: react, blocks, ssr, relay, performance
 Requires at least: 6.4
 Tested up to: 6.7
-Stable tag: 1.5.1
+Stable tag: 1.6.0
 Requires PHP: 8.0
 License: GPLv2 or later
 
@@ -27,6 +27,21 @@ Key Features:
 4. Ensure the Relay service (Docker) is running via `make relay-up` or `make dev`.
 
 == Changelog ==
+
+= 1.6.0 =
+* **Feature:** Focal point control for precise image positioning in image blocks.
+* **Feature:** ObjectFit support for better image rendering control.
+* **Feature:** Auto-generated block IDs for improved tracking and styling.
+* **Feature:** HTML sanitization utility (html.ts) for enhanced security.
+* **Improvement:** Migrated to Tailwind CSS for better maintainability and performance.
+* **Improvement:** Enhanced block naming conventions for clarity and consistency.
+* **Improvement:** Multiple design system updates for visual consistency.
+* **Improvement:** Better error messages and guidance for .env variables.
+* **Fix:** Mobile navigation drawer behavior and responsiveness issues.
+* **Fix:** Docker configuration hardcoded URL issues.
+* **Fix:** Server.js boilerplate code improvements.
+* **Security:** Bumped esbuild to 0.25.12 to address security vulnerabilities.
+* **Security:** Enhanced HTML sanitization to prevent XSS attacks.
 
 = 1.5.1 =
 * **Improvement:** Relay fallback now serves last successful SSR snapshot when Relay is down.
