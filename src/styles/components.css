@@ -20,8 +20,9 @@
     }
 
     .rk-cta {
-        @apply relative inline-flex items-center justify-center gap-2 rounded-full text-[var(--rk-text-sm)] font-medium tracking-[0.01em] no-underline cursor-pointer overflow-hidden isolate backdrop-blur-[20px] backdrop-saturate-[180%] border text-current transition-[background,border-color,box-shadow,transform] duration-[400ms] ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 active:-translate-y-[1px] active:scale-[0.98] active:duration-100 focus-visible:outline-none motion-reduce:transition-none;
+        @apply relative inline-flex items-center justify-center gap-2 rounded-full font-medium tracking-[0.01em] no-underline cursor-pointer overflow-hidden isolate backdrop-blur-[20px] backdrop-saturate-[180%] border text-current transition-[background,border-color,box-shadow,transform] duration-[400ms] ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 active:-translate-y-[1px] active:scale-[0.98] active:duration-100 focus-visible:outline-none motion-reduce:transition-none;
         padding: var(--rk-cta-pad-y) var(--rk-cta-pad-x);
+        font-size: var(--rk-text-sm);
         background: var(--rk-cta-bg);
         border-color: var(--rk-cta-border);
         box-shadow: var(--rk-cta-shadow);

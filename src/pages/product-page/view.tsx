@@ -114,220 +114,208 @@ export function View({ attributes, content = '', className }: ViewProps): JSX.El
 
     const rootClasses = ['wp-site-blocks', 'rk-site', className].filter(Boolean).join(' ');
     const hasFeatured = Boolean(product?.featuredImage?.src);
-    const hasGallery = gallery.length > 1;
+    const allImages = hasFeatured ? [product.featuredImage!, ...gallery] : gallery;
+    const hasGallery = allImages.length > 0;
     const showSale = Number(product?.salePrice || 0) > 0;
     const showPrice = Number(product?.price || 0) > 0;
     const hasContent = content && content.trim().length > 0;
-
-    // Section IDs for navigation
-    const sections = [
-        { id: 'overview', label: 'Übersicht', show: true },
-        { id: 'gallery', label: 'Galerie', show: hasGallery },
-        { id: 'details', label: 'Details', show: hasContent },
-        { id: 'related', label: 'Ähnliche', show: related.length > 0 },
-    ].filter(s => s.show);
 
     return (
         <div className={rootClasses}>
             <NavigationView attributes={navigation} />
 
             <main className="rk-pdp">
-                {/* Compact Header */}
-                <header className="rk-pdp__header">
-                    <div className="rk-pdp__header-inner">
-                        {product?.archiveUrl && (
+                {/* Breadcrumb Bar */}
+                {product?.archiveUrl && (
+                    <div className="rk-pdp__breadcrumb-bar">
+                        <div className="rk-pdp__container">
                             <a className="rk-pdp__breadcrumb" href={product.archiveUrl}>
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                     <path d="M19 12H5M12 19l-7-7 7-7" />
                                 </svg>
-                                {labels?.backToProducts || 'Alle Produkte'}
+                                <span>{labels?.backToProducts || 'Alle Produkte'}</span>
                             </a>
-                        )}
-                        <h1 className="rk-pdp__title">{product?.title || 'Produkt'}</h1>
-                        {product?.excerpt && (
-                            <p className="rk-pdp__subtitle">{product.excerpt}</p>
-                        )}
-                    </div>
-                </header>
-
-                {/* Pill Navigation */}
-                <nav className="rk-pdp__pills" aria-label="Sektionen">
-                    <div className="rk-pdp__pills-track">
-                        {sections.map((section) => (
-                            <a
-                                key={section.id}
-                                href={`#${section.id}`}
-                                className="rk-pdp__pill"
-                            >
-                                {section.label}
-                            </a>
-                        ))}
-                    </div>
-                </nav>
-
-                {/* Overview Section */}
-                <section className="rk-pdp__section" id="overview">
-                    <div className="rk-pdp__overview">
-                        {/* Image */}
-                        <div className="rk-pdp__image">
-                            {hasFeatured ? (
-                                <img
-                                    src={product.featuredImage!.src}
-                                    alt={product.featuredImage!.alt || product.title}
-                                    loading="eager"
-                                    width={product.featuredImage!.width}
-                                    height={product.featuredImage!.height}
-                                    srcSet={product.featuredImage!.srcSet}
-                                    sizes="(min-width: 768px) 50vw, 100vw"
-                                />
-                            ) : (
-                                <div className="rk-pdp__image-placeholder">
-                                    <span>🎁</span>
-                                </div>
-                            )}
                         </div>
+                    </div>
+                )}
 
-                        {/* Info */}
-                        <div className="rk-pdp__info">
-                            {/* Badge */}
-                            {product?.stockLabel && (
-                                <span className={`rk-pdp__badge rk-pdp__badge--${product.stockStatus}`}>
-                                    {product.stockLabel}
-                                </span>
-                            )}
+                {/* Main Product Section */}
+                <section className="rk-pdp__main">
+                    <div className="rk-pdp__container">
+                        <div className="rk-pdp__grid">
+                            {/* Left: Image Gallery */}
+                            <div className="rk-pdp__gallery">
+                                {hasGallery ? (
+                                    <div className="rk-pdp__gallery-wrapper">
+                                        {allImages.map((image, index) => {
+                                            if (!image?.src) return null;
+                                            return (
+                                                <div key={image.id || index} className="rk-pdp__gallery-slide">
+                                                    <div className="rk-pdp__gallery-image">
+                                                        <img
+                                                            src={image.src}
+                                                            alt={image.alt || `${product.title} - Bild ${index + 1}`}
+                                                            loading={index === 0 ? 'eager' : 'lazy'}
+                                                            width={image.width}
+                                                            height={image.height}
+                                                            srcSet={image.srcSet}
+                                                            sizes="(min-width: 1024px) 60vw, 100vw"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                ) : (
+                                    <div className="rk-pdp__gallery-placeholder">
+                                        <span>🎁</span>
+                                    </div>
+                                )}
+                            </div>
 
-                            {/* Price Card */}
-                            <div className="rk-pdp__price-card">
-                                <div className="rk-pdp__price">
-                                    {showSale ? (
-                                        <>
-                                            <span className="rk-pdp__price-current">€{product.salePriceFormatted}</span>
-                                            {showPrice && (
-                                                <span className="rk-pdp__price-original">€{product.priceFormatted}</span>
+                            {/* Right: Product Info Sidebar */}
+                            <div className="rk-pdp__sidebar">
+                                <div className="rk-pdp__sidebar-sticky">
+                                    {/* Title & Excerpt */}
+                                    <div className="rk-pdp__header">
+                                        <h1 className="rk-pdp__title">{product?.title || 'Produkt'}</h1>
+                                        {product?.excerpt && (
+                                            <p className="rk-pdp__excerpt">{product.excerpt}</p>
+                                        )}
+                                    </div>
+
+                                    {/* Price Section */}
+                                    <div className="rk-pdp__price-section">
+                                        <div className="rk-pdp__price">
+                                            {showSale ? (
+                                                <>
+                                                    <span className="rk-pdp__price-sale">€{product.salePriceFormatted}</span>
+                                                    {showPrice && (
+                                                        <span className="rk-pdp__price-original">€{product.priceFormatted}</span>
+                                                    )}
+                                                    <span className="rk-pdp__price-badge">Sale</span>
+                                                </>
+                                            ) : showPrice ? (
+                                                <span className="rk-pdp__price-current">€{product.priceFormatted}</span>
+                                            ) : (
+                                                <span className="rk-pdp__price-request">{labels?.priceOnRequest || 'Preis auf Anfrage'}</span>
                                             )}
-                                        </>
-                                    ) : showPrice ? (
-                                        <span className="rk-pdp__price-current">€{product.priceFormatted}</span>
-                                    ) : (
-                                        <span className="rk-pdp__price-current">{labels?.priceOnRequest || 'Preis auf Anfrage'}</span>
-                                    )}
-                                </div>
+                                        </div>
+                                    </div>
 
-                                {/* Quick Info Pills */}
-                                <div className="rk-pdp__quick-info">
-                                    {product?.sku && (
-                                        <span className="rk-pdp__info-pill">
-                                            <span className="rk-pdp__info-pill-label">{labels?.sku || 'Art.'}</span>
-                                            <span className="rk-pdp__info-pill-value">{product.sku}</span>
-                                        </span>
-                                    )}
+                                    {/* Stock Badge */}
                                     {product?.stockLabel && (
-                                        <span className="rk-pdp__info-pill">
-                                            <span className="rk-pdp__info-pill-label">{labels?.availability || 'Status'}</span>
-                                            <span className="rk-pdp__info-pill-value">{product.stockLabel}</span>
-                                        </span>
+                                        <div className="rk-pdp__stock">
+                                            <span className={`rk-pdp__stock-badge rk-pdp__stock-badge--${product.stockStatus}`}>
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                    {product.stockStatus === 'instock' ? (
+                                                        <path d="M20 6L9 17l-5-5" />
+                                                    ) : product.stockStatus === 'outofstock' ? (
+                                                        <path d="M18 6L6 18M6 6l12 12" />
+                                                    ) : (
+                                                        <path d="M12 8v4M12 16h.01" />
+                                                    )}
+                                                </svg>
+                                                <span>{product.stockLabel}</span>
+                                            </span>
+                                        </div>
+                                    )}
+
+                                    {/* Product Meta */}
+                                    <div className="rk-pdp__meta">
+                                        {product?.sku && (
+                                            <div className="rk-pdp__meta-item">
+                                                <span className="rk-pdp__meta-label">{labels?.sku || 'Artikelnummer'}</span>
+                                                <span className="rk-pdp__meta-value">{product.sku}</span>
+                                            </div>
+                                        )}
+                                        {product?.stockLabel && (
+                                            <div className="rk-pdp__meta-item">
+                                                <span className="rk-pdp__meta-label">{labels?.availability || 'Verfügbarkeit'}</span>
+                                                <span className="rk-pdp__meta-value">{product.stockLabel}</span>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* CTA Button */}
+                                    {hasContent && (
+                                        <a className="rk-pdp__cta rk-cta rk-cta--lg" href="#details">
+                                            <span className="rk-cta__text">{labels?.readDescription || 'Details ansehen'}</span>
+                                            <svg className="rk-cta__arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                <path d="M5 12h14M12 5l7 7-7 7" />
+                                            </svg>
+                                        </a>
                                     )}
                                 </div>
                             </div>
-
-                            {/* CTA */}
-                            {hasContent && (
-                                <a className="rk-pdp__cta" href="#details">
-                                    <span>{labels?.readDescription || 'Details ansehen'}</span>
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                        <path d="M5 12h14M12 5l7 7-7 7" />
-                                    </svg>
-                                </a>
-                            )}
                         </div>
                     </div>
                 </section>
 
-                {/* Gallery Section */}
-                {hasGallery && (
-                    <section className="rk-pdp__section rk-pdp__section--alt" id="gallery">
-                        <div className="rk-pdp__section-header">
-                            <h2 className="rk-pdp__section-title">{labels?.gallery || 'Galerie'}</h2>
-                        </div>
-                        <div className="rk-pdp__gallery-grid">
-                            {gallery.map((image, index) => {
-                                if (!image?.src) return null;
-                                return (
-                                    <a
-                                        key={image.id || index}
-                                        className="rk-pdp__gallery-item"
-                                        href={image.fullSrc || image.src}
-                                        target="_blank"
-                                        rel="noopener"
-                                    >
-                                        <img
-                                            src={image.src}
-                                            alt={image.alt || `${product.title} - Bild ${index + 1}`}
-                                            loading="lazy"
-                                            width={image.width}
-                                            height={image.height}
-                                        />
-                                    </a>
-                                );
-                            })}
-                        </div>
-                    </section>
-                )}
-
                 {/* Details Section */}
                 {hasContent && (
-                    <section className="rk-pdp__section" id="details">
-                        <div className="rk-pdp__section-header">
-                            <h2 className="rk-pdp__section-title">Produktdetails</h2>
-                        </div>
-                        <div className="rk-pdp__content">
-                            {product?.hasRenderkitBlocks ? (
-                                <div dangerouslySetInnerHTML={{ __html: content }} />
-                            ) : (
-                                <div className="rk-pdp__prose" dangerouslySetInnerHTML={{ __html: content }} />
-                            )}
+                    <section className="rk-pdp__section rk-pdp__section--details" id="details">
+                        <div className="rk-pdp__container rk-pdp__container--narrow">
+                            <div className="rk-pdp__section-header">
+                                <h2 className="rk-pdp__section-title">Produktdetails</h2>
+                            </div>
+                            <div className="rk-pdp__content">
+                                {product?.hasRenderkitBlocks ? (
+                                    <div dangerouslySetInnerHTML={{ __html: content }} />
+                                ) : (
+                                    <div className="rk-pdp__prose" dangerouslySetInnerHTML={{ __html: content }} />
+                                )}
+                            </div>
                         </div>
                     </section>
                 )}
 
                 {/* Related Products Section */}
                 {related.length > 0 && (
-                    <section className="rk-pdp__section rk-pdp__section--alt" id="related">
-                        <div className="rk-pdp__section-header">
-                            <h2 className="rk-pdp__section-title">
-                                {labels?.relatedHeading || 'Das könnte dir auch gefallen'}
-                            </h2>
-                        </div>
-                        <div className="rk-pdp__related-grid">
-                            {related.map((item) => {
-                                const itemHasSale = Number(item.salePrice || 0) > 0;
-                                const itemHasPrice = Number(item.price || 0) > 0;
+                    <section className="rk-pdp__section rk-pdp__section--related" id="related">
+                        <div className="rk-pdp__container">
+                            <div className="rk-pdp__section-header">
+                                <h2 className="rk-pdp__section-title">
+                                    {labels?.relatedHeading || 'Das könnte dir auch gefallen'}
+                                </h2>
+                            </div>
+                            <div className="rk-pdp__related-grid">
+                                {related.map((item) => {
+                                    const itemHasSale = Number(item.salePrice || 0) > 0;
+                                    const itemHasPrice = Number(item.price || 0) > 0;
 
-                                return (
-                                    <a key={item.id} className="rk-pdp__related-card" href={item.url}>
-                                        <div className="rk-pdp__related-media">
-                                            {item.image ? (
-                                                <img src={item.image} alt={item.title} loading="lazy" />
-                                            ) : (
-                                                <div className="rk-pdp__related-placeholder">🎁</div>
-                                            )}
-                                        </div>
-                                        <div className="rk-pdp__related-body">
-                                            <h3 className="rk-pdp__related-name">{item.title}</h3>
-                                            <p className="rk-pdp__related-price">
-                                                {itemHasSale ? (
-                                                    <>
-                                                        <span className="rk-pdp__price-sale">€{item.salePriceFormatted}</span>
-                                                        {itemHasPrice && <span className="rk-pdp__price-was">€{item.priceFormatted}</span>}
-                                                    </>
-                                                ) : itemHasPrice ? (
-                                                    <span>€{item.priceFormatted}</span>
-                                                ) : null}
-                                            </p>
-                                        </div>
-                                    </a>
-                                );
-                            })}
+                                    return (
+                                        <a key={item.id} className="rk-pdp__related-card" href={item.url}>
+                                            <div className="rk-pdp__related-image">
+                                                {item.image ? (
+                                                    <img src={item.image} alt={item.title} loading="lazy" />
+                                                ) : (
+                                                    <div className="rk-pdp__related-placeholder">
+                                                        <span>🎁</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div className="rk-pdp__related-content">
+                                                <h3 className="rk-pdp__related-title">{item.title}</h3>
+                                                {(itemHasSale || itemHasPrice) && (
+                                                    <div className="rk-pdp__related-price">
+                                                        {itemHasSale ? (
+                                                            <>
+                                                                <span className="rk-pdp__related-price-sale">€{item.salePriceFormatted}</span>
+                                                                {itemHasPrice && (
+                                                                    <span className="rk-pdp__related-price-original">€{item.priceFormatted}</span>
+                                                                )}
+                                                            </>
+                                                        ) : (
+                                                            <span className="rk-pdp__related-price-current">€{item.priceFormatted}</span>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </a>
+                                    );
+                                })}
+                            </div>
                         </div>
                     </section>
                 )}
