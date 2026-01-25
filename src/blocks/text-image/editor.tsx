@@ -14,8 +14,12 @@ import {
     TextareaControl,
     SelectControl,
     Button,
+    // @ts-expect-error - FocalPointPicker exists but lacks TypeScript types
+    FocalPointPicker,
 } from '@wordpress/components';
 import type { TextImageAttributes } from './types';
+
+type FocalPoint = { x: number; y: number };
 
 interface EditProps {
     attributes: TextImageAttributes;
@@ -29,6 +33,8 @@ export function Edit({ attributes, setAttributes }: EditProps): JSX.Element {
         imageUrl,
         imageAlt,
         imagePosition,
+        focalPoint = { x: 0.5, y: 0.5 },
+        imageScale = 'cover',
         buttonText,
         buttonUrl,
         theme,
@@ -85,16 +91,28 @@ export function Edit({ attributes, setAttributes }: EditProps): JSX.Element {
                             <div style={{ marginBottom: '1rem' }}>
                                 {imageUrl ? (
                                     <>
-                                        <img
-                                            src={imageUrl}
-                                            alt={imageAlt}
-                                            style={{
-                                                width: '100%',
-                                                height: 'auto',
-                                                marginBottom: '0.5rem',
-                                                borderRadius: '8px',
-                                            }}
-                                        />
+                                        <div style={{
+                                            marginBottom: '0.75rem',
+                                            borderRadius: '8px',
+                                            overflow: 'hidden',
+                                            border: '1px solid #ddd'
+                                        }}>
+                                            <FocalPointPicker
+                                                url={imageUrl}
+                                                value={focalPoint}
+                                                onChange={(newFocalPoint: FocalPoint) =>
+                                                    setAttributes({ focalPoint: newFocalPoint })
+                                                }
+                                            />
+                                        </div>
+                                        <p style={{
+                                            marginBottom: '0.75rem',
+                                            fontSize: '12px',
+                                            color: '#757575',
+                                            lineHeight: 1.4
+                                        }}>
+                                            Click on the image to set the focus point.
+                                        </p>
                                         <div style={{ display: 'flex', gap: '0.5rem' }}>
                                             <Button onClick={onRemoveImage} variant="secondary" isDestructive>
                                                 Remove
@@ -127,6 +145,20 @@ export function Edit({ attributes, setAttributes }: EditProps): JSX.Element {
                         onChange={(value) =>
                             setAttributes({ imagePosition: value as 'left' | 'right' })
                         }
+                    />
+                    <SelectControl
+                        label="Image Scale"
+                        value={imageScale}
+                        options={[
+                            { label: 'Fill (Cover)', value: 'cover' },
+                            { label: 'Fit (Contain)', value: 'contain' },
+                        ]}
+                        onChange={(value) =>
+                            setAttributes({ imageScale: value as 'cover' | 'contain' })
+                        }
+                        help={imageScale === 'cover'
+                            ? 'Image fills the container, may be cropped.'
+                            : 'Entire image visible, may show empty space.'}
                     />
                 </PanelBody>
                 <PanelBody title="Call to Action" initialOpen={false}>
@@ -192,6 +224,10 @@ export function Edit({ attributes, setAttributes }: EditProps): JSX.Element {
                                         className="rk-text-image__img"
                                         src={imageUrl}
                                         alt={imageAlt || ''}
+                                        style={{
+                                            objectFit: imageScale,
+                                            objectPosition: `${focalPoint.x * 100}% ${focalPoint.y * 100}%`,
+                                        }}
                                     />
                                 ) : (
                                     <div className="rk-text-image__placeholder">

@@ -19,6 +19,8 @@ export function View({ attributes, className }: ViewProps): JSX.Element {
         imageUrl,
         imageAlt,
         imagePosition = 'right',
+        focalPoint = { x: 0.5, y: 0.5 },
+        imageScale = 'cover',
         buttonText,
         buttonUrl,
         theme = 'light',
@@ -74,6 +76,10 @@ export function View({ attributes, className }: ViewProps): JSX.Element {
                                     src={imageUrl}
                                     alt={imageAlt || ''}
                                     loading="lazy"
+                                    style={{
+                                        objectFit: imageScale,
+                                        objectPosition: `${focalPoint.x * 100}% ${focalPoint.y * 100}%`,
+                                    }}
                                 />
                             ) : (
                                 <div className="rk-text-image__placeholder" aria-hidden="true" />
